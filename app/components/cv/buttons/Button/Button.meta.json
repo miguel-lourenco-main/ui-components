@@ -1,0 +1,53 @@
+{
+  "id": "button",
+  "name": "Button", 
+  "category": "form",
+  "description": "Interactive button component with multiple variants and sizes",
+  "props": [
+    {
+      "name": "variant",
+      "type": "enum",
+      "required": false,
+      "defaultValue": "primary",
+      "options": ["primary", "secondary", "outline", "ghost"],
+      "description": "Button style variant"
+    },
+    {
+      "name": "size",
+      "type": "enum", 
+      "required": false,
+      "defaultValue": "md",
+      "options": ["sm", "md", "lg"],
+      "description": "Button size"
+    },
+    {
+      "name": "children",
+      "type": "string",
+      "required": true,
+      "description": "Button content/text"
+    },
+    {
+      "name": "onClick",
+      "type": "function",
+      "required": false,
+      "description": "Click handler function"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "required": false,
+      "defaultValue": false,
+      "description": "Whether the button is disabled"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "defaultValue": "",
+      "description": "Additional CSS classes"
+    }
+  ],
+  "tags": ["interactive", "form", "action"],
+  "version": "1.0.0",
+  "author": "UI Components Team"
+} 

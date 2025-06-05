@@ -1,11 +1,11 @@
 'use client';
 
 import { Component as ComponentType } from 'react';
-import { Component } from '@/types';
+import { Component, LocalComponent } from '@/types';
 import { AlertTriangleIcon, RefreshCwIcon } from 'lucide-react';
 
 interface ComponentRendererProps {
-  component: Component;
+  component: Component | LocalComponent;
   props: Record<string, any>;
   code: string;
   viewMode: 'desktop' | 'tablet' | 'mobile';

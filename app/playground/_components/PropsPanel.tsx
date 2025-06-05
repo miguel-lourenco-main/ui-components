@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Component, PropDefinition } from '@/types';
+import { Component, LocalComponent, PropDefinition } from '@/types';
 import { RefreshCwIcon, InfoIcon, EyeIcon, EyeOffIcon } from 'lucide-react';
 
 interface PropsPanelProps {
-  component: Component;
+  component: Component | LocalComponent;
   values: Record<string, any>;
   onChange: (values: Record<string, any>) => void;
 }

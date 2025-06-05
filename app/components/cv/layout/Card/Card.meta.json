@@ -1,0 +1,67 @@
+{
+  "id": "card",
+  "name": "Card",
+  "category": "layout",
+  "description": "Flexible card component with header, body, and footer sections",
+  "props": [
+    {
+      "name": "children",
+      "type": "string",
+      "required": true,
+      "description": "Card content"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "defaultValue": "",
+      "description": "Additional CSS classes"
+    },
+    {
+      "name": "padding",
+      "type": "enum",
+      "required": false,
+      "defaultValue": "md",
+      "options": ["none", "sm", "md", "lg"],
+      "description": "Internal padding"
+    },
+    {
+      "name": "shadow",
+      "type": "enum",
+      "required": false,
+      "defaultValue": "md",
+      "options": ["none", "sm", "md", "lg"],
+      "description": "Drop shadow size"
+    },
+    {
+      "name": "border",
+      "type": "boolean",
+      "required": false,
+      "defaultValue": true,
+      "description": "Whether to show border"
+    },
+    {
+      "name": "rounded",
+      "type": "enum",
+      "required": false,
+      "defaultValue": "md",
+      "options": ["none", "sm", "md", "lg"],
+      "description": "Border radius"
+    },
+    {
+      "name": "header",
+      "type": "string",
+      "required": false,
+      "description": "Card header content"
+    },
+    {
+      "name": "footer",
+      "type": "string",
+      "required": false,
+      "description": "Card footer content"
+    }
+  ],
+  "tags": ["layout", "container", "card"],
+  "version": "1.0.0",
+  "author": "UI Components Team"
+} 

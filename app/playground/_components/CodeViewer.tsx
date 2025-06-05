@@ -1,24 +1,22 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import Editor from '@monaco-editor/react';
 import { CodeIcon, CopyIcon, DownloadIcon } from 'lucide-react';
 
-interface CodeEditorProps {
+interface CodeViewerProps {
   value: string;
-  onChange: (value: string) => void;
   language?: string;
   height?: string;
-  readonly?: boolean;
+  title?: string;
 }
 
-export default function CodeEditor({
+export default function CodeViewer({
   value,
-  onChange,
   language = 'typescript',
   height = '100%',
-  readonly = false,
-}: CodeEditorProps) {
+  title = 'Generated Code',
+}: CodeViewerProps) {
   const editorRef = useRef<any>(null);
 
   const handleEditorDidMount = (editor: any, monaco: any) => {
@@ -79,8 +77,8 @@ export default function CodeEditor({
       inherit: true,
       rules: [],
       colors: {
-        'editor.background': '#ffffff',
-        'editor.lineHighlightBackground': '#f8fafc',
+        'editor.background': '#f8fafc',
+        'editor.lineHighlightBackground': '#f1f5f9',
         'editorLineNumber.foreground': '#94a3b8',
       },
     });
@@ -109,48 +107,45 @@ export default function CodeEditor({
 
   return (
     <div className="h-full flex flex-col">
-      {/* Editor Toolbar */}
-      <div className="flex items-center justify-between p-2 bg-gray-50 border-b border-gray-200">
+      {/* Viewer Toolbar */}
+      <div className="flex items-center justify-between p-3 bg-gray-50 border-b border-gray-200">
         <div className="flex items-center space-x-2">
           <CodeIcon className="w-4 h-4 text-gray-600" />
-          <span className="text-sm font-medium text-gray-700">
+          <span className="text-sm font-medium text-gray-700">{title}</span>
+          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
             {language === 'typescript' ? 'TypeScript' : 'JavaScript'}
           </span>
-          {readonly && (
-            <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">
-              Read Only
-            </span>
-          )}
         </div>
         
         <div className="flex items-center space-x-1">
           <button
             onClick={copyToClipboard}
-            className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded"
+            className="flex items-center space-x-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded"
             title="Copy to clipboard"
           >
             <CopyIcon className="w-4 h-4" />
+            <span>Copy</span>
           </button>
           <button
             onClick={downloadCode}
-            className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded"
+            className="flex items-center space-x-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded"
             title="Download code"
           >
             <DownloadIcon className="w-4 h-4" />
+            <span>Download</span>
           </button>
         </div>
       </div>
 
-      {/* Monaco Editor */}
+      {/* Monaco Editor (Read-only) */}
       <div className="flex-1">
         <Editor
           height={height}
           language={language}
           value={value}
-          onChange={(newValue) => onChange(newValue || '')}
           onMount={handleEditorDidMount}
           options={{
-            readOnly: readonly,
+            readOnly: true,
             minimap: { enabled: false },
             fontSize: 14,
             lineNumbers: 'on',
@@ -168,20 +163,18 @@ export default function CodeEditor({
               bracketPairs: true,
               indentation: true,
             },
-            suggest: {
-              showKeywords: true,
-              showSnippets: true,
-            },
+            // Disable editing features
+            contextmenu: false,
             quickSuggestions: {
-              other: true,
-              comments: false,
-              strings: false,
+              other: 'off',
+              comments: 'off',
+              strings: 'off',
             },
-            parameterHints: {
-              enabled: true,
-            },
-            formatOnPaste: true,
-            formatOnType: true,
+            hover: { enabled: true },
+            selectOnLineNumbers: false,
+            selectionHighlight: false,
+            occurrencesHighlight: 'off',
+            cursorStyle: 'line-thin',
           }}
         />
       </div>

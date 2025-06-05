@@ -1,0 +1,72 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2024-01-01T00:00:00.000Z",
+  "categories": [
+    {
+      "id": "form",
+      "name": "Form",
+      "description": "Form input and interactive components",
+      "icon": "📝"
+    },
+    {
+      "id": "layout",
+      "name": "Layout",
+      "description": "Layout and container components",
+      "icon": "📐"
+    },
+    {
+      "id": "navigation",
+      "name": "Navigation",
+      "description": "Navigation and menu components",
+      "icon": "🧭"
+    },
+    {
+      "id": "feedback",
+      "name": "Feedback",
+      "description": "Feedback and status components",
+      "icon": "💬"
+    },
+    {
+      "id": "data-display",
+      "name": "Data Display",
+      "description": "Components for displaying data",
+      "icon": "📊"
+    }
+  ],
+  "components": [
+    {
+      "id": "button",
+      "name": "Button",
+      "category": "form",
+      "description": "Interactive button component with multiple variants and sizes",
+      "filePath": "app/components/cv/buttons/Button.tsx",
+      "metaPath": "app/components/cv/buttons/Button.meta.json",
+      "examplesPath": "app/components/cv/buttons/Button.examples.tsx",
+      "tags": ["interactive", "form", "action"],
+      "version": "1.0.0",
+      "author": "UI Components Team"
+    },
+    {
+      "id": "input",
+      "name": "Input",
+      "category": "form",
+      "description": "Form input component with validation states and labels",
+      "filePath": "app/components/cv/forms/Input.tsx",
+      "metaPath": "app/components/cv/forms/Input.meta.json",
+      "tags": ["form", "input", "validation"],
+      "version": "1.0.0",
+      "author": "UI Components Team"
+    },
+    {
+      "id": "card",
+      "name": "Card",
+      "category": "layout",
+      "description": "Flexible card component with header, body, and footer sections",
+      "filePath": "app/components/cv/layout/Card.tsx",
+      "metaPath": "app/components/cv/layout/Card.meta.json",
+      "tags": ["layout", "container", "card"],
+      "version": "1.0.0",
+      "author": "UI Components Team"
+    }
+  ]
+} 

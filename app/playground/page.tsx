@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Component, PlaygroundState } from '@/types';
 import ComponentSelector from './_components/ComponentSelector';
 import ComponentRenderer from './_components/ComponentRenderer';
-import CodeEditor from './_components/CodeEditor';
+import LocalComponentRenderer from './_components/LocalComponentRenderer';
+import CodeViewer from './_components/CodeViewer';
 import PropsPanel from './_components/PropsPanel';
 import ViewportControls from './_components/ViewportControls';
-import { fetchComponents } from '@/lib/gitlab';
+import { useLocalComponentState } from './_hooks/useLocalComponentState';
 import { PlayIcon, CodeIcon, SettingsIcon, XIcon } from 'lucide-react';
 import {
   ResizablePanelGroup,
@@ -16,69 +15,28 @@ import {
 } from "@/components/shadcn/resizable"
 
 export default function PlaygroundPage() {
-  const [components, setComponents] = useState<Component[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [playgroundState, setPlaygroundState] = useState<PlaygroundState>({
-    selectedComponent: null,
-    currentProps: {},
-    currentCode: '',
-    viewMode: 'desktop',
-    showProps: true,
-    showCode: true,
-    searchQuery: '',
-    selectedCategory: null,
-  });
-
-  useEffect(() => {
-    loadComponents();
-  }, []);
-
-  const loadComponents = async () => {
-    try {
-      setLoading(true);
-      const fetchedComponents = await fetchComponents();
-      setComponents(fetchedComponents);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load components');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleComponentSelect = (component: Component) => {
-    const defaultProps = component.props.reduce((acc, prop) => {
-      acc[prop.name] = prop.defaultValue;
-      return acc;
-    }, {} as Record<string, any>);
-
-    setPlaygroundState(prev => ({
-      ...prev,
-      selectedComponent: component,
-      currentProps: defaultProps,
-      currentCode: component.code,
-    }));
-  };
-
-  const handlePropsChange = (props: Record<string, any>) => {
-    setPlaygroundState(prev => ({
-      ...prev,
-      currentProps: props,
-    }));
-  };
-
-  const handleCodeChange = (code: string) => {
-    setPlaygroundState(prev => ({
-      ...prev,
-      currentCode: code,
-    }));
-  };
+  const {
+    components,
+    playgroundState,
+    loading,
+    error,
+    selectComponent,
+    updateProps,
+    resetToDefaults,
+    setViewMode,
+    togglePropsPanel,
+    toggleCodePanel,
+    setSearchQuery,
+    setSelectedCategory,
+    loadComponents
+  } = useLocalComponentState();
 
   const togglePanel = (panel: 'props' | 'code') => {
-    setPlaygroundState(prev => ({
-      ...prev,
-      [panel === 'props' ? 'showProps' : 'showCode']: !prev[panel === 'props' ? 'showProps' : 'showCode'],
-    }));
+    if (panel === 'props') {
+      togglePropsPanel();
+    } else {
+      toggleCodePanel();
+    }
   };
 
   if (loading) {
@@ -130,7 +88,7 @@ export default function PlaygroundPage() {
           <div className="flex items-center space-x-2">
             <ViewportControls
               viewMode={playgroundState.viewMode}
-              onViewModeChange={(mode) => setPlaygroundState(prev => ({ ...prev, viewMode: mode }))}
+              onViewModeChange={setViewMode}
             />
             <button
               onClick={() => togglePanel('props')}
@@ -142,7 +100,7 @@ export default function PlaygroundPage() {
             <button
               onClick={() => togglePanel('code')}
               className={`p-2 rounded ${playgroundState.showCode ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'}`}
-              title="Toggle Code Editor"
+              title="Toggle Code Viewer"
             >
               <CodeIcon className="w-5 h-5" />
             </button>
@@ -167,11 +125,11 @@ export default function PlaygroundPage() {
                 <ComponentSelector
                   components={components}
                   selectedComponent={playgroundState.selectedComponent}
-                  onSelect={handleComponentSelect}
+                  onSelect={selectComponent}
                   searchQuery={playgroundState.searchQuery}
                   selectedCategory={playgroundState.selectedCategory}
-                  onSearchChange={(query) => setPlaygroundState(prev => ({ ...prev, searchQuery: query }))}
-                  onCategoryChange={(category) => setPlaygroundState(prev => ({ ...prev, selectedCategory: category }))}
+                  onSearchChange={setSearchQuery}
+                  onCategoryChange={setSelectedCategory}
                 />
               </div>
             </div>
@@ -194,12 +152,24 @@ export default function PlaygroundPage() {
                 >
                   <div className="h-full p-6">
                     {playgroundState.selectedComponent ? (
-                      <ComponentRenderer
-                        component={playgroundState.selectedComponent}
-                        props={playgroundState.currentProps}
-                        code={playgroundState.currentCode}
-                        viewMode={playgroundState.viewMode}
-                      />
+                      'isLocal' in playgroundState.selectedComponent && playgroundState.selectedComponent.isLocal ? (
+                        <LocalComponentRenderer
+                          component={playgroundState.selectedComponent}
+                          compiledComponent={playgroundState.compiledComponent}
+                          props={playgroundState.currentProps}
+                          viewMode={playgroundState.viewMode}
+                          isCompiling={playgroundState.isCompiling}
+                          compileErrors={playgroundState.compileErrors}
+                          onRetry={() => selectComponent(playgroundState.selectedComponent!)}
+                        />
+                      ) : (
+                        <ComponentRenderer
+                          component={playgroundState.selectedComponent}
+                          props={playgroundState.currentProps}
+                          code={playgroundState.currentCode}
+                          viewMode={playgroundState.viewMode}
+                        />
+                      )
                     ) : (
                       <div className="h-full flex items-center justify-center text-gray-500">
                         <div className="text-center">
@@ -213,11 +183,11 @@ export default function PlaygroundPage() {
 
                 <ResizableHandle withHandle />
 
-                {/* Code Editor */}
+                {/* Code Viewer */}
                 <ResizablePanel defaultSize={40} minSize={20} className="bg-white border-t border-gray-200">
                   <div className="h-full flex flex-col">
                     <div className="p-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
-                      <h3 className="font-semibold">Code Editor</h3>
+                      <h3 className="font-semibold">Generated Code</h3>
                       <button
                         onClick={() => togglePanel('code')}
                         className="p-1 hover:bg-gray-100 rounded"
@@ -226,10 +196,10 @@ export default function PlaygroundPage() {
                       </button>
                     </div>
                     <div className="flex-1 overflow-hidden">
-                      <CodeEditor
+                      <CodeViewer
                         value={playgroundState.currentCode}
-                        onChange={handleCodeChange}
                         language="typescript"
+                        title="Component Code"
                       />
                     </div>
                   </div>
@@ -239,12 +209,24 @@ export default function PlaygroundPage() {
               /* Component Preview - Full Height when Code Editor is hidden */
               <div className="h-full bg-gray-50 p-6">
                 {playgroundState.selectedComponent ? (
-                  <ComponentRenderer
-                    component={playgroundState.selectedComponent}
-                    props={playgroundState.currentProps}
-                    code={playgroundState.currentCode}
-                    viewMode={playgroundState.viewMode}
-                  />
+                  'isLocal' in playgroundState.selectedComponent && playgroundState.selectedComponent.isLocal ? (
+                    <LocalComponentRenderer
+                      component={playgroundState.selectedComponent}
+                      compiledComponent={playgroundState.compiledComponent}
+                      props={playgroundState.currentProps}
+                      viewMode={playgroundState.viewMode}
+                      isCompiling={playgroundState.isCompiling}
+                      compileErrors={playgroundState.compileErrors}
+                      onRetry={() => selectComponent(playgroundState.selectedComponent!)}
+                    />
+                  ) : (
+                    <ComponentRenderer
+                      component={playgroundState.selectedComponent}
+                      props={playgroundState.currentProps}
+                      code={playgroundState.currentCode}
+                      viewMode={playgroundState.viewMode}
+                    />
+                  )
                 ) : (
                   <div className="h-full flex items-center justify-center text-gray-500">
                     <div className="text-center">
@@ -276,7 +258,7 @@ export default function PlaygroundPage() {
                     <PropsPanel
                       component={playgroundState.selectedComponent}
                       values={playgroundState.currentProps}
-                      onChange={handlePropsChange}
+                      onChange={updateProps}
                     />
                   </div>
                 </div>

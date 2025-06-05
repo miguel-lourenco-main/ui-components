@@ -87,3 +87,48 @@ export interface GitLabFile {
   content: string;
   encoding?: string;
 } 
+
+// Local component types
+export interface LocalComponent extends Component {
+  filePath: string;
+  metaPath: string;
+  examplesPath?: string;
+  lastModified: Date;
+  isLocal: true;
+}
+
+export interface LocalComponentMetadata {
+  id: string;
+  name: string;
+  category: 'form' | 'layout' | 'navigation' | 'feedback' | 'data-display';
+  description: string;
+  props: PropDefinition[];
+  tags?: string[];
+  version?: string;
+  author?: string;
+}
+
+export interface ComponentDiscoveryResult {
+  components: LocalComponent[];
+  errors: ComponentDiscoveryError[];
+}
+
+export interface ComponentDiscoveryError {
+  filePath: string;
+  error: string;
+  type: 'metadata' | 'component' | 'examples';
+}
+
+export interface ComponentCompilationResult {
+  success: boolean;
+  component?: React.ComponentType<any>;
+  error?: string;
+  exports?: Record<string, any>;
+}
+
+export interface LocalPlaygroundState extends Omit<PlaygroundState, 'selectedComponent'> {
+  selectedComponent: LocalComponent | null;
+  compiledComponent: React.ComponentType<any> | null;
+  compileErrors: string[];
+  isCompiling: boolean;
+} 

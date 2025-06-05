@@ -10,7 +10,9 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@babel/standalone": "^7.27.6",
     "@monaco-editor/react": "^4.6.0",
+    "@types/babel__standalone": "^7.1.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.294.0",

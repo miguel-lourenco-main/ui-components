@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Component } from '@/types';
+import { Component, LocalComponent } from '@/types';
 import { SearchIcon, FilterIcon, TagIcon } from 'lucide-react';
 
 interface ComponentSelectorProps {
-  components: Component[];
-  selectedComponent: Component | null;
-  onSelect: (component: Component) => void;
+  components: (Component | LocalComponent)[];
+  selectedComponent: (Component | LocalComponent) | null;
+  onSelect: (component: Component | LocalComponent) => void;
   searchQuery: string;
   selectedCategory: string | null;
   onSearchChange: (query: string) => void;
