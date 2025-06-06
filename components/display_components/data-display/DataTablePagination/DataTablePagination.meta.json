@@ -1,0 +1,22 @@
+{
+  "id": "data-table-pagination",
+  "name": "DataTablePagination",
+  "category": "data-display", 
+  "description": "Standalone pagination component for data tables with page size controls and navigation",
+  "props": [
+    {
+      "name": "table",
+      "type": "Table<TData>",
+      "required": true,
+      "description": "Table instance from @tanstack/react-table with pagination state"
+    }
+  ],
+  "tags": ["pagination", "table", "navigation", "page-size"],
+  "version": "1.0.0",
+  "author": "UI Components Team",
+  "dependencies": [
+    "@tanstack/react-table",
+    "@radix-ui/react-icons",
+    "react-i18next"
+  ]
+} 

@@ -1,7 +1,7 @@
 export interface Component {
   id: string;
   name: string;
-  category: 'form' | 'layout';
+  category: 'form' | 'layout' | 'data-display';
   description: string;
   props: PropDefinition[];
   code: string;
@@ -100,7 +100,7 @@ export interface LocalComponent extends Component {
 export interface LocalComponentMetadata {
   id: string;
   name: string;
-  category: 'form' | 'layout';
+  category: 'form' | 'layout' | 'data-display';
   description: string;
   props: PropDefinition[];
   tags?: string[];
@@ -119,16 +119,8 @@ export interface ComponentDiscoveryError {
   type: 'metadata' | 'component' | 'examples';
 }
 
-export interface ComponentCompilationResult {
-  success: boolean;
-  component?: React.ComponentType<any>;
-  error?: string;
-  exports?: Record<string, any>;
-}
+
 
 export interface LocalPlaygroundState extends Omit<PlaygroundState, 'selectedComponent'> {
   selectedComponent: LocalComponent | null;
-  compiledComponent: React.ComponentType<any> | null;
-  compileErrors: string[];
-  isCompiling: boolean;
 } 

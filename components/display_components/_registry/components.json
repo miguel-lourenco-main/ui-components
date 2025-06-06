@@ -13,6 +13,12 @@
       "name": "Layout",
       "description": "Layout and container components",
       "icon": "📐"
+    },
+    {
+      "id": "data-display",
+      "name": "Data Display",
+      "description": "Components for displaying and interacting with data",
+      "icon": "📊"
     }
   ],
   "components": [
@@ -21,9 +27,9 @@
       "name": "Button",
       "category": "form",
       "description": "Interactive button component with multiple variants and sizes",
-      "filePath": "app/components/cv/buttons/Button.tsx",
-      "metaPath": "app/components/cv/buttons/Button.meta.json",
-      "examplesPath": "app/components/cv/buttons/Button.examples.tsx",
+      "filePath": "components/display_components/buttons/Button/Button.tsx",
+      "metaPath": "components/display_components/buttons/Button/Button.meta.json",
+      "examplesPath": "components/display_components/buttons/Button/Button.examples.tsx",
       "tags": ["interactive", "form", "action"],
       "version": "1.0.0",
       "author": "UI Components Team"
@@ -33,8 +39,9 @@
       "name": "Input",
       "category": "form",
       "description": "Form input component with validation states and labels",
-      "filePath": "app/components/cv/forms/Input.tsx",
-      "metaPath": "app/components/cv/forms/Input.meta.json",
+      "filePath": "components/display_components/forms/Input/Input.tsx",
+      "metaPath": "components/display_components/forms/Input/Input.meta.json",
+      "examplesPath": "components/display_components/forms/Input/Input.examples.tsx",
       "tags": ["form", "input", "validation"],
       "version": "1.0.0",
       "author": "UI Components Team"
@@ -44,9 +51,34 @@
       "name": "Card",
       "category": "layout",
       "description": "Flexible card component with header, body, and footer sections",
-      "filePath": "app/components/cv/layout/Card.tsx",
-      "metaPath": "app/components/cv/layout/Card.meta.json",
+      "filePath": "components/display_components/layout/Card/Card.tsx",
+      "metaPath": "components/display_components/layout/Card/Card.meta.json",
+      "examplesPath": "components/display_components/layout/Card/Card.examples.tsx",
       "tags": ["layout", "container", "card"],
+      "version": "1.0.0",
+      "author": "UI Components Team"
+    },
+    {
+      "id": "data-table",
+      "name": "DataTable",
+      "category": "data-display",
+      "description": "Advanced data table component with sorting, filtering, pagination, and row selection",
+      "filePath": "components/display_components/data-display/DataTable/DataTable.tsx",
+      "metaPath": "components/display_components/data-display/DataTable/DataTable.meta.json",
+      "examplesPath": "components/display_components/data-display/DataTable/DataTable.examples.tsx",
+      "tags": ["table", "data", "sorting", "filtering", "pagination", "selection"],
+      "version": "1.0.0",
+      "author": "UI Components Team"
+    },
+    {
+      "id": "data-table-pagination",
+      "name": "DataTablePagination",
+      "category": "data-display",
+      "description": "Standalone pagination component for data tables with page size controls and navigation",
+      "filePath": "components/display_components/data-display/DataTablePagination/DataTablePagination.tsx",
+      "metaPath": "components/display_components/data-display/DataTablePagination/DataTablePagination.meta.json",
+      "examplesPath": "components/display_components/data-display/DataTablePagination/DataTablePagination.examples.tsx",
+      "tags": ["pagination", "table", "navigation", "page-size"],
       "version": "1.0.0",
       "author": "UI Components Team"
     }

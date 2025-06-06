@@ -1,18 +1,18 @@
 'use client';
 
-import ComponentSelector from './_components/ComponentSelector';
-import ComponentRenderer from './_components/ComponentRenderer';
-import LocalComponentRenderer from './_components/LocalComponentRenderer';
-import CodeViewer from './_components/CodeViewer';
-import PropsPanel from './_components/PropsPanel';
-import ViewportControls from './_components/ViewportControls';
-import { useLocalComponentState } from './_hooks/useLocalComponentState';
+import ComponentSelector from '@/components/ComponentSelector';
+import ComponentRenderer from '@/components/ComponentRenderer';
+import LocalComponentRenderer from '@/components/LocalComponentRenderer';
+import CodeViewer from '@/components/CodeViewer';
+import PropsPanel from '@/components/PropsPanel';
+import ViewportControls from '@/components/ViewportControls';
+import { useLocalComponentState } from '@/lib/hooks/useLocalComponentState';
 import { PlayIcon, CodeIcon, SettingsIcon, XIcon } from 'lucide-react';
 import {
   ResizablePanelGroup,
   ResizablePanel,
   ResizableHandle,
-} from "@/components/shadcn/resizable"
+} from "@/components/ui/resizable"
 
 export default function PlaygroundPage() {
   const {
@@ -22,7 +22,6 @@ export default function PlaygroundPage() {
     error,
     selectComponent,
     updateProps,
-    resetToDefaults,
     setViewMode,
     togglePropsPanel,
     toggleCodePanel,
@@ -155,11 +154,8 @@ export default function PlaygroundPage() {
                       'isLocal' in playgroundState.selectedComponent && playgroundState.selectedComponent.isLocal ? (
                         <LocalComponentRenderer
                           component={playgroundState.selectedComponent}
-                          compiledComponent={playgroundState.compiledComponent}
                           props={playgroundState.currentProps}
                           viewMode={playgroundState.viewMode}
-                          isCompiling={playgroundState.isCompiling}
-                          compileErrors={playgroundState.compileErrors}
                           onRetry={() => selectComponent(playgroundState.selectedComponent!)}
                         />
                       ) : (
@@ -212,11 +208,8 @@ export default function PlaygroundPage() {
                   'isLocal' in playgroundState.selectedComponent && playgroundState.selectedComponent.isLocal ? (
                     <LocalComponentRenderer
                       component={playgroundState.selectedComponent}
-                      compiledComponent={playgroundState.compiledComponent}
                       props={playgroundState.currentProps}
                       viewMode={playgroundState.viewMode}
-                      isCompiling={playgroundState.isCompiling}
-                      compileErrors={playgroundState.compileErrors}
                       onRetry={() => selectComponent(playgroundState.selectedComponent!)}
                     />
                   ) : (

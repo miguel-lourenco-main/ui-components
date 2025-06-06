@@ -7,7 +7,7 @@ import {
   ResizablePanelGroup,
   ResizablePanel,
   ResizableHandle,
-} from "@/components/shadcn/resizable"
+} from "@/components/ui/resizable"
 
 interface PropsPanelProps {
   component: Component | LocalComponent;
