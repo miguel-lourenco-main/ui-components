@@ -101,7 +101,7 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
         // Create safe props by re-importing the examples to get fresh function references
         const exampleProps = localComponent.examples[0].props;
         
-                 // For DataTable, create fresh props to avoid serialization issues
+                 // Handle components that need special prop handling
          if (localComponent.name === 'DataTable') {
           
           // Sample data - safe to copy
@@ -155,14 +155,32 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
             ].filter(Boolean));
           };
           
-          initialProps = {
-            columns: sampleColumns,
-            data: sampleData,
-            tableLabel: "Users",
-            filters: sampleFilters,
-            createToolbarButtons: createToolbarButtons
-          };
-        } else {
+                     initialProps = {
+             columns: sampleColumns,
+             data: sampleData,
+             tableLabel: "Users",
+             filters: sampleFilters,
+             createToolbarButtons: createToolbarButtons
+           };
+         } else if (localComponent.name === 'DataTablePagination') {
+           // DataTablePagination needs a table object, but we can't provide one easily
+           // For now, provide a mock structure to avoid errors
+           initialProps = {
+             table: {
+               // Mock minimal table interface for display purposes
+               getState: () => ({ pagination: { pageSize: 10, pageIndex: 0 } }),
+               getPageCount: () => 5,
+               getFilteredSelectedRowModel: () => ({ rows: [] }),
+               getFilteredRowModel: () => ({ rows: Array(50).fill({}) }),
+               setPageSize: () => {},
+               setPageIndex: () => {},
+               getCanPreviousPage: () => true,
+               getCanNextPage: () => true,
+               previousPage: () => {},
+               nextPage: () => {}
+             }
+           };
+         } else {
           // For other components, do a careful copy avoiding functions
           initialProps = {};
           for (const [key, value] of Object.entries(exampleProps)) {

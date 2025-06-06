@@ -6,7 +6,7 @@
   "props": [
     {
       "name": "table",
-      "type": "Table<TData>",
+      "type": "object",
       "required": true,
       "description": "Table instance from @tanstack/react-table with pagination state"
     }
