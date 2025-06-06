@@ -17,9 +17,6 @@ interface ComponentSelectorProps {
 const categories = [
   { id: 'form', name: 'Form', icon: '📝' },
   { id: 'layout', name: 'Layout', icon: '📐' },
-  { id: 'navigation', name: 'Navigation', icon: '🧭' },
-  { id: 'feedback', name: 'Feedback', icon: '💬' },
-  { id: 'data-display', name: 'Data Display', icon: '📊' },
 ];
 
 export default function ComponentSelector({

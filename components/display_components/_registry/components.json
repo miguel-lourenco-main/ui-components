@@ -13,24 +13,6 @@
       "name": "Layout",
       "description": "Layout and container components",
       "icon": "📐"
-    },
-    {
-      "id": "navigation",
-      "name": "Navigation",
-      "description": "Navigation and menu components",
-      "icon": "🧭"
-    },
-    {
-      "id": "feedback",
-      "name": "Feedback",
-      "description": "Feedback and status components",
-      "icon": "💬"
-    },
-    {
-      "id": "data-display",
-      "name": "Data Display",
-      "description": "Components for displaying data",
-      "icon": "📊"
     }
   ],
   "components": [

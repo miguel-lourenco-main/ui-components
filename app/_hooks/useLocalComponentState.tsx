@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { Component, LocalComponent, LocalPlaygroundState, ComponentCompilationResult } from '@/types';
+import { Component, LocalComponent, LocalPlaygroundState } from '@/types';
 import { discoverLocalComponents } from '@/lib/localComponents';
 import { compileComponent } from '../_utils/componentCompiler';
 

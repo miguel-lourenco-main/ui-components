@@ -1,7 +1,7 @@
 export interface Component {
   id: string;
   name: string;
-  category: 'form' | 'layout' | 'navigation' | 'feedback' | 'data-display';
+  category: 'form' | 'layout';
   description: string;
   props: PropDefinition[];
   code: string;
@@ -100,7 +100,7 @@ export interface LocalComponent extends Component {
 export interface LocalComponentMetadata {
   id: string;
   name: string;
-  category: 'form' | 'layout' | 'navigation' | 'feedback' | 'data-display';
+  category: 'form' | 'layout';
   description: string;
   props: PropDefinition[];
   tags?: string[];

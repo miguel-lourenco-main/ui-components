@@ -1,4 +1,4 @@
-import { LocalComponent, ComponentDiscoveryResult } from '@/types';
+import { ComponentDiscoveryResult } from '@/types';
 
 /**
  * Discover all local components by calling the API

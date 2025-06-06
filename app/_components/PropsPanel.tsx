@@ -3,6 +3,11 @@
 import { useState } from 'react';
 import { Component, LocalComponent, PropDefinition } from '@/types';
 import { RefreshCwIcon, InfoIcon, EyeIcon, EyeOffIcon } from 'lucide-react';
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from "@/components/shadcn/resizable"
 
 interface PropsPanelProps {
   component: Component | LocalComponent;
@@ -42,6 +47,8 @@ export default function PropsPanel({ component, values, onChange }: PropsPanelPr
   const requiredProps = component.props.filter(prop => prop.required);
   const optionalProps = component.props.filter(prop => !prop.required);
 
+  const hasExamples = component.examples && component.examples.length > 0;
+
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
@@ -70,81 +77,147 @@ export default function PropsPanel({ component, values, onChange }: PropsPanelPr
         </div>
       </div>
 
-      {/* Props List */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-4 space-y-6">
-          {/* Required Props */}
-          {requiredProps.length > 0 && (
-            <div>
-              <h4 className="font-medium text-gray-900 mb-3 flex items-center">
-                Required Props
-                <span className="ml-2 text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
-                  {requiredProps.length}
-                </span>
-              </h4>
-              <div className="space-y-4">
-                {requiredProps.map(prop => (
-                  <PropControl
-                    key={prop.name}
-                    prop={prop}
-                    value={values[prop.name]}
-                    onChange={(value) => handlePropChange(prop.name, value)}
-                    isExpanded={expandedProps.has(prop.name)}
-                    onToggleExpansion={() => togglePropExpansion(prop.name)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+      {/* Resizable Content Area */}
+      <div className="flex-1 overflow-hidden">
+        {hasExamples ? (
+          <ResizablePanelGroup direction="vertical" className="h-full">
+            {/* Props List Panel */}
+            <ResizablePanel defaultSize={70} minSize={30}>
+              <div className="h-full overflow-y-auto">
+                <div className="p-4 space-y-6">
+                  {/* Required Props */}
+                  {requiredProps.length > 0 && (
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                        Required Props
+                        <span className="ml-2 text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
+                          {requiredProps.length}
+                        </span>
+                      </h4>
+                      <div className="space-y-4">
+                        {requiredProps.map(prop => (
+                          <PropControl
+                            key={prop.name}
+                            prop={prop}
+                            value={values[prop.name]}
+                            onChange={(value) => handlePropChange(prop.name, value)}
+                            isExpanded={expandedProps.has(prop.name)}
+                            onToggleExpansion={() => togglePropExpansion(prop.name)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-          {/* Optional Props */}
-          {optionalProps.length > 0 && (showAdvanced || optionalProps.some(prop => values[prop.name] !== undefined)) && (
-            <div>
-              <h4 className="font-medium text-gray-900 mb-3 flex items-center">
-                Optional Props
-                <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                  {optionalProps.length}
-                </span>
-              </h4>
-              <div className="space-y-4">
-                {optionalProps.map(prop => (
-                  <PropControl
-                    key={prop.name}
-                    prop={prop}
-                    value={values[prop.name]}
-                    onChange={(value) => handlePropChange(prop.name, value)}
-                    isExpanded={expandedProps.has(prop.name)}
-                    onToggleExpansion={() => togglePropExpansion(prop.name)}
-                  />
-                ))}
+                  {/* Optional Props */}
+                  {optionalProps.length > 0 && (showAdvanced || optionalProps.some(prop => values[prop.name] !== undefined)) && (
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                        Optional Props
+                        <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                          {optionalProps.length}
+                        </span>
+                      </h4>
+                      <div className="space-y-4">
+                        {optionalProps.map(prop => (
+                          <PropControl
+                            key={prop.name}
+                            prop={prop}
+                            value={values[prop.name]}
+                            onChange={(value) => handlePropChange(prop.name, value)}
+                            isExpanded={expandedProps.has(prop.name)}
+                            onToggleExpansion={() => togglePropExpansion(prop.name)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      </div>
+            </ResizablePanel>
 
-      {/* Examples */}
-      {component.examples && component.examples.length > 0 && (
-        <div className="border-t border-gray-200 p-4">
-          <h4 className="font-medium text-gray-900 mb-3">Examples</h4>
-          <div className="space-y-2">
-            {component.examples.map((example, index) => (
-              <button
-                key={index}
-                onClick={() => onChange(example.props)}
-                className="w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border"
-              >
-                <div className="font-medium text-sm">{example.name}</div>
-                {example.description && (
-                  <div className="text-xs text-gray-600 mt-1">
-                    {example.description}
+            <ResizableHandle withHandle />
+
+            {/* Examples Panel */}
+            <ResizablePanel defaultSize={30} minSize={20}>
+              <div className="h-full overflow-y-auto border-t border-gray-200">
+                <div className="p-4">
+                  <h4 className="font-medium text-gray-900 mb-3">Examples</h4>
+                  <div className="space-y-2">
+                    {component.examples.map((example, index) => (
+                      <button
+                        key={index}
+                        onClick={() => onChange(example.props)}
+                        className="w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border"
+                      >
+                        <div className="font-medium text-sm">{example.name}</div>
+                        {example.description && (
+                          <div className="text-xs text-gray-600 mt-1">
+                            {example.description}
+                          </div>
+                        )}
+                      </button>
+                    ))}
                   </div>
-                )}
-              </button>
-            ))}
+                </div>
+              </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        ) : (
+          /* Props List - Full Height when no examples */
+          <div className="h-full overflow-y-auto">
+            <div className="p-4 space-y-6">
+              {/* Required Props */}
+              {requiredProps.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                    Required Props
+                    <span className="ml-2 text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
+                      {requiredProps.length}
+                    </span>
+                  </h4>
+                  <div className="space-y-4">
+                    {requiredProps.map(prop => (
+                      <PropControl
+                        key={prop.name}
+                        prop={prop}
+                        value={values[prop.name]}
+                        onChange={(value) => handlePropChange(prop.name, value)}
+                        isExpanded={expandedProps.has(prop.name)}
+                        onToggleExpansion={() => togglePropExpansion(prop.name)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Optional Props */}
+              {optionalProps.length > 0 && (showAdvanced || optionalProps.some(prop => values[prop.name] !== undefined)) && (
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                    Optional Props
+                    <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                      {optionalProps.length}
+                    </span>
+                  </h4>
+                  <div className="space-y-4">
+                    {optionalProps.map(prop => (
+                      <PropControl
+                        key={prop.name}
+                        prop={prop}
+                        value={values[prop.name]}
+                        onChange={(value) => handlePropChange(prop.name, value)}
+                        isExpanded={expandedProps.has(prop.name)}
+                        onToggleExpansion={() => togglePropExpansion(prop.name)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

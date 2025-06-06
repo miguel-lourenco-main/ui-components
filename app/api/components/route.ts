@@ -3,7 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { LocalComponent, LocalComponentMetadata, ComponentDiscoveryResult, ComponentDiscoveryError, ComponentExample } from '@/types';
 
-const COMPONENTS_DIR = path.join(process.cwd(), 'app/components/cv');
+const COMPONENTS_DIR = path.join(process.cwd(), 'components/display_components');
 
 /**
  * GET /api/components - Discover and return all local components

@@ -131,7 +131,7 @@ export default function ComponentRenderer({
         <div className="h-full flex items-center justify-center p-6">
           <div 
             style={getViewportStyles()}
-            className="w-full transition-all duration-300"
+            className="w-fit transition-all duration-300"
           >
             <ComponentErrorBoundary onRetry={handleRetry}>
               {renderDynamicComponent()}

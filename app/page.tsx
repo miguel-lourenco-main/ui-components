@@ -1,90 +1,272 @@
-import Link from 'next/link'
-import { PlayIcon, CodeIcon, LayoutIcon } from 'lucide-react'
+'use client';
 
-export default function HomePage() {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
-            UI Components Playground
-          </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Interactive playground for testing and documenting UI components. 
-            Fetch components from GitLab repositories and test them with real-time editing.
-          </p>
-        </div>
+import ComponentSelector from './_components/ComponentSelector';
+import ComponentRenderer from './_components/ComponentRenderer';
+import LocalComponentRenderer from './_components/LocalComponentRenderer';
+import CodeViewer from './_components/CodeViewer';
+import PropsPanel from './_components/PropsPanel';
+import ViewportControls from './_components/ViewportControls';
+import { useLocalComponentState } from './_hooks/useLocalComponentState';
+import { PlayIcon, CodeIcon, SettingsIcon, XIcon } from 'lucide-react';
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from "@/components/shadcn/resizable"
 
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
-          <div className="bg-white rounded-lg p-6 shadow-lg">
-            <CodeIcon className="w-12 h-12 text-blue-600 mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Live Code Editing</h3>
-            <p className="text-gray-600">
-              Monaco editor with TypeScript support for real-time component editing and preview.
-            </p>
-          </div>
-          
-          <div className="bg-white rounded-lg p-6 shadow-lg">
-            <LayoutIcon className="w-12 h-12 text-green-600 mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Interactive Props</h3>
-            <p className="text-gray-600">
-              Dynamic props panel with auto-generated controls for testing component behavior.
-            </p>
-          </div>
-          
-          <div className="bg-white rounded-lg p-6 shadow-lg">
-            <PlayIcon className="w-12 h-12 text-purple-600 mb-4" />
-            <h3 className="text-xl font-semibold mb-2">GitLab Integration</h3>
-            <p className="text-gray-600">
-              Seamlessly fetch and test components from your GitLab repositories.
-            </p>
-          </div>
-        </div>
+export default function PlaygroundPage() {
+  const {
+    components,
+    playgroundState,
+    loading,
+    error,
+    selectComponent,
+    updateProps,
+    resetToDefaults,
+    setViewMode,
+    togglePropsPanel,
+    toggleCodePanel,
+    setSearchQuery,
+    setSelectedCategory,
+    loadComponents
+  } = useLocalComponentState();
 
+  const togglePanel = (panel: 'props' | 'code') => {
+    if (panel === 'props') {
+      togglePropsPanel();
+    } else {
+      toggleCodePanel();
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Link 
-            href="/playground"
-            className="inline-flex items-center px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-          >
-            <PlayIcon className="w-5 h-5 mr-2" />
-            Open Playground
-          </Link>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-lg text-gray-600">Loading components...</p>
         </div>
+      </div>
+    );
+  }
 
-        <div className="mt-16 text-center">
-          <h2 className="text-2xl font-semibold mb-8">Features</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <CodeIcon className="w-8 h-8 text-blue-600" />
-              </div>
-              <h4 className="font-medium">Component Search</h4>
-              <p className="text-sm text-gray-600">Find and filter components easily</p>
-            </div>
-            <div className="text-center">
-              <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <LayoutIcon className="w-8 h-8 text-green-600" />
-              </div>
-              <h4 className="font-medium">Responsive Testing</h4>
-              <p className="text-sm text-gray-600">Test on desktop, tablet, and mobile</p>
-            </div>
-            <div className="text-center">
-              <div className="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <PlayIcon className="w-8 h-8 text-purple-600" />
-              </div>
-              <h4 className="font-medium">Error Boundaries</h4>
-              <p className="text-sm text-gray-600">Safe component rendering with fallbacks</p>
-            </div>
-            <div className="text-center">
-              <div className="bg-orange-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <CodeIcon className="w-8 h-8 text-orange-600" />
-              </div>
-              <h4 className="font-medium">TypeScript Support</h4>
-              <p className="text-sm text-gray-600">Full TypeScript intellisense and validation</p>
-            </div>
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <p className="font-bold">Error</p>
+            <p>{error}</p>
+          </div>
+          <button
+            onClick={loadComponents}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-screen flex flex-col bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 p-4 flex-shrink-0">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <h1 className="text-xl font-semibold flex items-center">
+              <PlayIcon className="w-6 h-6 mr-2 text-blue-600" />
+              Components Playground
+            </h1>
+            {playgroundState.selectedComponent && (
+              <span className="text-lg font-medium text-gray-700">
+                {playgroundState.selectedComponent.name}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center space-x-2">
+            <ViewportControls
+              viewMode={playgroundState.viewMode}
+              onViewModeChange={setViewMode}
+            />
+            <button
+              onClick={() => togglePanel('props')}
+              className={`p-2 rounded ${playgroundState.showProps ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'}`}
+              title="Toggle Props Panel"
+            >
+              <SettingsIcon className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => togglePanel('code')}
+              className={`p-2 rounded ${playgroundState.showCode ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'}`}
+              title="Toggle Code Viewer"
+            >
+              <CodeIcon className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Main Resizable Layout */}
+      <div className="flex-1 overflow-hidden">
+        <ResizablePanelGroup direction="horizontal" className="h-full">
+          {/* Sidebar - Component Selector */}
+          <ResizablePanel 
+            defaultSize={playgroundState.showProps ? 25 : 35} 
+            minSize={15} 
+            className="bg-white border-r border-gray-200"
+          >
+            <div className="h-full flex flex-col">
+              <div className="p-4 border-b border-gray-200 flex-shrink-0">
+                <h2 className="text-lg font-semibold text-gray-800">Components</h2>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <ComponentSelector
+                  components={components}
+                  selectedComponent={playgroundState.selectedComponent}
+                  onSelect={selectComponent}
+                  searchQuery={playgroundState.searchQuery}
+                  selectedCategory={playgroundState.selectedCategory}
+                  onSearchChange={setSearchQuery}
+                  onCategoryChange={setSelectedCategory}
+                />
+              </div>
+            </div>
+          </ResizablePanel>
+
+          <ResizableHandle withHandle />
+
+          {/* Main Content Area */}
+          <ResizablePanel 
+            defaultSize={playgroundState.showProps ? 50 : 65} 
+            minSize={20}
+          >
+            {playgroundState.showCode && playgroundState.selectedComponent ? (
+              <ResizablePanelGroup direction="vertical" className="h-full">
+                {/* Component Preview */}
+                <ResizablePanel 
+                  defaultSize={60} 
+                  minSize={30}
+                  className="bg-gray-50"
+                >
+                  <div className="h-full p-6">
+                    {playgroundState.selectedComponent ? (
+                      'isLocal' in playgroundState.selectedComponent && playgroundState.selectedComponent.isLocal ? (
+                        <LocalComponentRenderer
+                          component={playgroundState.selectedComponent}
+                          compiledComponent={playgroundState.compiledComponent}
+                          props={playgroundState.currentProps}
+                          viewMode={playgroundState.viewMode}
+                          isCompiling={playgroundState.isCompiling}
+                          compileErrors={playgroundState.compileErrors}
+                          onRetry={() => selectComponent(playgroundState.selectedComponent!)}
+                        />
+                      ) : (
+                        <ComponentRenderer
+                          component={playgroundState.selectedComponent}
+                          props={playgroundState.currentProps}
+                          code={playgroundState.currentCode}
+                          viewMode={playgroundState.viewMode}
+                        />
+                      )
+                    ) : (
+                      <div className="h-full flex items-center justify-center text-gray-500">
+                        <div className="text-center">
+                          <PlayIcon className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                          <p className="text-lg">Select a component to get started</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </ResizablePanel>
+
+                <ResizableHandle withHandle />
+
+                {/* Code Viewer */}
+                <ResizablePanel defaultSize={40} minSize={20} className="bg-white border-t border-gray-200">
+                  <div className="h-full flex flex-col">
+                    <div className="p-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
+                      <h3 className="font-semibold">Generated Code</h3>
+                      <button
+                        onClick={() => togglePanel('code')}
+                        className="p-1 hover:bg-gray-100 rounded"
+                      >
+                        <XIcon className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                      <CodeViewer
+                        value={playgroundState.currentCode}
+                        language="typescript"
+                        title="Component Code"
+                      />
+                    </div>
+                  </div>
+                </ResizablePanel>
+              </ResizablePanelGroup>
+            ) : (
+              /* Component Preview - Full Height when Code Editor is hidden */
+              <div className="h-full bg-gray-50 p-6">
+                {playgroundState.selectedComponent ? (
+                  'isLocal' in playgroundState.selectedComponent && playgroundState.selectedComponent.isLocal ? (
+                    <LocalComponentRenderer
+                      component={playgroundState.selectedComponent}
+                      compiledComponent={playgroundState.compiledComponent}
+                      props={playgroundState.currentProps}
+                      viewMode={playgroundState.viewMode}
+                      isCompiling={playgroundState.isCompiling}
+                      compileErrors={playgroundState.compileErrors}
+                      onRetry={() => selectComponent(playgroundState.selectedComponent!)}
+                    />
+                  ) : (
+                    <ComponentRenderer
+                      component={playgroundState.selectedComponent}
+                      props={playgroundState.currentProps}
+                      code={playgroundState.currentCode}
+                      viewMode={playgroundState.viewMode}
+                    />
+                  )
+                ) : (
+                  <div className="h-full flex items-center justify-center text-gray-500">
+                    <div className="text-center">
+                      <PlayIcon className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                      <p className="text-lg">Select a component to get started</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </ResizablePanel>
+
+          {/* Props Panel */}
+          {playgroundState.showProps && playgroundState.selectedComponent && (
+            <>
+              <ResizableHandle withHandle />
+              <ResizablePanel defaultSize={25} minSize={15} className="bg-white border-l border-gray-200">
+                <div className="h-full flex flex-col">
+                  <div className="p-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
+                    <h3 className="font-semibold">Props</h3>
+                    <button
+                      onClick={() => togglePanel('props')}
+                      className="p-1 hover:bg-gray-100 rounded"
+                    >
+                      <XIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-hidden">
+                    <PropsPanel
+                      component={playgroundState.selectedComponent}
+                      values={playgroundState.currentProps}
+                      onChange={updateProps}
+                    />
+                  </div>
+                </div>
+              </ResizablePanel>
+            </>
+          )}
+        </ResizablePanelGroup>
+      </div>
     </div>
-  )
+  );
 } 

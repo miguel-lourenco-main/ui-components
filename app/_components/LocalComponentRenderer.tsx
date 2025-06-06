@@ -203,7 +203,7 @@ export default function LocalComponentRenderer({
         <div className="h-full flex items-center justify-center p-6">
           <div 
             style={getViewportStyles()}
-            className="w-full transition-all duration-300"
+            className="w-fit transition-all duration-300"
           >
             <ComponentErrorBoundary onRetry={onRetry}>
               {renderContent()}
@@ -259,21 +259,7 @@ export default function LocalComponentRenderer({
           </div>
         </div>
 
-        {component.examples && component.examples.length > 0 && (
-          <div className="mt-3">
-            <span className="text-sm text-gray-600">Examples:</span>
-            <div className="flex flex-wrap gap-2 mt-1">
-              {component.examples.map((example, index) => (
-                <span
-                  key={index}
-                  className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded"
-                >
-                  {example.name}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
+        
       </div>
     </div>
   );
