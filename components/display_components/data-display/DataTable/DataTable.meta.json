@@ -6,13 +6,13 @@
   "props": [
     {
       "name": "columns",
-      "type": "ColumnDef<TData, TValue>[]",
+      "type": "array",
       "required": true,
       "description": "Column definitions for the table using @tanstack/react-table format"
     },
     {
       "name": "data",
-      "type": "TData[]",
+      "type": "array",
       "required": true,
       "description": "Array of data objects to display in the table"
     },
@@ -24,7 +24,7 @@
     },
     {
       "name": "filters",
-      "type": "Filter[]",
+      "type": "array",
       "required": false,
       "defaultValue": "[]",
       "description": "Array of filter configurations for faceted filtering. Each filter needs id and options array."
@@ -50,7 +50,7 @@
     },
     {
       "name": "initialSorting",
-      "type": "SortingState",
+      "type": "array",
       "required": false,
       "defaultValue": "[]",
       "description": "Initial sorting state for the table"

@@ -44,8 +44,9 @@ export default function PropsPanel({ component, values, onChange }: PropsPanelPr
     setExpandedProps(newExpanded);
   };
 
-  const requiredProps = component.props.filter(prop => prop.required);
-  const optionalProps = component.props.filter(prop => !prop.required);
+  const requiredProps = component.props.filter(prop => prop.required && prop.type !== 'function');
+  const advancedProps = component.props.filter(prop => !prop.required && prop.type !== 'function');
+  const functionProps = component.props.filter(prop => prop.type === 'function');
 
   const hasExamples = component.examples && component.examples.length > 0;
 
@@ -66,7 +67,12 @@ export default function PropsPanel({ component, values, onChange }: PropsPanelPr
         </div>
         
         <div className="flex items-center justify-between text-sm text-gray-600">
-          <span>{component.props.length} props total</span>
+          <span>
+            {showAdvanced 
+              ? `${component.props.length} props total`
+              : `${requiredProps.length} props${(advancedProps.length + functionProps.length) > 0 ? ` (+${advancedProps.length + functionProps.length} advanced)` : ''}`
+            }
+          </span>
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
             className="flex items-center hover:text-gray-900"
@@ -109,17 +115,17 @@ export default function PropsPanel({ component, values, onChange }: PropsPanelPr
                     </div>
                   )}
 
-                  {/* Optional Props */}
-                  {optionalProps.length > 0 && (showAdvanced || optionalProps.some(prop => values[prop.name] !== undefined)) && (
+                  {/* Advanced Props */}
+                  {advancedProps.length > 0 && showAdvanced && (
                     <div>
                       <h4 className="font-medium text-gray-900 mb-3 flex items-center">
-                        Optional Props
+                        Advanced Props
                         <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                          {optionalProps.length}
+                          {advancedProps.length}
                         </span>
                       </h4>
                       <div className="space-y-4">
-                        {optionalProps.map(prop => (
+                        {advancedProps.map(prop => (
                           <PropControl
                             key={prop.name}
                             prop={prop}
@@ -128,6 +134,47 @@ export default function PropsPanel({ component, values, onChange }: PropsPanelPr
                             isExpanded={expandedProps.has(prop.name)}
                             onToggleExpansion={() => togglePropExpansion(prop.name)}
                           />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Function Props (Advanced) */}
+                  {functionProps.length > 0 && showAdvanced && (
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                        Function Props
+                        <span className="ml-2 text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
+                          {functionProps.length}
+                        </span>
+                      </h4>
+                      <div className="space-y-4">
+                        {functionProps.map(prop => (
+                          <div key={prop.name} className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <label className="block text-sm font-medium text-gray-700">
+                                {prop.name}
+                                {prop.required && <span className="text-red-500 ml-1">*</span>}
+                              </label>
+                              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                                function
+                              </span>
+                            </div>
+                            <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                              <div className="text-sm text-gray-600">
+                                {values[prop.name] ? (
+                                  <span className="text-green-600 font-mono">[Function provided]</span>
+                                ) : (
+                                  <span className="text-gray-400">[No function set]</span>
+                                )}
+                              </div>
+                              {prop.description && (
+                                <div className="text-xs text-gray-500 mt-1">
+                                  {prop.description}
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         ))}
                       </div>
                     </div>
@@ -191,17 +238,17 @@ export default function PropsPanel({ component, values, onChange }: PropsPanelPr
                 </div>
               )}
 
-              {/* Optional Props */}
-              {optionalProps.length > 0 && (showAdvanced || optionalProps.some(prop => values[prop.name] !== undefined)) && (
+              {/* Advanced Props */}
+              {advancedProps.length > 0 && showAdvanced && (
                 <div>
                   <h4 className="font-medium text-gray-900 mb-3 flex items-center">
-                    Optional Props
+                    Advanced Props
                     <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                      {optionalProps.length}
+                      {advancedProps.length}
                     </span>
                   </h4>
                   <div className="space-y-4">
-                    {optionalProps.map(prop => (
+                    {advancedProps.map(prop => (
                       <PropControl
                         key={prop.name}
                         prop={prop}
@@ -210,6 +257,47 @@ export default function PropsPanel({ component, values, onChange }: PropsPanelPr
                         isExpanded={expandedProps.has(prop.name)}
                         onToggleExpansion={() => togglePropExpansion(prop.name)}
                       />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Function Props (Advanced) */}
+              {functionProps.length > 0 && showAdvanced && (
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                    Function Props
+                    <span className="ml-2 text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
+                      {functionProps.length}
+                    </span>
+                  </h4>
+                  <div className="space-y-4">
+                    {functionProps.map(prop => (
+                      <div key={prop.name} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <label className="block text-sm font-medium text-gray-700">
+                            {prop.name}
+                            {prop.required && <span className="text-red-500 ml-1">*</span>}
+                          </label>
+                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                            function
+                          </span>
+                        </div>
+                        <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                          <div className="text-sm text-gray-600">
+                            {values[prop.name] ? (
+                              <span className="text-green-600 font-mono">[Function provided]</span>
+                            ) : (
+                              <span className="text-gray-400">[No function set]</span>
+                            )}
+                          </div>
+                          {prop.description && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              {prop.description}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -294,29 +382,51 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
 
       case 'array':
       case 'object':
+        const displayValue = () => {
+          if (!value) return `${prop.type === 'array' ? '[]' : '{}'}`;
+          if (Array.isArray(value)) {
+            return `Array (${value.length} items)`;
+          }
+          if (typeof value === 'object') {
+            const keys = Object.keys(value);
+            return `Object (${keys.length} properties)`;
+          }
+          return String(value);
+        };
+
         return (
           <div>
-            <button
-              onClick={onToggleExpansion}
-              className="w-full text-left p-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              {isExpanded ? 'Hide JSON editor' : 'Show JSON editor'}
-            </button>
+            <div className="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-700 font-mono">
+                  {displayValue()}
+                </span>
+                <button
+                  onClick={onToggleExpansion}
+                  className="text-xs text-blue-600 hover:text-blue-800"
+                >
+                  {isExpanded ? 'Hide details' : 'Show details'}
+                </button>
+              </div>
+            </div>
             {isExpanded && (
-              <textarea
-                value={value ? JSON.stringify(value, null, 2) : ''}
-                onChange={(e) => {
-                  try {
-                    const parsed = e.target.value ? JSON.parse(e.target.value) : undefined;
-                    onChange(parsed);
-                  } catch {
-                    // Invalid JSON, don't update
-                  }
-                }}
-                rows={6}
-                className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
-                placeholder={prop.type === 'array' ? '[]' : '{}'}
-              />
+              <div className="mt-2">
+                <div className="text-xs text-gray-500 mb-1">JSON Editor:</div>
+                <textarea
+                  value={value ? JSON.stringify(value, null, 2) : ''}
+                  onChange={(e) => {
+                    try {
+                      const parsed = e.target.value ? JSON.parse(e.target.value) : undefined;
+                      onChange(parsed);
+                    } catch {
+                      // Invalid JSON, don't update
+                    }
+                  }}
+                  rows={6}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                  placeholder={prop.type === 'array' ? '[]' : '{}'}
+                />
+              </div>
             )}
           </div>
         );
