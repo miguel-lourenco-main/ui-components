@@ -14,11 +14,13 @@ function PlaygroundExample() {
   return (
     <div style={{ padding: '20px' }}>
       <Button
-  variant="primary"
-  size="lg"
-  disabled={false}
-  className=""
-/>
+        variant="primary"
+        size="lg"
+        disabled={false}
+        className=""
+      >
+        Click Me
+      </Button>
     </div>
   );
 }

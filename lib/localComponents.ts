@@ -1,14 +1,14 @@
 import { ComponentDiscoveryResult } from '@/types';
 
 /**
- * Discover all local components by calling the API
+ * Discover all local components from static registry data
  */
 export async function discoverLocalComponents(): Promise<ComponentDiscoveryResult> {
   console.log('🔍 Starting component discovery...');
   
   try {
-    console.log('📡 Fetching from /api/components');
-    const response = await fetch('/api/components');
+    console.log('📡 Fetching from /api/components.json');
+    const response = await fetch('/api/components.json');
     
     console.log('📡 Response status:', response.status);
     
@@ -26,7 +26,7 @@ export async function discoverLocalComponents(): Promise<ComponentDiscoveryResul
     return {
       components: [],
       errors: [{
-        filePath: '/api/components',
+        filePath: '/api/components.json',
         error: error instanceof Error ? error.message : 'Failed to fetch components',
         type: 'component'
       }]

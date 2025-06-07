@@ -1,0 +1,50 @@
+# GitLab CI/CD configuration for Next.js static export to GitLab Pages
+image: node:18-alpine
+
+# Define variables
+variables:
+  NODE_ENV: production
+
+# Cache node_modules for faster builds
+cache:
+  paths:
+    - node_modules/
+    - .next/cache/
+
+# Define stages
+stages:
+  - build
+  - deploy
+
+# Build stage
+build:
+  stage: build
+  before_script:
+    - npm install -g pnpm
+    - pnpm install --frozen-lockfile
+  script:
+    - pnpm run type-check
+    - pnpm run lint
+    - pnpm run build
+  artifacts:
+    paths:
+      - out/
+    expire_in: 1 hour
+  only:
+    - main
+    - master
+
+# Deploy to GitLab Pages
+pages:
+  stage: deploy
+  script:
+    - echo "Deploying to GitLab Pages..."
+    - mv out public  # GitLab Pages expects content in 'public' directory
+  artifacts:
+    paths:
+      - public/
+  dependencies:
+    - build
+  only:
+    - main
+    - master 

@@ -4,10 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/prepare-static-data.js && next build",
+    "export": "node scripts/prepare-static-data.js && next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "prepare-static": "node scripts/prepare-static-data.js"
   },
   "dependencies": {
     "@babel/standalone": "^7.27.6",
