@@ -43,8 +43,14 @@ pages:
   artifacts:
     paths:
       - public/
+    # Make pages publicly accessible
+    expire_in: never
   dependencies:
     - build
   only:
     - main
-    - master 
+    - master
+  # Ensure public access
+  environment:
+    name: production
+    url: $CI_PAGES_URL 
