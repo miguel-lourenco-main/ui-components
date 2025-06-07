@@ -61,4 +61,7 @@ temp/
 .vercel
 
 # Turbo
-.turbo 
+.turbo
+
+# Generated files
+lib/generated-registry.json 

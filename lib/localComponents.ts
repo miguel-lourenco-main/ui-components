@@ -1,33 +1,60 @@
-import { ComponentDiscoveryResult } from '@/types';
+import { ComponentDiscoveryResult, LocalComponent } from '@/types';
+import expandedRegistry from '@/lib/generated-registry.json';
 
 /**
- * Discover all local components from static registry data
+ * Discover all local components from the registry
  */
 export async function discoverLocalComponents(): Promise<ComponentDiscoveryResult> {
-  console.log('🔍 Starting component discovery...');
+  console.log('🔍 Starting component discovery from registry...');
   
   try {
-    console.log('📡 Fetching from /api/components.json');
-    const response = await fetch('/api/components.json');
+    const components: LocalComponent[] = [];
+    const errors: any[] = expandedRegistry.buildErrors || [];
     
-    console.log('📡 Response status:', response.status);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    for (const registryComponent of expandedRegistry.components) {
+      try {
+        const component: LocalComponent = {
+          id: registryComponent.id,
+          name: registryComponent.name,
+          category: registryComponent.category as any,
+          description: registryComponent.description,
+          props: (registryComponent.props || []) as any,
+          code: registryComponent.code || '',
+          examples: (registryComponent.examples || []) as any,
+          tags: registryComponent.tags || [],
+          version: registryComponent.version,
+          author: registryComponent.author,
+          filePath: registryComponent.filePath,
+          metaPath: registryComponent.metaPath,
+          examplesPath: registryComponent.examplesPath,
+          lastModified: new Date(registryComponent.lastModified || new Date()),
+          isLocal: true,
+          dependencies: registryComponent.dependencies || [],
+          createdAt: registryComponent.createdAt || new Date().toISOString(),
+          updatedAt: registryComponent.updatedAt || new Date().toISOString()
+        };
+        
+        components.push(component);
+      } catch (error) {
+        errors.push({
+          filePath: registryComponent.filePath,
+          error: error instanceof Error ? error.message : 'Unknown error',
+          type: 'component' as const
+        });
+      }
     }
     
-    const result: ComponentDiscoveryResult = await response.json();
-    console.log('✅ Components loaded:', result.components.length);
-    console.log('⚠️ Errors found:', result.errors.length);
+    console.log(`✅ ${components.length} components loaded from registry`);
+    console.log(`⚠️ ${errors.length} errors found`);
     
-    return result;
+    return { components, errors };
   } catch (error) {
-    console.error('❌ Failed to discover components:', error);
+    console.error('❌ Failed to load components from registry:', error);
     return {
       components: [],
       errors: [{
-        filePath: '/api/components.json',
-        error: error instanceof Error ? error.message : 'Failed to fetch components',
+        filePath: 'Registry',
+        error: error instanceof Error ? error.message : 'Failed to load registry',
         type: 'component'
       }]
     };
@@ -35,6 +62,35 @@ export async function discoverLocalComponents(): Promise<ComponentDiscoveryResul
 }
 
 
+
+/**
+ * Load detailed component data (code, props, examples) for a specific component
+ */
+export async function loadComponentDetails(componentId: string): Promise<Partial<LocalComponent>> {
+  const registryComponent = expandedRegistry.components.find((comp: any) => comp.id === componentId);
+  if (!registryComponent) {
+    throw new Error(`Component ${componentId} not found in registry`);
+  }
+
+  try {
+    console.log(`📄 Loading details for component: ${componentId}`);
+    
+    // All data is already available in the expanded registry
+    const details: Partial<LocalComponent> = {
+      id: registryComponent.id,
+      props: (registryComponent.props || []) as any,
+      code: registryComponent.code || '',
+      examples: (registryComponent.examples || []) as any,
+      dependencies: registryComponent.dependencies || []
+    };
+    
+    console.log(`✅ Component details loaded for: ${componentId}`);
+    return details;
+  } catch (error) {
+    console.error(`❌ Failed to load component details for ${componentId}:`, error);
+    throw error;
+  }
+}
 
 /**
  * Watch for changes in the components directory
