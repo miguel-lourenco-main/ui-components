@@ -6,8 +6,9 @@ import LocalComponentRenderer from '@/components/LocalComponentRenderer';
 import CodeViewer from '@/components/CodeViewer';
 import PropsPanel from '@/components/PropsPanel';
 import ViewportControls from '@/components/ViewportControls';
+import CodeButtons from '@/components/CodeButtons';
 import { useLocalComponentState } from '@/lib/hooks/useLocalComponentState';
-import { PlayIcon, CodeIcon, SettingsIcon, XIcon } from 'lucide-react';
+import { PlayIcon, SettingsIcon, XIcon } from 'lucide-react';
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -96,13 +97,6 @@ export default function PlaygroundPage() {
             >
               <SettingsIcon className="w-5 h-5" />
             </button>
-            <button
-              onClick={() => togglePanel('code')}
-              className={`p-2 rounded ${playgroundState.showCode ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'}`}
-              title="Toggle Code Viewer"
-            >
-              <CodeIcon className="w-5 h-5" />
-            </button>
           </div>
         </div>
       </div>
@@ -147,9 +141,17 @@ export default function PlaygroundPage() {
                 <ResizablePanel 
                   defaultSize={60} 
                   minSize={30}
-                  className="bg-gray-50"
+                  className="bg-gray-50 flex flex-col"
                 >
-                  <div className="h-full p-6">
+                  <div className="w-full flex justify-end pt-4 pr-4">
+                    {/* Component Information Section */}
+                    <CodeButtons
+                      component={playgroundState.selectedComponent}
+                      showCode={playgroundState.showCode}
+                      onToggleCode={() => togglePanel('code')}
+                    />
+                  </div>
+                  <div className="flex-1 p-6">
                     {playgroundState.selectedComponent ? (
                       'isLocal' in playgroundState.selectedComponent && playgroundState.selectedComponent.isLocal ? (
                         <LocalComponentRenderer
@@ -203,31 +205,41 @@ export default function PlaygroundPage() {
               </ResizablePanelGroup>
             ) : (
               /* Component Preview - Full Height when Code Editor is hidden */
-              <div className="h-full bg-gray-50 p-6">
-                {playgroundState.selectedComponent ? (
-                  'isLocal' in playgroundState.selectedComponent && playgroundState.selectedComponent.isLocal ? (
-                    <LocalComponentRenderer
-                      component={playgroundState.selectedComponent}
-                      props={playgroundState.currentProps}
-                      viewMode={playgroundState.viewMode}
-                      onRetry={() => selectComponent(playgroundState.selectedComponent!)}
-                    />
+              <div className="h-full bg-gray-50 flex flex-col">
+                <div className="w-full flex justify-end pt-4 pr-4">
+                  {/* Component Information Section */}
+                  <CodeButtons
+                    component={playgroundState.selectedComponent}
+                    showCode={playgroundState.showCode}
+                    onToggleCode={() => togglePanel('code')}
+                  />
+                </div>
+                <div className="flex-1 p-6">
+                  {playgroundState.selectedComponent ? (
+                    'isLocal' in playgroundState.selectedComponent && playgroundState.selectedComponent.isLocal ? (
+                      <LocalComponentRenderer
+                        component={playgroundState.selectedComponent}
+                        props={playgroundState.currentProps}
+                        viewMode={playgroundState.viewMode}
+                        onRetry={() => selectComponent(playgroundState.selectedComponent!)}
+                      />
+                    ) : (
+                      <ComponentRenderer
+                        component={playgroundState.selectedComponent}
+                        props={playgroundState.currentProps}
+                        code={playgroundState.currentCode}
+                        viewMode={playgroundState.viewMode}
+                      />
+                    )
                   ) : (
-                    <ComponentRenderer
-                      component={playgroundState.selectedComponent}
-                      props={playgroundState.currentProps}
-                      code={playgroundState.currentCode}
-                      viewMode={playgroundState.viewMode}
-                    />
-                  )
-                ) : (
-                  <div className="h-full flex items-center justify-center text-gray-500">
-                    <div className="text-center">
-                      <PlayIcon className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                      <p className="text-lg">Select a component to get started</p>
+                    <div className="h-full flex items-center justify-center text-gray-500">
+                      <div className="text-center">
+                        <PlayIcon className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                        <p className="text-lg">Select a component to get started</p>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             )}
           </ResizablePanel>

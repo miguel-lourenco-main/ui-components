@@ -8,6 +8,7 @@ import {
   ResizablePanel,
   ResizableHandle,
 } from "@/components/ui/resizable"
+import FunctionPropEditor from './FunctionPropEditor';
 
 interface PropsPanelProps {
   component: Component | LocalComponent;
@@ -68,10 +69,7 @@ export default function PropsPanel({ component, values, onChange }: PropsPanelPr
         
         <div className="flex items-center justify-between text-sm text-gray-600">
           <span>
-            {showAdvanced 
-              ? `${component.props.length} props total`
-              : `${requiredProps.length} props${(advancedProps.length + functionProps.length) > 0 ? ` (+${advancedProps.length + functionProps.length} advanced)` : ''}`
-            }
+            {component.props.length} props total
           </span>
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
@@ -148,33 +146,16 @@ export default function PropsPanel({ component, values, onChange }: PropsPanelPr
                           {functionProps.length}
                         </span>
                       </h4>
-                      <div className="space-y-4">
+                      <div className="space-y-6">
                         {functionProps.map(prop => (
-                          <div key={prop.name} className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <label className="block text-sm font-medium text-gray-700">
-                                {prop.name}
-                                {prop.required && <span className="text-red-500 ml-1">*</span>}
-                              </label>
-                              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                                function
-                              </span>
-                            </div>
-                            <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                              <div className="text-sm text-gray-600">
-                                {values[prop.name] ? (
-                                  <span className="text-green-600 font-mono">[Function provided]</span>
-                                ) : (
-                                  <span className="text-gray-400">[No function set]</span>
-                                )}
-                              </div>
-                              {prop.description && (
-                                <div className="text-xs text-gray-500 mt-1">
-                                  {prop.description}
-                                </div>
-                              )}
-                            </div>
-                          </div>
+                          <FunctionPropEditor
+                            key={prop.name}
+                            prop={prop}
+                            value={values[prop.name]}
+                            onChange={(value) => handlePropChange(prop.name, value)}
+                            isExpanded={expandedProps.has(prop.name)}
+                            onToggleExpansion={() => togglePropExpansion(prop.name)}
+                          />
                         ))}
                       </div>
                     </div>
@@ -271,33 +252,16 @@ export default function PropsPanel({ component, values, onChange }: PropsPanelPr
                       {functionProps.length}
                     </span>
                   </h4>
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {functionProps.map(prop => (
-                      <div key={prop.name} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <label className="block text-sm font-medium text-gray-700">
-                            {prop.name}
-                            {prop.required && <span className="text-red-500 ml-1">*</span>}
-                          </label>
-                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                            function
-                          </span>
-                        </div>
-                        <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                          <div className="text-sm text-gray-600">
-                            {values[prop.name] ? (
-                              <span className="text-green-600 font-mono">[Function provided]</span>
-                            ) : (
-                              <span className="text-gray-400">[No function set]</span>
-                            )}
-                          </div>
-                          {prop.description && (
-                            <div className="text-xs text-gray-500 mt-1">
-                              {prop.description}
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                      <FunctionPropEditor
+                        key={prop.name}
+                        prop={prop}
+                        value={values[prop.name]}
+                        onChange={(value) => handlePropChange(prop.name, value)}
+                        isExpanded={expandedProps.has(prop.name)}
+                        onToggleExpansion={() => togglePropExpansion(prop.name)}
+                      />
                     ))}
                   </div>
                 </div>

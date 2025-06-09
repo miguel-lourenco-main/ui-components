@@ -111,7 +111,7 @@ export default function LocalComponentRenderer({
     };
     
     loadComponent();
-  }, [component.name, props]);
+  }, [component.name]); // Only reload when component name changes, not props
 
   const getViewportStyles = () => {
     switch (viewMode) {
@@ -230,56 +230,6 @@ export default function LocalComponentRenderer({
             </ComponentErrorBoundary>
           </div>
         </div>
-      </div>
-
-      {/* Component Info */}
-      <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-        <div className="flex items-center justify-between mb-2">
-          <h4 className="font-medium text-gray-900">Component Info</h4>
-          <div className="flex items-center space-x-2">
-            <span className="text-xs text-gray-500">
-              Viewport: {viewMode}
-            </span>
-            {loading && (
-              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                Loading...
-              </span>
-            )}
-            {error && (
-              <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
-                Error
-              </span>
-            )}
-            {ComponentToRender && !loading && !error && (
-              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                Loaded
-              </span>
-            )}
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <span className="text-gray-600">Category:</span>
-            <span className="ml-2 capitalize">{component.category}</span>
-          </div>
-          <div>
-            <span className="text-gray-600">Props:</span>
-            <span className="ml-2">{component.props.length}</span>
-          </div>
-          {component.version && (
-            <div>
-              <span className="text-gray-600">Version:</span>
-              <span className="ml-2">v{component.version}</span>
-            </div>
-          )}
-          <div>
-            <span className="text-gray-600">Type:</span>
-            <span className="ml-2 text-blue-600">Local</span>
-          </div>
-        </div>
-
-        
       </div>
     </div>
   );
