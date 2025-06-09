@@ -1,6 +1,5 @@
 import { MAX_FILE_SIZE_STRING } from "@/lib/constants";
 import { FileUp } from "lucide-react";
-import { useTranslation } from "react-i18next";
 
 /**
  * Props interface for the FileUploadGuide component
@@ -24,8 +23,6 @@ interface FileUploadGuideProps {
  * @param acceptedFileTypes - Object mapping MIME types to their file extensions
  */
 export function FileUploadGuide({ acceptedFileTypes, maxFileSize = MAX_FILE_SIZE_STRING }: FileUploadGuideProps) {
-  const { t } = useTranslation("ui");
-
   /**
    * Extracts and formats all supported file extensions
    * Converts extensions to uppercase and removes duplicates
@@ -47,8 +44,8 @@ export function FileUploadGuide({ acceptedFileTypes, maxFileSize = MAX_FILE_SIZE
       
       {/* Upload instructions */}
       <p className="text-sm text-center">
-        <span className="font-semibold">{t("clickToAdd")}</span>
-        &nbsp; {t("orDragAndDrop")}
+        <span className="font-semibold">Click to add</span>
+        &nbsp; or drag and drop
       </p>
       
       {/* Supported file types */}

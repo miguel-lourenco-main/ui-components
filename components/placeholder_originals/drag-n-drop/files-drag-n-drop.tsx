@@ -3,7 +3,6 @@
 import { cn } from "@/lib/utils";
 import { forwardRef, useCallback, useState } from "react";
 import { toast } from "sonner";
-import { useTranslation } from "react-i18next";
 import { DirectionOptions, FilesDragNDropProps } from "@/lib/types";
 import { FileRejection, useDropzone } from "@/lib/hooks/use-drag-drop";
 
@@ -53,7 +52,6 @@ export const FilesDragNDrop = forwardRef<
     // Component state
     const [isFileTooBig, setIsFileTooBig] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
-    const { t } = useTranslation('ui');
     const direction: DirectionOptions = "ltr";
 
     /**
@@ -73,7 +71,7 @@ export const FilesDragNDrop = forwardRef<
       if (rejectedFiles.length > 0) {
         for (const rejectedFile of rejectedFiles) {
           if (rejectedFile?.errors[0]?.code === "file-too-large") {
-            toast.error(`${t("fileTooLarge")} ${MAX_FILE_SIZE_STRING}`);
+            toast.error(`File too large ${MAX_FILE_SIZE_STRING}`);
             break;
           }
           if (rejectedFile?.errors[0]?.message) {
@@ -82,7 +80,7 @@ export const FilesDragNDrop = forwardRef<
           }
         }
       }
-    }, [addFiles, t]);
+    }, [addFiles]);
 
     /**
      * Configure dropzone with options and event handlers

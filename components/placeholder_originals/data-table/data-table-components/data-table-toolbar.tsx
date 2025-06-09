@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input"
 
 import FacetedFilters from "./faceted-filters-list"
 import { Filter } from "@/lib/interfaces"
-import { useTranslation } from "react-i18next"
 
 interface DataTableToolbarProps<TData> {
   identifier: string
@@ -26,14 +25,13 @@ export function DataTableToolbar<TData>({
   toolBarButtonsProcessed
 }: DataTableToolbarProps<TData>) {
 
-  const { t } = useTranslation("ui")
   const isFiltered = table.getState().columnFilters.length > 0
 
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
         <Input
-          placeholder={`${t("filter")} ${tableLabel}...`}
+          placeholder={`Filter ${tableLabel}...`}
           value={(table.getColumn(identifier)?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn(identifier)?.setFilterValue(event.target.value)
@@ -47,7 +45,7 @@ export function DataTableToolbar<TData>({
             onClick={() => table.resetColumnFilters()}
             className="h-8 px-2 lg:px-3"
           >
-            {t("reset")}
+            Reset
             <Cross2Icon className="ml-2 h-4 w-4" />
           </Button>
         )}

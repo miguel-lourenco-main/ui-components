@@ -1,6 +1,5 @@
 import { Plus } from "lucide-react";
 
-import { useTranslation } from "react-i18next";
 import { FileHandlers, TrackableFile } from "@/lib/interfaces";
 import TooltipComponent from "@/components/ui/tooltip-component";
 import { Trash2 } from "lucide-react";
@@ -29,8 +28,6 @@ export const FileActionsBar = ({
     disabled?: boolean, 
     handlers: Pick<FileHandlers, 'handleDeleteAll' | 'handleAddFiles'> 
 }) => {
-    const { t } = useTranslation('custom');
-
     return (
         <div className="flex items-end justify-between px-2">
             <div className="flex items-center gap-x-3">
@@ -44,7 +41,7 @@ export const FileActionsBar = ({
                 >
                     <TooltipComponent 
                         trigger={<Trash2 className="size-8 p-1.5" />} 
-                        content={t('deleteAllFiles')} 
+                        content="Delete all files" 
                     />
                 </Button>
                 {/* Add files button with tooltip */}
@@ -59,7 +56,7 @@ export const FileActionsBar = ({
                         >
                             <TooltipComponent 
                                 trigger={<Plus className="size-8 p-1.5"/>} 
-                                content={t('addFiles')}
+                                content="Add files"
                             />
                         </Button>
                     )}
@@ -69,7 +66,7 @@ export const FileActionsBar = ({
             </div>
             {/* File count display */}
             <span className="whitespace-nowrap text-sm text-muted-foreground">
-                {`${files.length} ${files.length === 1 ? t('file') : t('files')} ${t('added')}`}
+                {`${files.length} ${files.length === 1 ? 'file' : 'files'} added`}
             </span>
         </div>
     );

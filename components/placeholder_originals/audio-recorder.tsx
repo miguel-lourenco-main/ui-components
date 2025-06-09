@@ -4,7 +4,6 @@ import { Input } from "../ui/input";
 import { Mic, Square, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { TrackableFile } from "@/lib/interfaces";
-import { useTranslation } from 'react-i18next';
 
 interface AudioRecorderProps {
   files: TrackableFile[];
@@ -32,11 +31,10 @@ export default function AudioRecorder({
   const [previewUrl, setPreviewUrl] = useState<string | undefined>(undefined);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  const { t } = useTranslation('ui');
 
   const startRecording = async () => {
     if (!label.trim()) {
-      toast.warning(t('pleaseEnterVoiceName'));
+      toast.warning('Please enter voice name');
       return;
     }
   
@@ -99,7 +97,7 @@ export default function AudioRecorder({
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-x-2">
           <label className="text-sm font-medium text-foreground">
-            {t('name')}
+            Name
           </label>
           <Input
             className="w-72"

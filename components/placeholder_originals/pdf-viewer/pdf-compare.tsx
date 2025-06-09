@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, UIEvent, useState, useCallback, useMemo } from 'react';
 import LoadingDocument from "./loading-pdf";
-import { useTranslation } from 'react-i18next';
 import { FileIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import dynamic from 'next/dynamic';
@@ -37,8 +36,6 @@ export function PDFView({
     handleScroll?: (index: number) => (e: UIEvent<HTMLDivElement>) => void,  // Sync scroll handler
     scrollRefs?: React.RefObject<HTMLDivElement>[]  // Refs for sync scrolling
 }) {
-    const { t } = useTranslation("custom");
-
     const onScroll = handleScroll ? handleScroll(index) : undefined;
     const ref = scrollRefs?.[index] ? scrollRefs[index] : undefined;
 
@@ -54,7 +51,7 @@ export function PDFView({
             {/* Show message when no file is available */}
             {!file && !isLoading && (
                 <div className="size-full flex items-center justify-center">
-                    {t('noFileCurrentlyAvailable')}
+                    No file currently available
                 </div>
             )}
             {/* Show loading state */}

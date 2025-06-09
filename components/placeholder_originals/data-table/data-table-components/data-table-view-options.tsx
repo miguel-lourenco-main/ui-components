@@ -14,7 +14,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useTranslation } from "react-i18next"
 
 interface DataTableViewOptionsProps<TData> {
   table: Table<TData>
@@ -23,8 +22,6 @@ interface DataTableViewOptionsProps<TData> {
 export default function DataTableViewOptions<TData>({
   table,
 }: DataTableViewOptionsProps<TData>) {
-
-  const { t } = useTranslation("ui")
   
   return (
     <DropdownMenu>
@@ -35,11 +32,11 @@ export default function DataTableViewOptions<TData>({
           className="ml-auto hidden h-8 lg:flex"
         >
           <MixerHorizontalIcon className="mr-2 h-4 w-4" />
-          {t("view")}
+          View
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[150px]">
-        <DropdownMenuLabel>{t("toggleColumns")}</DropdownMenuLabel>
+        <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {table
           .getAllColumns()

@@ -4,7 +4,6 @@ import { File, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import TooltipComponent from "@/components/ui/tooltip-component";
 import { useEffect, useRef } from "react";
-import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { TrackableFile } from "@/lib/interfaces";
 import { CheckCircle, Loader2, XCircle } from "lucide-react";
@@ -77,7 +76,6 @@ export default function FilesGrid({
   disabled,
 }: FilesGridProps) {
     const gridRef = useRef<HTMLDivElement>(null);
-    const { t } = useTranslation('ui');
 
     /**
      * Updates grid layout based on container size
@@ -171,7 +169,7 @@ export default function FilesGrid({
                             >
                                 <TooltipComponent 
                                     trigger={<Trash2 className="size-8 p-1.5" />} 
-                                    content={<div>{t('delete')}</div>} 
+                                    content={<div>Delete</div>} 
                                 />
                             </Button>
                         </div>

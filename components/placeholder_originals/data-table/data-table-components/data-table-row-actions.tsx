@@ -11,7 +11,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { v4 as uuidv4 } from "uuid"
-import { useTranslation } from "react-i18next"
 
 interface DataTableRowActionsProps {     
   actions: DataTableActions[]
@@ -27,8 +26,6 @@ export function DataTableRowActions({
   actions,
 }: DataTableRowActionsProps) {
 
-  const {t} = useTranslation("ui")
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -38,7 +35,7 @@ export function DataTableRowActions({
         >
           <DotsHorizontalIcon className="h-4 w-4" />
           <span className="sr-only">
-            {t("openMenu")}
+            Open menu
           </span>
         </Button>
       </DropdownMenuTrigger>

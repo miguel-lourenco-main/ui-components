@@ -201,7 +201,7 @@ function ComponentItem({ component, isSelected, onSelect }: ComponentItemProps) 
           {component.tags && component.tags.length > 0 && (
             <div className="flex items-center mt-2 space-x-1">
               <TagIcon className="w-3 h-3 text-gray-400" />
-              <div className="flex flex-wrap gap-1">
+              <div className="flex items-center flex-wrap gap-1">
                 {component.tags.slice(0, 3).map(tag => (
                   <span
                     key={tag}
