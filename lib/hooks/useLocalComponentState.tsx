@@ -162,24 +162,6 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
              filters: sampleFilters,
              createToolbarButtons: createToolbarButtons
            };
-         } else if (localComponent.name === 'DataTablePagination') {
-           // DataTablePagination needs a table object, but we can't provide one easily
-           // For now, provide a mock structure to avoid errors
-           initialProps = {
-             table: {
-               // Mock minimal table interface for display purposes
-               getState: () => ({ pagination: { pageSize: 10, pageIndex: 0 } }),
-               getPageCount: () => 5,
-               getFilteredSelectedRowModel: () => ({ rows: [] }),
-               getFilteredRowModel: () => ({ rows: Array(50).fill({}) }),
-               setPageSize: () => {},
-               setPageIndex: () => {},
-               getCanPreviousPage: () => true,
-               getCanNextPage: () => true,
-               previousPage: () => {},
-               nextPage: () => {}
-             }
-           };
          } else {
           // For other components, do a careful copy avoiding functions
           initialProps = {};

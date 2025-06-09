@@ -69,18 +69,6 @@
       "tags": ["table", "data", "sorting", "filtering", "pagination", "selection"],
       "version": "1.0.0",
       "author": "UI Components Team"
-    },
-    {
-      "id": "data-table-pagination",
-      "name": "DataTablePagination",
-      "category": "data-display",
-      "description": "Standalone pagination component for data tables with page size controls and navigation",
-      "filePath": "components/display_components/data-display/DataTablePagination/DataTablePagination.tsx",
-      "metaPath": "components/display_components/data-display/DataTablePagination/DataTablePagination.meta.json",
-      "examplesPath": "components/display_components/data-display/DataTablePagination/DataTablePagination.examples.tsx",
-      "tags": ["pagination", "table", "navigation", "page-size"],
-      "version": "1.0.0",
-      "author": "UI Components Team"
     }
   ]
 } 

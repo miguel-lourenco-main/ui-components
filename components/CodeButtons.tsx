@@ -2,6 +2,7 @@
 
 import { CodeIcon, ExternalLinkIcon } from 'lucide-react';
 import { Component, LocalComponent } from '@/types';
+import Image from 'next/image';
 
 interface CodeButtonsProps {
   component: Component | LocalComponent | null;
@@ -51,11 +52,10 @@ export default function CodeButtons({ component, showCode, onToggleCode }: CodeB
       
       <button
         onClick={handleGitLabClick}
-        className="flex items-center space-x-2 px-3 py-2 rounded bg-orange-100 text-orange-700 hover:bg-orange-200 transition-colors"
+        className="flex items-center space-x-2 rounded bg-orange-100 text-orange-700 hover:bg-orange-200 transition-colors"
         title="View on GitLab"
       >
-        <ExternalLinkIcon className="w-4 h-4" />
-        <span className="text-sm font-medium">GitLab</span>
+        <Image className="h-9" src="/gitlab-logo-100.svg" alt="GitLab" width={85} height={85} />
       </button>
     </div>
   );

@@ -2,7 +2,6 @@ import React from 'react';
 
 // Static imports for all components
 import { DataTable } from '@/components/display_components/data-display/DataTable/DataTable';
-import { DataTablePagination } from '@/components/display_components/data-display/DataTablePagination/DataTablePagination';
 import Button from '@/components/display_components/buttons/Button/Button';
 import Card from '@/components/display_components/layout/Card/Card';
 import Input from '@/components/display_components/forms/Input/Input';
@@ -12,7 +11,6 @@ declare global {
   interface Window {
     COMPONENT_REGISTRY?: Record<string, React.ComponentType<any>>;
     DataTable?: React.ComponentType<any>;
-    DataTablePagination?: React.ComponentType<any>;
     Button?: React.ComponentType<any>;
     Card?: React.ComponentType<any>;
     Input?: React.ComponentType<any>;
@@ -22,7 +20,6 @@ declare global {
 // Component registry with static imports
 export const COMPONENT_REGISTRY: Record<string, React.ComponentType<any>> = {
   DataTable,
-  DataTablePagination,
   Button,
   Card,
   Input,
@@ -32,7 +29,6 @@ export const COMPONENT_REGISTRY: Record<string, React.ComponentType<any>> = {
 console.log('🏛️ Component Registry initialized with:', Object.keys(COMPONENT_REGISTRY));
 console.log('🧩 All components loaded:');
 console.log('  - DataTable:', DataTable);
-console.log('  - DataTablePagination:', DataTablePagination);
 console.log('  - Button:', Button);
 console.log('  - Card:', Card);
 console.log('  - Input:', Input);
@@ -41,7 +37,6 @@ console.log('  - Input:', Input);
 if (typeof window !== 'undefined') {
   window.COMPONENT_REGISTRY = COMPONENT_REGISTRY;
   window.DataTable = DataTable;
-  window.DataTablePagination = DataTablePagination;
   window.Button = Button;
   window.Card = Card;
   window.Input = Input;

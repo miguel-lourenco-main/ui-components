@@ -25,7 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { DataTablePagination } from "../DataTablePagination/DataTablePagination"
+import { DataTablePagination } from "../../../DataTablePagination"
 import { DataTableToolbar } from "./_components/data-table-toolbar"
 import { Filter } from "@/lib/interfaces"
 import I18nComponent from "@/components/ui/i18n-component"

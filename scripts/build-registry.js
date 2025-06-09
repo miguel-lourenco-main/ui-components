@@ -106,10 +106,10 @@ async function loadComponentExamples(examplesPath) {
   try {
     const examplesContent = await fs.readFile(examplesPath, 'utf-8');
     
-    // Check if this is a DataTable or DataTablePagination component (needs special handling)
-    if (examplesPath.includes('DataTable')) {
-      return await loadDataTableExamples(examplesPath, examplesContent);
-    }
+      // Check if this is a DataTable component (needs special handling)
+  if (examplesPath.includes('DataTable')) {
+    return await loadDataTableExamples(examplesPath, examplesContent);
+  }
     
     // Look for exported examples array or individual example objects
     const examples = [];
@@ -220,17 +220,7 @@ async function loadDataTableExamples(examplesPath, examplesContent) {
     ];
   }
   
-  if (componentName === 'DataTablePagination') {
-    return [
-      {
-        name: "Basic Pagination",
-        description: "Standard pagination component",
-        props: {
-          table: "mockTableInstance"
-        }
-      }
-    ];
-  }
+
   
   return [];
 }
