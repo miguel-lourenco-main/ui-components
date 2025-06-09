@@ -33,7 +33,7 @@ export function DataTablePagination<TData>({
         {table.getFilteredSelectedRowModel().rows.length} of{" "}
         {table.getFilteredRowModel().rows.length} <I18nComponent i18nKey="ui:rowsSelected" />
       </div>
-      <div className="flex items-center space-x-6 lg:space-x-8">
+      <div className="flex items-center">
         <div className="flex items-center space-x-2">
           <p className="text-sm font-medium">
             <I18nComponent i18nKey="ui:rowsPerPage" />
