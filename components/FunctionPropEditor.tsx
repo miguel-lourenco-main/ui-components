@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Editor from '@monaco-editor/react';
 import { PropDefinition } from '@/types';
-import { AlertTriangleIcon, CheckIcon, CodeIcon } from 'lucide-react';
+import { AlertTriangleIcon, CheckIcon, CodeIcon, Trash2Icon } from 'lucide-react';
+import { parse } from 'acorn';
+import { simple as walkSimple } from 'acorn-walk';
 
 interface FunctionPropEditorProps {
   prop: PropDefinition;
@@ -17,6 +19,7 @@ interface ValidationResult {
   isValid: boolean;
   error?: string;
   compiledFunction?: Function;
+  warnings?: string[];
 }
 
 export default function FunctionPropEditor({
@@ -28,6 +31,17 @@ export default function FunctionPropEditor({
 }: FunctionPropEditorProps) {
   const [functionBody, setFunctionBody] = useState('');
   const [validationResult, setValidationResult] = useState<ValidationResult>({ isValid: true });
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [isUserTyping, setIsUserTyping] = useState(false);
+  const [lastSentFunctionBody, setLastSentFunctionBody] = useState<string>('');
+  
+  // Use ref to store current onChange to avoid dependency loops
+  const onChangeRef = useRef(onChange);
+  
+  // Update ref when onChange changes
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
   
   // Extract function signature from prop description or generate default
   const getFunctionSignature = useCallback(() => {
@@ -66,125 +80,322 @@ export default function FunctionPropEditor({
   useEffect(() => {
     if (value && typeof value === 'function') {
       // Extract function body from existing function
-      const funcString = value.toString();
-      const bodyMatch = funcString.match(/\{([\s\S]*)\}/);
-      if (bodyMatch) {
-        const body = bodyMatch[1].trim();
-        setFunctionBody(body);
+      let body = '';
+      
+      // Check if the function has original source attached
+      if ((value as any).__originalSource) {
+        body = (value as any).__originalSource;
+        console.log('🛠️ FunctionPropEditor: Using attached source for', prop.name, ':', body);
+      } else {
+        // Fall back to parsing the function string
+        const funcString = value.toString();
+        const bodyMatch = funcString.match(/\{([\s\S]*)\}/);
+        if (bodyMatch) {
+          body = bodyMatch[1].trim();
+        }
       }
-    } else if (!functionBody) {
-      // Set default function body
-      const signature = getFunctionSignature();
-      const propSpecificBodies: Record<string, string> = {
-        'onChange': '// Handle input change\nconsole.log("Value changed:", value);',
-        'onClick': '// Handle click event\nconsole.log("Clicked:", event);',
-        'onSubmit': '// Handle form submission\nevent.preventDefault();\nconsole.log("Form submitted:", event);',
-        'onSelect': '// Handle selection\nconsole.log("Selected:", value);',
-        'validator': '// Validate the value\nreturn value && value.length > 0;',
-        'formatter': '// Format the value\nreturn String(value);',
-        'filter': '// Filter items\nreturn true;',
-      };
       
-      const defaultBodies: Record<string, string> = {
-        'void': '// Handle the event\nconsole.log(arguments);',
-        'boolean': '// Return validation result\nreturn true;',
-        'string': '// Return formatted value\nreturn String(arguments[0]);',
-        'any': '// Process and return value\nreturn arguments[0];'
-      };
-      
-      const defaultBody = propSpecificBodies[prop.name] || 
-                       defaultBodies[signature.returnType] || 
-                       defaultBodies['any'];
-      setFunctionBody(defaultBody);
+      setFunctionBody(body);
+    } else if (!value) {
+      // No function value - clear the body
+      setFunctionBody('');
     }
-  }, [value, functionBody, getFunctionSignature]);
+    
+    // Mark as initialized after processing the value
+    if (!isInitialized) {
+      setIsInitialized(true);
+    }
+  }, [value, isInitialized, prop.name]); // Removed unnecessary dependencies
 
-  // Validate function code
+      // Professional validation using Acorn AST parser
   const validateFunction = useCallback((code: string): ValidationResult => {
     if (!code.trim()) {
       return { isValid: true }; // Empty is valid (will clear the function)
+    }
+
+    // 1. SECURITY VALIDATION - Block dangerous patterns
+    const securityPatterns = [
+      { pattern: /\beval\s*\(/, message: "eval() is not allowed for security reasons" },
+      { pattern: /\bFunction\s*\(/, message: "Function constructor is not allowed for security reasons" },
+      { pattern: /\bnew\s+Function\s*\(/, message: "new Function() is not allowed for security reasons" },
+      { pattern: /\bdocument\.cookie/, message: "Accessing document.cookie is not allowed" },
+      { pattern: /\blocalStorage\s*\./, message: "Accessing localStorage directly is not recommended" },
+      { pattern: /\bsessionStorage\s*\./, message: "Accessing sessionStorage directly is not recommended" },
+      { pattern: /\bwindow\s*\.\s*location/, message: "Modifying window.location is not allowed" },
+      { pattern: /\b(import|require)\s*\(/, message: "Dynamic imports are not allowed" },
+    ];
+
+    for (const { pattern, message } of securityPatterns) {
+      if (pattern.test(code)) {
+        return {
+          isValid: false,
+          error: `Security violation: ${message}`
+        };
+      }
+    }
+
+    // 2. FUNCTION BODY VALIDATION - Check it's not a complete function declaration
+    const bodyViolations = [
+      { pattern: /^\s*function\s+\w+\s*\(/, message: "Don't write complete function declarations - just the body" },
+      { pattern: /^\s*const\s+\w+\s*=\s*function/, message: "Don't write complete function declarations - just the body" },
+      { pattern: /^\s*\w+\s*=>\s*{/, message: "Don't write arrow functions - just the body" },
+      { pattern: /^\s*class\s+\w+/, message: "Class declarations are not allowed in function bodies" },
+    ];
+
+    for (const { pattern, message } of bodyViolations) {
+      if (pattern.test(code)) {
+        return {
+          isValid: false,
+          error: `Invalid function body: ${message}`
+        };
+      }
     }
 
     try {
       const signature = getFunctionSignature();
       const fullFunction = `(${signature.params}) => {\n${code}\n}`;
       
-      // Try to create the function - this validates syntax
-      const compiledFunction = new Function('return ' + fullFunction)();
+      // 3. SYNTAX VALIDATION using Acorn AST parser
+      let ast;
+      try {
+        ast = parse(fullFunction, { 
+          ecmaVersion: 2020, 
+          sourceType: 'script',
+          locations: false // We don't need location info for validation
+        });
+      } catch (parseError) {
+        return {
+          isValid: false,
+          error: `Syntax error: ${parseError instanceof Error ? parseError.message : 'Invalid JavaScript'}`
+        };
+      }
+
+      // 4. VARIABLE SCOPE ANALYSIS using AST
+      const warnings: string[] = [];
+      const undefinedVars = new Set<string>();
       
-      // For return type validation, only check if we have explicit return statements
-      // and the return type is not 'any' or 'void'
-      if (signature.returnType !== 'any' && signature.returnType !== 'void') {
-        // Only validate return type if the code contains explicit return statements
-        const hasExplicitReturn = /\breturn\b/.test(code);
+      // Define allowed global variables
+      const allowedGlobals = new Set([
+        // JavaScript built-ins
+        'console', 'Math', 'Date', 'JSON', 'Object', 'Array', 'String', 'Number', 'Boolean',
+        'parseInt', 'parseFloat', 'isNaN', 'isFinite', 'encodeURIComponent', 'decodeURIComponent',
+        'setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Promise',
+        // Literals and special values
+        'undefined', 'null', 'NaN', 'Infinity',
+        // Common parameters
+        'event', 'value', 'data', 'index', 'item', 'error', 'response', 'result',
+        'props', 'state', 'ref', 'key',
+      ]);
+
+      // Add function parameters to allowed globals
+      const params = signature.params.split(',').map(p => p.trim().split(/\s+/).pop() || '').filter(Boolean);
+      params.forEach(param => allowedGlobals.add(param));
+
+      // Walk the AST to find undefined variables
+      walkSimple(ast, {
+        Identifier(node: any) {
+          const name = node.name;
+          
+          // Skip if it's an allowed global
+          if (allowedGlobals.has(name)) return;
+          
+          // Skip if it's a property access (will be handled by MemberExpression)
+          // This is a simple heuristic - Acorn gives us proper context
+          undefinedVars.add(name);
+        },
         
-        if (hasExplicitReturn) {
-          try {
-            // Create dummy arguments based on parameter count, not types
-            const paramCount = signature.params ? 
-              signature.params.split(',').filter(p => p.trim()).length : 0;
-            const dummyArgs = Array(paramCount).fill(undefined);
-            
-            const result = compiledFunction(...dummyArgs);
-            const actualType = typeof result;
-            
-            // Type checking for explicit return types
-            if (signature.returnType === 'boolean' && actualType !== 'boolean' && result !== undefined) {
-              return {
-                isValid: false,
-                error: `Expected function to return ${signature.returnType}, but got ${actualType}`
-              };
+        MemberExpression(node: any) {
+          // Remove the object from undefined vars if it's a member expression
+          // e.g., in "console.log", "console" is not undefined
+          if (node.object && node.object.type === 'Identifier') {
+            const objectName = node.object.name;
+            if (allowedGlobals.has(objectName)) {
+              // It's a known global, so this is fine
+              undefinedVars.delete(objectName);
             }
-            if (signature.returnType === 'string' && actualType !== 'string' && result !== undefined) {
-              return {
-                isValid: false,
-                error: `Expected function to return ${signature.returnType}, but got ${actualType}`
-              };
-            }
-            if (signature.returnType === 'number' && actualType !== 'number' && result !== undefined) {
-              return {
-                isValid: false,
-                error: `Expected function to return ${signature.returnType}, but got ${actualType}`
-              };
-            }
-          } catch (execError) {
-            // Execution errors during validation are acceptable
-            // We're just checking syntax, not runtime behavior
           }
         }
+      });
+
+      // Process undefined variables
+      Array.from(undefinedVars).forEach(varName => {
+        // Single character variables (except common loop vars) are likely typos - make them errors
+        if (/^[a-z]$/.test(varName) && !['i', 'j', 'x', 'y', 'n'].includes(varName)) {
+          warnings.push(`BLOCKING: Undefined variable '${varName}' - this looks like a typo. Did you mean 'event' or another variable?`);
+          return;
+        }
+        
+        // Other undefined variables are warnings
+        warnings.push(`Unknown variable '${varName}' - this may cause runtime errors`);
+      });
+
+      // Check for blocking errors after processing all variables
+      const blockingErrors = warnings.filter(w => w.startsWith('BLOCKING:'));
+      if (blockingErrors.length > 0) {
+        return {
+          isValid: false,
+          error: blockingErrors[0].replace('BLOCKING: ', '')
+        };
       }
+
+      // 5. SIMPLE EXPRESSION VALIDATION
+      const trimmedCode = code.trim();
+      if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(trimmedCode) && undefinedVars.has(trimmedCode)) {
+        return {
+          isValid: false,
+          error: `Undefined variable '${trimmedCode}'. Did you mean to call a function like '${trimmedCode}()' or access a property like 'event.${trimmedCode}'?`
+        };
+      }
+
+      // 6. RETURN TYPE VALIDATION (warnings only)
+      if (signature.returnType !== 'any' && signature.returnType !== 'void') {
+        walkSimple(ast, {
+          ReturnStatement(node: any) {
+            if (node.argument) {
+              // This is a simplified check - in a real implementation you'd evaluate the expression type
+              const returnValueSource = code.slice(node.argument.start, node.argument.end);
+              
+              if (signature.returnType === 'boolean') {
+                if (/^["'`]/.test(returnValueSource) || /^\d+(\.\d+)?$/.test(returnValueSource)) {
+                  warnings.push(`Expected boolean return, but found: ${returnValueSource}`);
+                }
+              } else if (signature.returnType === 'string') {
+                if (/^(true|false|\d+(\.\d+)?|null|undefined)$/.test(returnValueSource)) {
+                  warnings.push(`Expected string return, but found: ${returnValueSource}`);
+                }
+              } else if (signature.returnType === 'number') {
+                if (/^(true|false|["'`].*["'`]|null|undefined)$/.test(returnValueSource)) {
+                  warnings.push(`Expected number return, but found: ${returnValueSource}`);
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // Create the actual function without executing it  
+      const actualFunction = new Function('return ' + fullFunction)();
+      
+      // Add debugging to track where execution comes from
+      const wrappedFunction = (...args: any[]) => {
+        console.log(`🚀 FUNCTION CALLED: ${prop.name} with args:`, args);
+        console.trace('Function call stack:');
+        return actualFunction(...args);
+      };
+      
+      // Copy properties to maintain function identity
+      Object.defineProperty(wrappedFunction, 'name', { value: actualFunction.name });
+      (wrappedFunction as any).__originalSource = code;
+      (wrappedFunction as any).__propName = prop.name;
       
       return {
         isValid: true,
-        compiledFunction
+        compiledFunction: wrappedFunction,
+        warnings: warnings.length > 0 ? warnings : undefined
       };
+      
     } catch (error) {
       return {
         isValid: false,
-        error: error instanceof Error ? error.message : 'Invalid function syntax'
+        error: error instanceof Error ? error.message : 'Validation error'
       };
     }
   }, [getFunctionSignature]);
 
   // Handle code changes with debounced validation
   useEffect(() => {
+    // Only call onChange after initial setup to prevent infinite loops
+    if (!isInitialized) {
+      console.log('🛠️ FunctionPropEditor: Skipping onChange because not initialized yet', prop.name);
+      return;
+    }
+
+    // Set typing flag
+    setIsUserTyping(true);
+    
     const timer = setTimeout(() => {
+      console.log('🛠️ FunctionPropEditor: Validating and calling onChange for', prop.name, 'functionBody:', functionBody.trim() ? 'has content' : 'empty', 'content preview:', functionBody.substring(0, 50));
       const result = validateFunction(functionBody);
       setValidationResult(result);
       
-      // Update prop value if valid
+      // Only update if the validation result changed or if switching between valid/invalid states
+      // This prevents unnecessary regeneration while typing
+      const hasValidContent = result.isValid && result.compiledFunction && functionBody.trim();
+      const isEmpty = !functionBody.trim();
+      
+      // Update prop value based on validation and content
       if (result.isValid) {
-        if (result.compiledFunction) {
-          onChange(result.compiledFunction);
-        } else if (!functionBody.trim()) {
-          onChange(undefined);
+        if (hasValidContent) {
+          // Function has content and is valid - include it
+          const funcWithSource = result.compiledFunction;
+          if (funcWithSource) {
+            // Store the original function body on the function object
+            (funcWithSource as any).__originalSource = functionBody;
+            (funcWithSource as any).__propName = prop.name;
+            
+            console.log('🏷️  FunctionPropEditor: Attached __originalSource to function:', `"${functionBody}"`);
+            
+            // Only call onChange if the function content actually changed
+            console.log('🔍 FunctionPropEditor: Change detection for', prop.name);
+            console.log('  Current functionBody:', `"${functionBody}"`);
+            console.log('  Last sent functionBody:', `"${lastSentFunctionBody}"`);
+            console.log('  Are they equal?', functionBody === lastSentFunctionBody);
+            
+            if (functionBody !== lastSentFunctionBody) {
+              console.log('✅ FunctionPropEditor: Setting function for', prop.name, 'content changed from', `"${lastSentFunctionBody}"`, 'to', `"${functionBody}"`);
+              setLastSentFunctionBody(functionBody);
+              onChangeRef.current(funcWithSource);
+            } else {
+              console.log('⏭️  FunctionPropEditor: Skipping onChange for', prop.name, '- content unchanged');
+            }
+          }
+        } else if (isEmpty) {
+          // Function is empty - remove it from props
+          // Check both if we think we sent a function (lastSentFunctionBody) AND if the current value actually has a function
+          const shouldRemoveFunction = lastSentFunctionBody !== '' || (value && typeof value === 'function');
+          
+          if (shouldRemoveFunction) {
+            console.log('🛠️ FunctionPropEditor: Removing function for', prop.name, '(empty)', 
+              'lastSentFunctionBody:', `"${lastSentFunctionBody}"`, 
+              'current value exists:', !!(value && typeof value === 'function'));
+            setLastSentFunctionBody('');
+            onChangeRef.current(undefined);
+          } else {
+            console.log('🛠️ FunctionPropEditor: Skipping onChange for', prop.name, '- already empty');
+          }
         }
+      } else {
+        // Invalid function - don't update props, just show validation error
+        console.log('🛠️ FunctionPropEditor: Function invalid for', prop.name, '- not updating props');
       }
-      // Don't update if invalid - keep the user's code for editing
-    }, 500);
 
-    return () => clearTimeout(timer);
-  }, [functionBody, validateFunction, onChange]);
+      // Reset typing flag after validation completes
+      setIsUserTyping(false);
+    }, 1000); // 1 second debounce as requested
+
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+      // Don't reset typing flag here - let the timer handle it
+    };
+  }, [functionBody, validateFunction, isInitialized, prop.name]);
+
+  // Clear function - resets the function body and removes it from props
+  const handleClearFunction = useCallback(() => {
+    console.log('🗑️ FunctionPropEditor: Clearing function for', prop.name);
+    
+    // Clear the function body - this will trigger the validation useEffect
+    // which will automatically call onChange(undefined) when it sees empty content
+    setFunctionBody('');
+    
+    // Reset other state immediately  
+    setValidationResult({ isValid: true });
+    setLastSentFunctionBody('');
+    setIsUserTyping(false);
+    
+    console.log('🗑️ FunctionPropEditor: Clear complete for', prop.name);
+  }, [prop.name]);
 
   const signature = getFunctionSignature();
   const functionPreview = `(${signature.params}) => ${signature.returnType}`;
@@ -214,12 +425,24 @@ export default function FunctionPropEditor({
             <CodeIcon className="w-4 h-4 text-gray-600" />
             <span className="text-sm font-medium text-gray-700">Function Editor</span>
           </div>
-          <button
-            onClick={onToggleExpansion}
-            className="text-xs text-blue-600 hover:text-blue-800"
-          >
-            {isExpanded ? 'Collapse' : 'Expand'}
-          </button>
+          <div className="flex items-center space-x-2">
+            {functionBody.trim() && (
+              <button
+                onClick={handleClearFunction}
+                className="text-xs text-red-600 hover:text-red-800 flex items-center space-x-1 px-2 py-1 rounded hover:bg-red-50 transition-colors"
+                title="Clear function"
+              >
+                <Trash2Icon className="w-3 h-3" />
+                <span>Clear</span>
+              </button>
+            )}
+            <button
+              onClick={onToggleExpansion}
+              className="text-xs text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50 transition-colors"
+            >
+              {isExpanded ? 'Collapse' : 'Expand'}
+            </button>
+          </div>
         </div>
 
         <div className="relative">
@@ -280,17 +503,35 @@ export default function FunctionPropEditor({
           />
           
           {/* Validation overlay */}
-          {!validationResult.isValid && (
+          {!validationResult.isValid ? (
             <div className="absolute bottom-0 left-0 right-0 bg-red-50 border-t border-red-200 p-2">
               <div className="flex items-start space-x-2">
                 <AlertTriangleIcon className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
                 <div className="text-sm text-red-700">
-                  <div className="font-medium">Validation Error:</div>
+                  <div className="font-medium">⚠️ Function Invalid</div>
                   <div className="text-xs mt-1">{validationResult.error}</div>
+                  <div className="text-xs mt-1 text-orange-600">
+                    <strong>Note:</strong> This function will not appear in the generated code until fixed.
+                  </div>
                 </div>
               </div>
             </div>
-          )}
+          ) : validationResult.warnings && validationResult.warnings.length > 0 ? (
+            <div className="absolute bottom-0 left-0 right-0 bg-yellow-50 border-t border-yellow-200 p-2">
+              <div className="flex items-start space-x-2">
+                <AlertTriangleIcon className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-yellow-800">
+                  <div className="font-medium">⚠️ Warnings</div>
+                  {validationResult.warnings.map((warning, index) => (
+                    <div key={index} className="text-xs mt-1">{warning}</div>
+                  ))}
+                  <div className="text-xs mt-1 text-yellow-700">
+                    <strong>Note:</strong> Function will still work, but may have runtime issues.
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -300,17 +541,30 @@ export default function FunctionPropEditor({
         </div>
       )}
 
-      {/* Function status */}
+            {/* Function status */}
       <div className="flex items-center justify-between text-xs">
         <div className="text-gray-500">
-          Status: {validationResult.isValid ? (
-            <span className="text-green-600 font-medium">Valid function</span>
+          Status: {isUserTyping ? (
+            <span className="text-blue-600 font-medium">✏️ Typing... (validation paused)</span>
+          ) : validationResult.isValid ? (
+            functionBody.trim() ? (
+              validationResult.warnings && validationResult.warnings.length > 0 ? (
+                <span className="text-yellow-600 font-medium">⚠️ Valid with warnings - will appear in generated code</span>
+              ) : (
+                <span className="text-green-600 font-medium">✅ Valid function - will appear in generated code</span>
+              )
+            ) : (
+              <span className="text-gray-500 font-medium">📝 Empty function - will not appear in generated code</span>
+            )
           ) : (
-            <span className="text-red-600 font-medium">Invalid function</span>
+            <span className="text-red-600 font-medium">❌ Invalid function - will not appear in generated code</span>
           )}
         </div>
         <div className="text-gray-400">
           {functionBody.split('\n').length} lines
+          {validationResult.warnings && validationResult.warnings.length > 0 && (
+            <span className="ml-2 text-yellow-600">({validationResult.warnings.length} warning{validationResult.warnings.length > 1 ? 's' : ''})</span>
+          )}
         </div>
       </div>
     </div>

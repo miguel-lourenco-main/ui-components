@@ -19,9 +19,11 @@ export default function PlaygroundPage() {
   const {
     components,
     playgroundState,
+    selectedExampleIndex,
     loading,
     error,
     selectComponent,
+    selectExample,
     updateProps,
     setViewMode,
     togglePropsPanel,
@@ -264,6 +266,8 @@ export default function PlaygroundPage() {
                       component={playgroundState.selectedComponent}
                       values={playgroundState.currentProps}
                       onChange={updateProps}
+                      onSelectExample={selectExample}
+                      selectedExampleIndex={selectedExampleIndex}
                     />
                   </div>
                 </div>

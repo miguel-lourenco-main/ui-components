@@ -190,6 +190,12 @@ export default function LocalComponentRenderer({
 
     // Render the actual component
     try {
+      console.log(`🎬 Rendering ${component.name} with props:`, {
+        propKeys: Object.keys(props),
+        functionProps: Object.entries(props)
+          .filter(([key, value]) => typeof value === 'function')
+          .map(([key, value]) => `${key}: ${value.name || 'function'}`)
+      });
       return <ComponentToRender {...props} />;
     } catch (renderError) {
       console.error('Component render error:', renderError);

@@ -14,9 +14,11 @@ interface PropsPanelProps {
   component: Component | LocalComponent;
   values: Record<string, any>;
   onChange: (values: Record<string, any>) => void;
+  onSelectExample?: (exampleIndex: number) => void;
+  selectedExampleIndex?: number;
 }
 
-export default function PropsPanel({ component, values, onChange }: PropsPanelProps) {
+export default function PropsPanel({ component, values, onChange, onSelectExample, selectedExampleIndex = -1 }: PropsPanelProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [expandedProps, setExpandedProps] = useState<Set<string>>(new Set());
 
@@ -28,6 +30,19 @@ export default function PropsPanel({ component, values, onChange }: PropsPanelPr
   };
 
   const resetToDefaults = () => {
+    console.log('🎛️ PropsPanel resetToDefaults called');
+    
+    // If there's a selected example, reset to that example using selectExample
+    // This ensures we use the same safe prop copying logic as the example selection
+    if (selectedExampleIndex >= 0 && component.examples && component.examples[selectedExampleIndex] && onSelectExample) {
+      const currentExample = component.examples[selectedExampleIndex];
+      console.log('🎛️ Resetting to current example props via selectExample:', currentExample.name);
+      onSelectExample(selectedExampleIndex);
+      return;
+    }
+    
+    // Otherwise, fall back to metadata defaults
+    console.log('🎛️ Resetting to metadata defaults (no example selected)');
     const defaultValues = component.props.reduce((acc, prop) => {
       acc[prop.name] = prop.defaultValue;
       return acc;
@@ -172,20 +187,40 @@ export default function PropsPanel({ component, values, onChange }: PropsPanelPr
                 <div className="p-4">
                   <h4 className="font-medium text-gray-900 mb-3">Examples</h4>
                   <div className="space-y-2">
-                    {component.examples.map((example, index) => (
-                      <button
-                        key={index}
-                        onClick={() => onChange(example.props)}
-                        className="w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border"
-                      >
-                        <div className="font-medium text-sm">{example.name}</div>
-                        {example.description && (
-                          <div className="text-xs text-gray-600 mt-1">
-                            {example.description}
-                          </div>
-                        )}
-                      </button>
-                    ))}
+                    {component.examples.map((example, index) => {
+                      const isSelected = selectedExampleIndex === index;
+                      return (
+                        <button
+                          key={index}
+                          onClick={() => {
+                            console.log('🎛️ PropsPanel example button clicked:', {
+                              exampleIndex: index,
+                              exampleName: example.name,
+                              hasOnSelectExample: !!onSelectExample,
+                              selectedExampleIndex: selectedExampleIndex
+                            });
+                            onSelectExample ? onSelectExample(index) : onChange(example.props);
+                          }}
+                          className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                            isSelected
+                              ? 'bg-blue-50 border-blue-200 ring-2 ring-blue-500'
+                              : 'bg-gray-50 hover:bg-gray-100 border-gray-200'
+                          }`}
+                        >
+                          <div className="font-medium text-sm">{example.name}</div>
+                          {example.description && (
+                            <div className="text-xs text-gray-600 mt-1">
+                              {example.description}
+                            </div>
+                          )}
+                          {isSelected && (
+                            <div className="text-xs text-blue-600 mt-1 font-medium">
+                              ✓ Currently selected
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
