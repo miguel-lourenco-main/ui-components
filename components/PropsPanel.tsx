@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Component, LocalComponent, PropDefinition } from '@/types';
 import { RefreshCwIcon, InfoIcon, EyeIcon, EyeOffIcon } from 'lucide-react';
+import { debugLog } from '@/lib/constants';
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -30,19 +31,19 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
   };
 
   const resetToDefaults = () => {
-    console.log('🎛️ PropsPanel resetToDefaults called');
+    debugLog('COMPONENT_STATE', '🎛️ PropsPanel resetToDefaults called');
     
     // If there's a selected example, reset to that example using selectExample
     // This ensures we use the same safe prop copying logic as the example selection
     if (selectedExampleIndex >= 0 && component.examples && component.examples[selectedExampleIndex] && onSelectExample) {
       const currentExample = component.examples[selectedExampleIndex];
-      console.log('🎛️ Resetting to current example props via selectExample:', currentExample.name);
+      debugLog('COMPONENT_STATE', '🎛️ Resetting to current example props via selectExample:', currentExample.name);
       onSelectExample(selectedExampleIndex);
       return;
     }
     
     // Otherwise, fall back to metadata defaults
-    console.log('🎛️ Resetting to metadata defaults (no example selected)');
+    debugLog('COMPONENT_STATE', '🎛️ Resetting to metadata defaults (no example selected)');
     const defaultValues = component.props.reduce((acc, prop) => {
       acc[prop.name] = prop.defaultValue;
       return acc;
@@ -193,7 +194,7 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
                         <button
                           key={index}
                           onClick={() => {
-                            console.log('🎛️ PropsPanel example button clicked:', {
+                            debugLog('COMPONENT_STATE', '🎛️ PropsPanel example button clicked:', {
                               exampleIndex: index,
                               exampleName: example.name,
                               hasOnSelectExample: !!onSelectExample,

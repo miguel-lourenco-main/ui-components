@@ -4,6 +4,7 @@ import React, { Component as ComponentType, useState, useEffect, Suspense } from
 import { LocalComponent } from '@/types';
 import { AlertTriangleIcon, RefreshCwIcon, LoaderIcon } from 'lucide-react';
 import { getComponentByName } from '@/lib/componentRegistry';
+import { debugLog } from '@/lib/constants';
 
 interface LocalComponentRendererProps {
   component: LocalComponent;
@@ -91,14 +92,14 @@ export default function LocalComponentRenderer({
         setLoading(true);
         setError(null);
         
-        console.log(`🔄 Loading component: ${component.name}`);
+        debugLog('COMPONENT_REGISTRY', `🔄 Loading component: ${component.name}`);
         
         // Get component from static registry
         const loadedComponent = getComponentByName(component.name);
         
         if (loadedComponent) {
           setComponentToRender(() => loadedComponent);
-          console.log(`✅ Component ${component.name} loaded successfully`);
+          debugLog('COMPONENT_REGISTRY', `✅ Component ${component.name} loaded successfully`);
         } else {
           throw new Error(`Component ${component.name} not found in registry`);
         }
@@ -190,7 +191,7 @@ export default function LocalComponentRenderer({
 
     // Render the actual component
     try {
-      console.log(`🎬 Rendering ${component.name} with props:`, {
+      debugLog('COMPONENT_STATE', `🎬 Rendering ${component.name} with props:`, {
         propKeys: Object.keys(props),
         functionProps: Object.entries(props)
           .filter(([key, value]) => typeof value === 'function')

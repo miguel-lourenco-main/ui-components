@@ -6,6 +6,7 @@ import { PropDefinition } from '@/types';
 import { AlertTriangleIcon, CheckIcon, CodeIcon, Trash2Icon } from 'lucide-react';
 import { parse } from 'acorn';
 import { simple as walkSimple } from 'acorn-walk';
+import { debugLog } from '@/lib/constants';
 
 interface FunctionPropEditorProps {
   prop: PropDefinition;
@@ -85,7 +86,7 @@ export default function FunctionPropEditor({
       // Check if the function has original source attached
       if ((value as any).__originalSource) {
         body = (value as any).__originalSource;
-        console.log('🛠️ FunctionPropEditor: Using attached source for', prop.name, ':', body);
+        debugLog('FUNCTION_EDITOR', '🛠️ FunctionPropEditor: Using attached source for', prop.name, ':', body);
       } else {
         // Fall back to parsing the function string
         const funcString = value.toString();
@@ -182,9 +183,10 @@ export default function FunctionPropEditor({
         'setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Promise',
         // Literals and special values
         'undefined', 'null', 'NaN', 'Infinity',
-        // Common parameters
-        'event', 'value', 'data', 'index', 'item', 'error', 'response', 'result',
+        // Common parameters (these should mainly come from function parameters, not globals)
+        'value', 'data', 'index', 'item', 'error', 'response', 'result',
         'props', 'state', 'ref', 'key',
+        // Note: 'event' removed from globals since it should be a parameter
       ]);
 
       // Add function parameters to allowed globals
@@ -278,8 +280,10 @@ export default function FunctionPropEditor({
       
       // Add debugging to track where execution comes from
       const wrappedFunction = (...args: any[]) => {
-        console.log(`🚀 FUNCTION CALLED: ${prop.name} with args:`, args);
-        console.trace('Function call stack:');
+        debugLog('FUNCTION_EDITOR', `🚀 FUNCTION CALLED: ${prop.name} with args:`, args);
+        if (process.env.NODE_ENV === 'development') {
+          console.trace('Function call stack:');
+        }
         return actualFunction(...args);
       };
       
@@ -306,7 +310,7 @@ export default function FunctionPropEditor({
   useEffect(() => {
     // Only call onChange after initial setup to prevent infinite loops
     if (!isInitialized) {
-      console.log('🛠️ FunctionPropEditor: Skipping onChange because not initialized yet', prop.name);
+      debugLog('FUNCTION_EDITOR', '🛠️ FunctionPropEditor: Skipping onChange because not initialized yet', prop.name);
       return;
     }
 
@@ -314,7 +318,7 @@ export default function FunctionPropEditor({
     setIsUserTyping(true);
     
     const timer = setTimeout(() => {
-      console.log('🛠️ FunctionPropEditor: Validating and calling onChange for', prop.name, 'functionBody:', functionBody.trim() ? 'has content' : 'empty', 'content preview:', functionBody.substring(0, 50));
+      debugLog('FUNCTION_EDITOR', '🛠️ FunctionPropEditor: Validating and calling onChange for', prop.name, 'functionBody:', functionBody.trim() ? 'has content' : 'empty', 'content preview:', functionBody.substring(0, 50));
       const result = validateFunction(functionBody);
       setValidationResult(result);
       
@@ -333,20 +337,20 @@ export default function FunctionPropEditor({
             (funcWithSource as any).__originalSource = functionBody;
             (funcWithSource as any).__propName = prop.name;
             
-            console.log('🏷️  FunctionPropEditor: Attached __originalSource to function:', `"${functionBody}"`);
+            debugLog('FUNCTION_EDITOR', '🏷️  FunctionPropEditor: Attached __originalSource to function:', `"${functionBody}"`);
             
             // Only call onChange if the function content actually changed
-            console.log('🔍 FunctionPropEditor: Change detection for', prop.name);
-            console.log('  Current functionBody:', `"${functionBody}"`);
-            console.log('  Last sent functionBody:', `"${lastSentFunctionBody}"`);
-            console.log('  Are they equal?', functionBody === lastSentFunctionBody);
+            debugLog('FUNCTION_EDITOR', '🔍 FunctionPropEditor: Change detection for', prop.name);
+            debugLog('FUNCTION_EDITOR', '  Current functionBody:', `"${functionBody}"`);
+            debugLog('FUNCTION_EDITOR', '  Last sent functionBody:', `"${lastSentFunctionBody}"`);
+            debugLog('FUNCTION_EDITOR', '  Are they equal?', functionBody === lastSentFunctionBody);
             
             if (functionBody !== lastSentFunctionBody) {
-              console.log('✅ FunctionPropEditor: Setting function for', prop.name, 'content changed from', `"${lastSentFunctionBody}"`, 'to', `"${functionBody}"`);
+              debugLog('FUNCTION_EDITOR', '✅ FunctionPropEditor: Setting function for', prop.name, 'content changed from', `"${lastSentFunctionBody}"`, 'to', `"${functionBody}"`);
               setLastSentFunctionBody(functionBody);
               onChangeRef.current(funcWithSource);
             } else {
-              console.log('⏭️  FunctionPropEditor: Skipping onChange for', prop.name, '- content unchanged');
+              debugLog('FUNCTION_EDITOR', '⏭️  FunctionPropEditor: Skipping onChange for', prop.name, '- content unchanged');
             }
           }
         } else if (isEmpty) {
@@ -355,18 +359,18 @@ export default function FunctionPropEditor({
           const shouldRemoveFunction = lastSentFunctionBody !== '' || (value && typeof value === 'function');
           
           if (shouldRemoveFunction) {
-            console.log('🛠️ FunctionPropEditor: Removing function for', prop.name, '(empty)', 
+            debugLog('FUNCTION_EDITOR', '🛠️ FunctionPropEditor: Removing function for', prop.name, '(empty)', 
               'lastSentFunctionBody:', `"${lastSentFunctionBody}"`, 
               'current value exists:', !!(value && typeof value === 'function'));
             setLastSentFunctionBody('');
             onChangeRef.current(undefined);
           } else {
-            console.log('🛠️ FunctionPropEditor: Skipping onChange for', prop.name, '- already empty');
+            debugLog('FUNCTION_EDITOR', '🛠️ FunctionPropEditor: Skipping onChange for', prop.name, '- already empty');
           }
         }
       } else {
         // Invalid function - don't update props, just show validation error
-        console.log('🛠️ FunctionPropEditor: Function invalid for', prop.name, '- not updating props');
+        debugLog('FUNCTION_EDITOR', '🛠️ FunctionPropEditor: Function invalid for', prop.name, '- not updating props');
       }
 
       // Reset typing flag after validation completes
@@ -383,7 +387,7 @@ export default function FunctionPropEditor({
 
   // Clear function - resets the function body and removes it from props
   const handleClearFunction = useCallback(() => {
-    console.log('🗑️ FunctionPropEditor: Clearing function for', prop.name);
+    debugLog('FUNCTION_EDITOR', '🗑️ FunctionPropEditor: Clearing function for', prop.name);
     
     // Clear the function body - this will trigger the validation useEffect
     // which will automatically call onChange(undefined) when it sees empty content
@@ -394,7 +398,7 @@ export default function FunctionPropEditor({
     setLastSentFunctionBody('');
     setIsUserTyping(false);
     
-    console.log('🗑️ FunctionPropEditor: Clear complete for', prop.name);
+    debugLog('FUNCTION_EDITOR', '🗑️ FunctionPropEditor: Clear complete for', prop.name);
   }, [prop.name]);
 
   const signature = getFunctionSignature();

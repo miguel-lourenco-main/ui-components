@@ -1,11 +1,12 @@
 import { ComponentDiscoveryResult, LocalComponent } from '@/types';
+import { debugLog } from '@/lib/constants';
 import expandedRegistry from '@/lib/generated-registry.json';
 
 /**
  * Discover all local components from the registry
  */
 export async function discoverLocalComponents(): Promise<ComponentDiscoveryResult> {
-  console.log('🔍 Starting component discovery from registry...');
+  debugLog('COMPONENT_REGISTRY', '🔍 Starting component discovery from registry...');
   
   try {
     const components: LocalComponent[] = [];
@@ -44,8 +45,8 @@ export async function discoverLocalComponents(): Promise<ComponentDiscoveryResul
       }
     }
     
-    console.log(`✅ ${components.length} components loaded from registry`);
-    console.log(`⚠️ ${errors.length} errors found`);
+    debugLog('COMPONENT_REGISTRY', `✅ ${components.length} components loaded from registry`);
+    debugLog('COMPONENT_REGISTRY', `⚠️ ${errors.length} errors found`);
     
     return { components, errors };
   } catch (error) {
@@ -73,7 +74,7 @@ export async function loadComponentDetails(componentId: string): Promise<Partial
   }
 
   try {
-    console.log(`📄 Loading details for component: ${componentId}`);
+    debugLog('COMPONENT_REGISTRY', `📄 Loading details for component: ${componentId}`);
     
     // All data is already available in the expanded registry
     const details: Partial<LocalComponent> = {
@@ -84,7 +85,7 @@ export async function loadComponentDetails(componentId: string): Promise<Partial
       dependencies: registryComponent.dependencies || []
     };
     
-    console.log(`✅ Component details loaded for: ${componentId}`);
+    debugLog('COMPONENT_REGISTRY', `✅ Component details loaded for: ${componentId}`);
     return details;
   } catch (error) {
     console.error(`❌ Failed to load component details for ${componentId}:`, error);

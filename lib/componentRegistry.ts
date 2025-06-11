@@ -1,4 +1,5 @@
 import React from 'react';
+import { debugLog } from '@/lib/constants';
 
 // Static imports for all components
 import { DataTable } from '@/components/display_components/data-display/DataTable/DataTable';
@@ -26,12 +27,12 @@ export const COMPONENT_REGISTRY: Record<string, React.ComponentType<any>> = {
 };
 
 // Debug: Log registry contents
-console.log('🏛️ Component Registry initialized with:', Object.keys(COMPONENT_REGISTRY));
-console.log('🧩 All components loaded:');
-console.log('  - DataTable:', DataTable);
-console.log('  - Button:', Button);
-console.log('  - Card:', Card);
-console.log('  - Input:', Input);
+debugLog('COMPONENT_REGISTRY', '🏛️ Component Registry initialized with:', Object.keys(COMPONENT_REGISTRY));
+debugLog('COMPONENT_REGISTRY', '🧩 All components loaded:');
+debugLog('COMPONENT_REGISTRY', '  - DataTable:', DataTable);
+debugLog('COMPONENT_REGISTRY', '  - Button:', Button);
+debugLog('COMPONENT_REGISTRY', '  - Card:', Card);
+debugLog('COMPONENT_REGISTRY', '  - Input:', Input);
 
 // Make registry available globally for debugging
 if (typeof window !== 'undefined') {
@@ -40,16 +41,16 @@ if (typeof window !== 'undefined') {
   window.Button = Button;
   window.Card = Card;
   window.Input = Input;
-  console.log('🌍 All components exposed globally for debugging');
+  debugLog('COMPONENT_REGISTRY', '🌍 All components exposed globally for debugging');
 }
 
 /**
  * Get a component by name from the static registry
  */
 export function getComponentByName(name: string): React.ComponentType<any> | null {
-  console.log(`🔍 Looking for component: ${name} in registry with keys:`, Object.keys(COMPONENT_REGISTRY));
+  debugLog('COMPONENT_REGISTRY', `🔍 Looking for component: ${name} in registry with keys:`, Object.keys(COMPONENT_REGISTRY));
   const component = COMPONENT_REGISTRY[name] || null;
-  console.log(`${component ? '✅' : '❌'} Component ${name} ${component ? 'found' : 'not found'}`);
+  debugLog('COMPONENT_REGISTRY', `${component ? '✅' : '❌'} Component ${name} ${component ? 'found' : 'not found'}`);
   return component;
 }
 
