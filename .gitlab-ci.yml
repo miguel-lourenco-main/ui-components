@@ -23,7 +23,6 @@ build:
   before_script:
     - npm install -g pnpm
     - pnpm install --frozen-lockfile
-    - pnpm run build-registry
   script:
     - pnpm run type-check
     - pnpm run lint
