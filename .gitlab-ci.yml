@@ -38,7 +38,7 @@ pages:
   stage: deploy
   script:
     - echo "Deploying to GitLab Pages Production..."
-    - echo "Production URL: ${CI_PAGES_URL}"
+    - echo "Production URL - ${CI_PAGES_URL}"
     - mv out public  # GitLab Pages expects content in 'public' directory
   artifacts:
     paths:
@@ -56,8 +56,8 @@ pages:
 pages-review:
   stage: deploy
   script:
-    - echo "Deploying parallel deployment for branch: $CI_COMMIT_REF_SLUG"
-    - echo "Review URL: ${CI_PAGES_URL}/$CI_COMMIT_REF_SLUG/"
+    - echo "Deploying parallel deployment for branch $CI_COMMIT_REF_SLUG"
+    - echo "Review URL - ${CI_PAGES_URL}/$CI_COMMIT_REF_SLUG/"
     - mv out public  # GitLab Pages expects content in 'public' directory
   artifacts:
     paths:
@@ -79,8 +79,8 @@ pages-review:
 pages-mr:
   stage: deploy
   script:
-    - echo "Deploying merge request preview: MR-$CI_MERGE_REQUEST_IID"
-    - echo "MR Preview URL: ${CI_PAGES_URL}/mr-$CI_MERGE_REQUEST_IID/"
+    - echo "Deploying merge request preview for MR-$CI_MERGE_REQUEST_IID"
+    - echo "MR Preview URL - ${CI_PAGES_URL}/mr-$CI_MERGE_REQUEST_IID/"
     - mv out public
   artifacts:
     paths:
