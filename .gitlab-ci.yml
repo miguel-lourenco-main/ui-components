@@ -34,7 +34,7 @@ build:
     expire_in: 1 hour
 
 # Deploy to GitLab Pages - Production (main branch)
-pages:production:
+pages:
   stage: deploy
   script:
     - echo "Deploying to GitLab Pages Production..."
@@ -44,8 +44,6 @@ pages:production:
     paths:
       - public/
     expire_in: never
-  pages:
-    # No path_prefix = main deployment at root URL
   dependencies:
     - build
   environment:
@@ -55,7 +53,7 @@ pages:production:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 # Deploy to GitLab Pages - Feature Branches (parallel deployments)
-pages:review:
+pages-review:
   stage: deploy
   script:
     - echo "Deploying parallel deployment for branch: $CI_COMMIT_REF_SLUG"
@@ -78,7 +76,7 @@ pages:review:
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
 
 # Deploy to GitLab Pages - Merge Request Previews
-pages:mr:
+pages-mr:
   stage: deploy
   script:
     - echo "Deploying merge request preview: MR-$CI_MERGE_REQUEST_IID"
@@ -96,7 +94,7 @@ pages:mr:
   environment:
     name: mr-preview/$CI_MERGE_REQUEST_IID
     url: $CI_PAGES_URL/mr-$CI_MERGE_REQUEST_IID/
-    on_stop: stop_mr_review
+    on_stop: stop-mr-review
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: manual  # Deploy MR previews manually
@@ -114,7 +112,7 @@ stop_review:
       when: manual
 
 # Stop MR preview environment (automatic cleanup when MR is closed/merged)
-stop_mr_review:
+stop-mr-review:
   stage: deploy
   script:
     - echo "Stopping MR preview environment for MR-$CI_MERGE_REQUEST_IID"
