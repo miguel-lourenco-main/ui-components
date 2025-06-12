@@ -1,4 +1,5 @@
 # GitLab CI/CD configuration for Next.js static export to GitLab Pages
+# Uses GitLab Pages Parallel Deployments for branch-specific preview URLs
 image: node:18-alpine
 
 # Define variables
@@ -16,7 +17,7 @@ stages:
   - build
   - deploy
 
-# Build stage
+# Build stage for all branches
 build:
   stage: build
   before_script:
@@ -31,27 +32,93 @@ build:
     paths:
       - out/
     expire_in: 1 hour
-  only:
-    - main
-    - master
 
-# Deploy to GitLab Pages
+# Deploy to GitLab Pages - Production (main branch)
 pages:
   stage: deploy
   script:
-    - echo "Deploying to GitLab Pages..."
+    - echo "Deploying to GitLab Pages Production..."
+    - echo "Production URL - ${CI_PAGES_URL}"
     - mv out public  # GitLab Pages expects content in 'public' directory
   artifacts:
     paths:
       - public/
-    # Make pages publicly accessible
     expire_in: never
   dependencies:
     - build
-  only:
-    - main
-    - master
-  # Ensure public access
   environment:
     name: production
-    url: $CI_PAGES_URL 
+    url: $CI_PAGES_URL
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Deploy to GitLab Pages - Feature Branches (parallel deployments)
+pages-review:
+  stage: deploy
+  script:
+    - echo "Deploying parallel deployment for branch $CI_COMMIT_REF_SLUG"
+    - echo "Review URL - ${CI_PAGES_URL}/$CI_COMMIT_REF_SLUG/"
+    - mv out public  # GitLab Pages expects content in 'public' directory
+  artifacts:
+    paths:
+      - public/
+    expire_in: 1 week
+  pages:
+    path_prefix: "$CI_COMMIT_REF_SLUG"  # Creates URL: site.com/branch-name/
+    expire_in: 1 week  # Auto-cleanup after 1 week
+  dependencies:
+    - build
+  environment:
+    name: review/$CI_COMMIT_REF_SLUG
+    url: $CI_PAGES_URL/$CI_COMMIT_REF_SLUG/
+    on_stop: stop_review
+  rules:
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+
+# Deploy to GitLab Pages - Merge Request Previews
+pages-mr:
+  stage: deploy
+  script:
+    - echo "Deploying merge request preview for MR-$CI_MERGE_REQUEST_IID"
+    - echo "MR Preview URL - ${CI_PAGES_URL}/mr-$CI_MERGE_REQUEST_IID/"
+    - mv out public
+  artifacts:
+    paths:
+      - public/
+    expire_in: 1 week
+  pages:
+    path_prefix: "mr-$CI_MERGE_REQUEST_IID"  # Creates URL: site.com/mr-123/
+    expire_in: 1 week
+  dependencies:
+    - build
+  environment:
+    name: mr-preview/$CI_MERGE_REQUEST_IID
+    url: $CI_PAGES_URL/mr-$CI_MERGE_REQUEST_IID/
+    on_stop: stop-mr-review
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual  # Deploy MR previews manually
+
+# Stop review environment (automatic cleanup when branch is deleted)
+stop_review:
+  stage: deploy
+  script:
+    - echo "Stopping review environment for $CI_COMMIT_REF_SLUG"
+  environment:
+    name: review/$CI_COMMIT_REF_SLUG
+    action: stop
+  rules:
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      when: manual
+
+# Stop MR preview environment (automatic cleanup when MR is closed/merged)
+stop-mr-review:
+  stage: deploy
+  script:
+    - echo "Stopping MR preview environment for MR-$CI_MERGE_REQUEST_IID"
+  environment:
+    name: mr-preview/$CI_MERGE_REQUEST_IID
+    action: stop
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual 
