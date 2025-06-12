@@ -58,7 +58,11 @@ pages-review:
   script:
     - echo "Deploying parallel deployment for branch $CI_COMMIT_REF_SLUG"
     - echo "Review URL - ${CI_PAGES_URL}/$CI_COMMIT_REF_SLUG/"
+    - ls -la out/  # Debug: List contents of out directory
+    - mkdir -p public
     - cp -r out/* public/  # Copy contents of out directory to public directory
+    - ls -la public/  # Debug: List contents of public directory
+    - ls -la public/_next/static/chunks/ || echo "No chunks directory found"
   artifacts:
     paths:
       - public/

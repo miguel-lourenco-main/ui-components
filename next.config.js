@@ -3,6 +3,9 @@ const nextConfig = {
   output: 'export',
   trailingSlash: true,
   distDir: 'out',
+  // Configure for GitLab Pages
+  assetPrefix: process.env.NODE_ENV === 'production' ? undefined : undefined,
+  basePath: '',
   images: {
     domains: ['gitlab.com'],
     unoptimized: true, // Required for static export
