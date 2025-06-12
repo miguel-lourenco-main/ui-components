@@ -39,7 +39,7 @@ pages:
   script:
     - echo "Deploying to GitLab Pages Production..."
     - echo "Production URL - ${CI_PAGES_URL}"
-    - mv out public  # GitLab Pages expects content in 'public' directory
+    - cp -r out/* public/  # Copy contents of out directory to public directory
   artifacts:
     paths:
       - public/
@@ -58,7 +58,7 @@ pages-review:
   script:
     - echo "Deploying parallel deployment for branch $CI_COMMIT_REF_SLUG"
     - echo "Review URL - ${CI_PAGES_URL}/$CI_COMMIT_REF_SLUG/"
-    - mv out public  # GitLab Pages expects content in 'public' directory
+    - cp -r out/* public/  # Copy contents of out directory to public directory
   artifacts:
     paths:
       - public/
@@ -81,7 +81,7 @@ pages-mr:
   script:
     - echo "Deploying merge request preview for MR-$CI_MERGE_REQUEST_IID"
     - echo "MR Preview URL - ${CI_PAGES_URL}/mr-$CI_MERGE_REQUEST_IID/"
-    - mv out public
+    - cp -r out/* public/
   artifacts:
     paths:
       - public/
