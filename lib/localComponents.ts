@@ -6,7 +6,7 @@ import expandedRegistry from '@/lib/generated-registry.json';
  * Discover all local components from the registry
  */
 export async function discoverLocalComponents(): Promise<ComponentDiscoveryResult> {
-  debugLog('COMPONENT_REGISTRY', '🔍 Starting component discovery from registry...');
+  debugLog('COMPONENT_REGISTRY', '🔍 Starting component discovery fro registry...');
   
   try {
     const components: LocalComponent[] = [];
