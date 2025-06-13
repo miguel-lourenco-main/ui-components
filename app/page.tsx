@@ -87,19 +87,24 @@ export default function PlaygroundPage() {
               </span>
             )}
           </div>
-          <div className="flex items-center space-x-2">
-            <ViewportControls
-              viewMode={playgroundState.viewMode}
-              onViewModeChange={setViewMode}
-            />
-            <button
-              onClick={() => togglePanel('props')}
-              className={`p-2 rounded ${playgroundState.showProps ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'}`}
-              title="Toggle Props Panel"
+          {selectedExampleIndex > -1 && (
+            <div 
+              key={`header-controls-${playgroundState.selectedComponent?.name}`}
+              className="flex items-center space-x-2 slide-in-left"
             >
-              <SettingsIcon className="w-5 h-5" />
-            </button>
-          </div>
+              <ViewportControls
+                viewMode={playgroundState.viewMode}
+                onViewModeChange={setViewMode}
+              />
+              <button
+                onClick={() => togglePanel('props')}
+                className={`p-2 rounded transition-colors duration-200 ${playgroundState.showProps ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'}`}
+                title="Toggle Props Panel"
+              >
+                <SettingsIcon className="w-5 h-5" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -250,8 +255,13 @@ export default function PlaygroundPage() {
           {playgroundState.showProps && playgroundState.selectedComponent && (
             <>
               <ResizableHandle withHandle />
-              <ResizablePanel defaultSize={25} minSize={15} className="bg-white border-l border-gray-200">
-                <div className="h-full flex flex-col">
+              <ResizablePanel 
+                key={`props-panel-${playgroundState.selectedComponent.name}-${playgroundState.showProps}`}
+                defaultSize={25} 
+                minSize={15} 
+                className="bg-white border-l border-gray-200"
+              >
+                <div className="h-full flex flex-col slide-in-right">
                   <div className="p-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
                     <h3 className="font-semibold">Props</h3>
                     <button
