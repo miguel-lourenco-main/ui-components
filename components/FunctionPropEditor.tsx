@@ -105,7 +105,10 @@ export default function FunctionPropEditor({
 
       // Professional validation using Acorn AST parser
   const validateFunction = useCallback((code: string): ValidationResult => {
+    debugLog('FUNCTION_EDITOR', `🔍 VALIDATION START for ${prop.name}:`, { code, propName: prop.name });
+    
     if (!code.trim()) {
+      debugLog('FUNCTION_EDITOR', `✅ VALIDATION: Empty code is valid for ${prop.name}`);
       return { isValid: true }; // Empty is valid (will clear the function)
     }
 
@@ -123,12 +126,14 @@ export default function FunctionPropEditor({
 
     for (const { pattern, message } of securityPatterns) {
       if (pattern.test(code)) {
+        debugLog('FUNCTION_EDITOR', `❌ VALIDATION: Security violation for ${prop.name}:`, { pattern: pattern.toString(), message, code });
         return {
           isValid: false,
           error: `Security violation: ${message}`
         };
       }
     }
+    debugLog('FUNCTION_EDITOR', `✅ VALIDATION: Security check passed for ${prop.name}`);
 
     // 2. FUNCTION BODY VALIDATION - Check it's not a complete function declaration
     const bodyViolations = [
@@ -140,70 +145,91 @@ export default function FunctionPropEditor({
 
     for (const { pattern, message } of bodyViolations) {
       if (pattern.test(code)) {
+        debugLog('FUNCTION_EDITOR', `❌ VALIDATION: Body violation for ${prop.name}:`, { pattern: pattern.toString(), message, code });
         return {
           isValid: false,
           error: `Invalid function body: ${message}`
         };
       }
     }
+    debugLog('FUNCTION_EDITOR', `✅ VALIDATION: Body check passed for ${prop.name}`);
 
-    try {
-      const signature = getFunctionSignature();
-      const fullFunction = `(${signature.params}) => {\n${code}\n}`;
-      
-      // 3. SYNTAX VALIDATION using Acorn AST parser
-      let ast;
-      try {
-        // For JSX content, skip AST parsing entirely and use simple validation
-        if (code.includes('<') && code.includes('>')) {
-          // This looks like JSX, so we'll do a simpler validation
-          // Just check for basic syntax issues without full parsing
-          const jsxValidationErrors = [];
-          
-          // Check for unmatched brackets
-          const openBrackets = (code.match(/</g) || []).length;
-          const closeBrackets = (code.match(/>/g) || []).length;
-          if (openBrackets !== closeBrackets) {
-            jsxValidationErrors.push('Unmatched JSX brackets');
+                try {
+        const signature = getFunctionSignature();
+        
+        // Strip TypeScript type annotations for JavaScript parsing
+        const jsParams = signature.params.split(',').map(param => {
+          const trimmed = param.trim();
+          const colonIndex = trimmed.indexOf(':');
+          // Extract just the parameter name, removing type annotations
+          return colonIndex > -1 ? trimmed.substring(0, colonIndex).trim() : trimmed;
+        }).join(', ');
+        
+        const fullFunction = `(${jsParams}) => {\n${code}\n}`;
+        debugLog('FUNCTION_EDITOR', `🔍 VALIDATION: Creating full function for ${prop.name}:`, { 
+          originalSignature: signature, 
+          jsParams,
+          fullFunction 
+        });
+        
+        // 3. SYNTAX VALIDATION using Acorn AST parser
+        let ast;
+        try {
+          // For JSX content, skip AST parsing entirely and use simple validation
+          if (code.includes('<') && code.includes('>')) {
+            // This looks like JSX, so we'll do a simpler validation
+            // Just check for basic syntax issues without full parsing
+            const jsxValidationErrors = [];
+            
+            // Check for unmatched brackets
+            const openBrackets = (code.match(/</g) || []).length;
+            const closeBrackets = (code.match(/>/g) || []).length;
+            if (openBrackets !== closeBrackets) {
+              jsxValidationErrors.push('Unmatched JSX brackets');
+            }
+            
+            // Check for unmatched braces
+            const openBraces = (code.match(/\{/g) || []).length;
+            const closeBraces = (code.match(/\}/g) || []).length;
+            if (openBraces !== closeBraces) {
+              jsxValidationErrors.push('Unmatched braces in JSX');
+            }
+            
+            // Check for unmatched parentheses
+            const openParens = (code.match(/\(/g) || []).length;
+            const closeParens = (code.match(/\)/g) || []).length;
+            if (openParens !== closeParens) {
+              jsxValidationErrors.push('Unmatched parentheses in JSX');
+            }
+            
+            if (jsxValidationErrors.length > 0) {
+              debugLog('FUNCTION_EDITOR', `❌ VALIDATION: JSX validation failed for ${prop.name}:`, jsxValidationErrors);
+              return {
+                isValid: false,
+                error: `JSX syntax error: ${jsxValidationErrors.join(', ')}`
+              };
+            }
+            
+            // If basic JSX validation passes, skip AST validation and proceed
+            debugLog('FUNCTION_EDITOR', `✅ VALIDATION: JSX validation passed for ${prop.name}, skipping AST`);
+            ast = null;
+          } else {
+            // For non-JSX content, use normal AST parsing with JavaScript-compatible function
+            debugLog('FUNCTION_EDITOR', `🔍 VALIDATION: Parsing AST for ${prop.name} with JS function:`, fullFunction);
+            ast = parse(fullFunction, { 
+              ecmaVersion: 2020, 
+              sourceType: 'script',
+              locations: false // We don't need location info for validation
+            });
+            debugLog('FUNCTION_EDITOR', `✅ VALIDATION: AST parsing successful for ${prop.name}`);
           }
-          
-          // Check for unmatched braces
-          const openBraces = (code.match(/\{/g) || []).length;
-          const closeBraces = (code.match(/\}/g) || []).length;
-          if (openBraces !== closeBraces) {
-            jsxValidationErrors.push('Unmatched braces in JSX');
-          }
-          
-          // Check for unmatched parentheses
-          const openParens = (code.match(/\(/g) || []).length;
-          const closeParens = (code.match(/\)/g) || []).length;
-          if (openParens !== closeParens) {
-            jsxValidationErrors.push('Unmatched parentheses in JSX');
-          }
-          
-          if (jsxValidationErrors.length > 0) {
-            return {
-              isValid: false,
-              error: `JSX syntax error: ${jsxValidationErrors.join(', ')}`
-            };
-          }
-          
-          // If basic JSX validation passes, skip AST validation and proceed
-          ast = null;
-        } else {
-          // For non-JSX content, use normal AST parsing
-          ast = parse(fullFunction, { 
-            ecmaVersion: 2020, 
-            sourceType: 'script',
-            locations: false // We don't need location info for validation
-          });
+              } catch (parseError) {
+          debugLog('FUNCTION_EDITOR', `❌ VALIDATION: Parse error for ${prop.name}:`, { parseError: parseError instanceof Error ? parseError.message : 'Invalid JavaScript', code, fullFunction });
+          return {
+            isValid: false,
+            error: `Syntax error: ${parseError instanceof Error ? parseError.message : 'Invalid JavaScript'}`
+          };
         }
-      } catch (parseError) {
-        return {
-          isValid: false,
-          error: `Syntax error: ${parseError instanceof Error ? parseError.message : 'Invalid JavaScript'}`
-        };
-      }
 
       // 4. VARIABLE SCOPE ANALYSIS using AST (skip if JSX detected)
       const warnings: string[] = [];
@@ -224,14 +250,11 @@ export default function FunctionPropEditor({
           // Note: 'event' removed from globals since it should be a parameter
         ]);
 
-        // Add function parameters to allowed globals
-        const params = signature.params.split(',').map(p => {
-          // Extract parameter name from TypeScript parameter (e.g., "event: React.MouseEvent" -> "event")
+        // Add function parameters to allowed globals (use the same JS params we created for parsing)
+        const params = jsParams.split(',').map(p => {
           const trimmed = p.trim();
-          const colonIndex = trimmed.indexOf(':');
-          const paramName = colonIndex > -1 ? trimmed.substring(0, colonIndex).trim() : trimmed;
           // Handle destructured parameters like "{value}" or rest parameters like "...args"
-          return paramName.replace(/^[{\.]+|[}]+$/g, '').split(/\s+/).pop() || '';
+          return trimmed.replace(/^[{\.]+|[}]+$/g, '').split(/\s+/).pop() || '';
         }).filter(Boolean);
         params.forEach(param => allowedGlobals.add(param));
         
@@ -241,7 +264,155 @@ export default function FunctionPropEditor({
           allowedGlobals: Array.from(allowedGlobals)
         });
 
-        // Walk the AST to find undefined variables
+        // Helper function to calculate string similarity for typo detection
+        const levenshteinDistance = (str1: string, str2: string): number => {
+          const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
+          
+          for (let i = 0; i <= str1.length; i++) matrix[0][i] = i;
+          for (let j = 0; j <= str2.length; j++) matrix[j][0] = j;
+          
+          for (let j = 1; j <= str2.length; j++) {
+            for (let i = 1; i <= str1.length; i++) {
+              const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
+              matrix[j][i] = Math.min(
+                matrix[j][i - 1] + 1,
+                matrix[j - 1][i] + 1,
+                matrix[j - 1][i - 1] + indicator
+              );
+            }
+          }
+          
+          return matrix[str2.length][str1.length];
+        };
+
+        // Get actual methods from browser environment (runtime introspection)
+        const getObjectMethods = (obj: any): string[] => {
+          if (!obj) return [];
+          
+          const methods: string[] = [];
+          const proto = Object.getPrototypeOf(obj);
+          
+          // Properties to skip (restricted in strict mode or not useful for validation)
+          const restrictedProps = new Set([
+            'caller', 'callee', 'arguments', 'constructor', 
+            '__proto__', '__defineGetter__', '__defineSetter__',
+            '__lookupGetter__', '__lookupSetter__', 'prototype'
+          ]);
+          
+          const safeGetProperty = (target: any, propName: string): boolean => {
+            try {
+              if (restrictedProps.has(propName)) return false;
+              
+              const descriptor = Object.getOwnPropertyDescriptor(target, propName);
+              if (descriptor && descriptor.get && !descriptor.set) {
+                // Skip getter-only properties that might throw
+                return false;
+              }
+              
+              const value = target[propName];
+              return typeof value === 'function' || 
+                     (typeof value !== 'undefined' && value !== null);
+            } catch (error) {
+              // Skip properties that throw errors when accessed
+              return false;
+            }
+          };
+          
+          // Get own properties safely
+          try {
+            Object.getOwnPropertyNames(obj).forEach(name => {
+              if (safeGetProperty(obj, name)) {
+                methods.push(name);
+              }
+            });
+          } catch (error) {
+            // If we can't enumerate properties, fall back to known safe ones
+            debugLog('FUNCTION_EDITOR', `⚠️ Could not enumerate properties for object, using fallback`, error);
+          }
+          
+          // Get prototype methods safely (for static methods like Math.abs)
+          if (proto && proto !== Object.prototype) {
+            try {
+              Object.getOwnPropertyNames(proto).forEach(name => {
+                if (safeGetProperty(obj, name)) {
+                  methods.push(name);
+                }
+              });
+            } catch (error) {
+              // Skip prototype enumeration if it fails
+              debugLog('FUNCTION_EDITOR', `⚠️ Could not enumerate prototype properties`, error);
+            }
+          }
+          
+          return Array.from(new Set(methods)).sort();
+        };
+
+        // Fallback method lists for when runtime introspection fails
+        const fallbackMethods: Record<string, string[]> = {
+          console: ['log', 'error', 'warn', 'info', 'debug', 'trace', 'table', 'group', 'groupEnd', 'time', 'timeEnd', 'clear'],
+          Math: ['abs', 'ceil', 'floor', 'round', 'max', 'min', 'random', 'sqrt', 'pow', 'sin', 'cos', 'tan'],
+          Date: ['now', 'parse'],
+          JSON: ['parse', 'stringify'],
+          Object: ['keys', 'values', 'entries', 'assign', 'create', 'freeze'],
+          Array: ['from', 'isArray'],
+          String: ['fromCharCode'],
+          Number: ['isNaN', 'isFinite', 'parseInt', 'parseFloat']
+        };
+
+        // Cache for performance - only compute once per validation session
+        const getKnownMethods = (): Record<string, string[]> => {
+          // Use a simple cache to avoid recomputing on every validation
+          if (!(window as any).__functionEditorMethodCache) {
+            const cache: Record<string, string[]> = {};
+            
+            // Try runtime introspection first, fall back to static lists
+            const safeObjects = [
+              { name: 'console', obj: console },
+              { name: 'Math', obj: Math },
+              { name: 'Date', obj: Date },
+              { name: 'JSON', obj: JSON },
+              { name: 'Object', obj: Object },
+              { name: 'Array', obj: Array },
+              { name: 'String', obj: String },
+              { name: 'Number', obj: Number }
+            ];
+            
+            safeObjects.forEach(({ name, obj }) => {
+              try {
+                const methods = getObjectMethods(obj);
+                // Use runtime methods if we got a reasonable number, otherwise fallback
+                cache[name] = methods.length > 0 ? methods : (fallbackMethods[name] || []);
+              } catch (error) {
+                debugLog('FUNCTION_EDITOR', `⚠️ Runtime introspection failed for ${name}, using fallback`, error);
+                cache[name] = fallbackMethods[name] || [];
+              }
+            });
+            
+            // Handle optional browser objects
+            try {
+              if (typeof localStorage !== 'undefined') {
+                cache.localStorage = getObjectMethods(localStorage);
+              }
+            } catch (error) {
+              cache.localStorage = ['getItem', 'setItem', 'removeItem', 'clear', 'key'];
+            }
+            
+            try {
+              if (typeof sessionStorage !== 'undefined') {
+                cache.sessionStorage = getObjectMethods(sessionStorage);
+              }
+            } catch (error) {
+              cache.sessionStorage = ['getItem', 'setItem', 'removeItem', 'clear', 'key'];
+            }
+            
+            (window as any).__functionEditorMethodCache = cache;
+          }
+          return (window as any).__functionEditorMethodCache;
+        };
+
+        const knownMethods = getKnownMethods();
+
+        // Walk the AST to find undefined variables and validate method calls
         walkSimple(ast, {
           Identifier(node: any) {
             const name = node.name;
@@ -262,6 +433,30 @@ export default function FunctionPropEditor({
               if (allowedGlobals.has(objectName)) {
                 // It's a known global, so this is fine
                 undefinedVars.delete(objectName);
+                
+                                 // Validate method/property names on known objects
+                 if (knownMethods[objectName] && node.property && node.property.type === 'Identifier') {
+                   const propertyName = node.property.name;
+                   const validMethods = knownMethods[objectName];
+                   
+                   if (!validMethods.includes(propertyName)) {
+                     // Check for common typos and suggest corrections
+                     const suggestions = validMethods.filter((method: string) => 
+                       method.toLowerCase().includes(propertyName.toLowerCase()) ||
+                       propertyName.toLowerCase().includes(method.toLowerCase()) ||
+                       levenshteinDistance(method, propertyName) <= 2
+                     );
+                     
+                     let suggestionText = '';
+                     if (suggestions.length > 0) {
+                       suggestionText = ` Did you mean: ${suggestions.join(', ')}?`;
+                     } else {
+                       suggestionText = ` Available methods: ${validMethods.slice(0, 5).join(', ')}${validMethods.length > 5 ? '...' : ''}`;
+                     }
+                     
+                     warnings.push(`BLOCKING: Unknown method '${objectName}.${propertyName}' - this will cause a runtime error.${suggestionText}`);
+                   }
+                 }
               }
             }
           }
@@ -305,7 +500,15 @@ export default function FunctionPropEditor({
 
         // Check for blocking errors after processing all variables
         const blockingErrors = warnings.filter(w => w.startsWith('BLOCKING:'));
+        debugLog('FUNCTION_EDITOR', `🔍 VALIDATION: Variable analysis complete for ${prop.name}:`, { 
+          undefinedVars: Array.from(undefinedVars), 
+          warnings, 
+          blockingErrors,
+          allowedGlobals: Array.from(allowedGlobals)
+        });
+        
         if (blockingErrors.length > 0) {
+          debugLog('FUNCTION_EDITOR', `❌ VALIDATION: Blocking error for ${prop.name}:`, blockingErrors[0]);
           return {
             isValid: false,
             error: blockingErrors[0].replace('BLOCKING: ', '')
@@ -408,6 +611,7 @@ export default function FunctionPropEditor({
         (wrappedFunction as any).__originalSource = code;
         (wrappedFunction as any).__propName = prop.name;
         
+        debugLog('FUNCTION_EDITOR', `✅ VALIDATION: Function compilation successful for ${prop.name}`);
         return {
           isValid: true,
           compiledFunction: wrappedFunction,
@@ -416,6 +620,7 @@ export default function FunctionPropEditor({
       } else {
         // For JSX content, return valid without compiled function
         // The actual function will be created later by functionPropValueToFunction
+        debugLog('FUNCTION_EDITOR', `✅ VALIDATION: JSX content validation successful for ${prop.name}`);
         return {
           isValid: true,
           warnings: warnings.length > 0 ? warnings : undefined
@@ -423,6 +628,7 @@ export default function FunctionPropEditor({
       }
       
     } catch (error) {
+      debugLog('FUNCTION_EDITOR', `❌ VALIDATION: Unexpected error for ${prop.name}:`, error);
       return {
         isValid: false,
         error: error instanceof Error ? error.message : 'Validation error'
