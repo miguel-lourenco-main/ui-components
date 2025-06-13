@@ -7,6 +7,13 @@ import { AlertTriangleIcon, CheckIcon, CodeIcon, Trash2Icon } from 'lucide-react
 import { parse } from 'acorn';
 import { simple as walkSimple } from 'acorn-walk';
 import { debugLog } from '@/lib/constants';
+import { FunctionPropValue } from '@/types';
+import { 
+  isFunctionPropValue, 
+  getFunctionSource, 
+  setFunctionSource,
+  functionPropValueToFunction 
+} from '@/lib/utils/functionProps';
 
 interface FunctionPropEditorProps {
   prop: PropDefinition;
@@ -79,34 +86,14 @@ export default function FunctionPropEditor({
 
   // Initialize function body from current value
   useEffect(() => {
-    if (value && typeof value === 'function') {
-      // Extract function body from existing function
-      let body = '';
-      
-      // Check if the function has original source attached
-      if ((value as any).__originalSource) {
-        body = (value as any).__originalSource;
-        debugLog('FUNCTION_EDITOR', '🛠️ FunctionPropEditor: Using attached source for', prop.name, ':', body);
-      } else {
-        // Fall back to parsing the function string
-        const funcString = value.toString();
-        const bodyMatch = funcString.match(/\{([\s\S]*)\}/);
-        if (bodyMatch) {
-          body = bodyMatch[1].trim();
-        }
-      }
-      
-      setFunctionBody(body);
-    } else if (!value) {
-      // No function value - clear the body
-      setFunctionBody('');
-    }
+    const source = getFunctionSource(value);
+    setFunctionBody(source);
     
     // Mark as initialized after processing the value
     if (!isInitialized) {
       setIsInitialized(true);
     }
-  }, [value, isInitialized, prop.name]); // Removed unnecessary dependencies
+  }, [value, isInitialized, prop.name]);
 
       // Professional validation using Acorn AST parser
   const validateFunction = useCallback((code: string): ValidationResult => {
@@ -159,11 +146,50 @@ export default function FunctionPropEditor({
       // 3. SYNTAX VALIDATION using Acorn AST parser
       let ast;
       try {
-        ast = parse(fullFunction, { 
-          ecmaVersion: 2020, 
-          sourceType: 'script',
-          locations: false // We don't need location info for validation
-        });
+        // For JSX content, skip AST parsing entirely and use simple validation
+        if (code.includes('<') && code.includes('>')) {
+          // This looks like JSX, so we'll do a simpler validation
+          // Just check for basic syntax issues without full parsing
+          const jsxValidationErrors = [];
+          
+          // Check for unmatched brackets
+          const openBrackets = (code.match(/</g) || []).length;
+          const closeBrackets = (code.match(/>/g) || []).length;
+          if (openBrackets !== closeBrackets) {
+            jsxValidationErrors.push('Unmatched JSX brackets');
+          }
+          
+          // Check for unmatched braces
+          const openBraces = (code.match(/\{/g) || []).length;
+          const closeBraces = (code.match(/\}/g) || []).length;
+          if (openBraces !== closeBraces) {
+            jsxValidationErrors.push('Unmatched braces in JSX');
+          }
+          
+          // Check for unmatched parentheses
+          const openParens = (code.match(/\(/g) || []).length;
+          const closeParens = (code.match(/\)/g) || []).length;
+          if (openParens !== closeParens) {
+            jsxValidationErrors.push('Unmatched parentheses in JSX');
+          }
+          
+          if (jsxValidationErrors.length > 0) {
+            return {
+              isValid: false,
+              error: `JSX syntax error: ${jsxValidationErrors.join(', ')}`
+            };
+          }
+          
+          // If basic JSX validation passes, skip AST validation and proceed
+          ast = null;
+        } else {
+          // For non-JSX content, use normal AST parsing
+          ast = parse(fullFunction, { 
+            ecmaVersion: 2020, 
+            sourceType: 'script',
+            locations: false // We don't need location info for validation
+          });
+        }
       } catch (parseError) {
         return {
           isValid: false,
@@ -171,73 +197,75 @@ export default function FunctionPropEditor({
         };
       }
 
-      // 4. VARIABLE SCOPE ANALYSIS using AST
+      // 4. VARIABLE SCOPE ANALYSIS using AST (skip if JSX detected)
       const warnings: string[] = [];
       const undefinedVars = new Set<string>();
       
-      // Define allowed global variables
-      const allowedGlobals = new Set([
-        // JavaScript built-ins
-        'console', 'Math', 'Date', 'JSON', 'Object', 'Array', 'String', 'Number', 'Boolean',
-        'parseInt', 'parseFloat', 'isNaN', 'isFinite', 'encodeURIComponent', 'decodeURIComponent',
-        'setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Promise',
-        // Literals and special values
-        'undefined', 'null', 'NaN', 'Infinity',
-        // Common parameters (these should mainly come from function parameters, not globals)
-        'value', 'data', 'index', 'item', 'error', 'response', 'result',
-        'props', 'state', 'ref', 'key',
-        // Note: 'event' removed from globals since it should be a parameter
-      ]);
+      if (ast) {
+        // Define allowed global variables
+        const allowedGlobals = new Set([
+          // JavaScript built-ins
+          'console', 'Math', 'Date', 'JSON', 'Object', 'Array', 'String', 'Number', 'Boolean',
+          'parseInt', 'parseFloat', 'isNaN', 'isFinite', 'encodeURIComponent', 'decodeURIComponent',
+          'setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Promise',
+          // Literals and special values
+          'undefined', 'null', 'NaN', 'Infinity',
+          // Common parameters (these should mainly come from function parameters, not globals)
+          'value', 'data', 'index', 'item', 'error', 'response', 'result',
+          'props', 'state', 'ref', 'key',
+          // Note: 'event' removed from globals since it should be a parameter
+        ]);
 
-      // Add function parameters to allowed globals
-      const params = signature.params.split(',').map(p => p.trim().split(/\s+/).pop() || '').filter(Boolean);
-      params.forEach(param => allowedGlobals.add(param));
+        // Add function parameters to allowed globals
+        const params = signature.params.split(',').map(p => p.trim().split(/\s+/).pop() || '').filter(Boolean);
+        params.forEach(param => allowedGlobals.add(param));
 
-      // Walk the AST to find undefined variables
-      walkSimple(ast, {
-        Identifier(node: any) {
-          const name = node.name;
+        // Walk the AST to find undefined variables
+        walkSimple(ast, {
+          Identifier(node: any) {
+            const name = node.name;
+            
+            // Skip if it's an allowed global
+            if (allowedGlobals.has(name)) return;
+            
+            // Skip if it's a property access (will be handled by MemberExpression)
+            // This is a simple heuristic - Acorn gives us proper context
+            undefinedVars.add(name);
+          },
           
-          // Skip if it's an allowed global
-          if (allowedGlobals.has(name)) return;
-          
-          // Skip if it's a property access (will be handled by MemberExpression)
-          // This is a simple heuristic - Acorn gives us proper context
-          undefinedVars.add(name);
-        },
-        
-        MemberExpression(node: any) {
-          // Remove the object from undefined vars if it's a member expression
-          // e.g., in "console.log", "console" is not undefined
-          if (node.object && node.object.type === 'Identifier') {
-            const objectName = node.object.name;
-            if (allowedGlobals.has(objectName)) {
-              // It's a known global, so this is fine
-              undefinedVars.delete(objectName);
+          MemberExpression(node: any) {
+            // Remove the object from undefined vars if it's a member expression
+            // e.g., in "console.log", "console" is not undefined
+            if (node.object && node.object.type === 'Identifier') {
+              const objectName = node.object.name;
+              if (allowedGlobals.has(objectName)) {
+                // It's a known global, so this is fine
+                undefinedVars.delete(objectName);
+              }
             }
           }
-        }
-      });
+        });
 
-      // Process undefined variables
-      Array.from(undefinedVars).forEach(varName => {
-        // Single character variables (except common loop vars) are likely typos - make them errors
-        if (/^[a-z]$/.test(varName) && !['i', 'j', 'x', 'y', 'n'].includes(varName)) {
-          warnings.push(`BLOCKING: Undefined variable '${varName}' - this looks like a typo. Did you mean 'event' or another variable?`);
-          return;
-        }
-        
-        // Other undefined variables are warnings
-        warnings.push(`Unknown variable '${varName}' - this may cause runtime errors`);
-      });
+        // Process undefined variables
+        Array.from(undefinedVars).forEach(varName => {
+          // Single character variables (except common loop vars) are likely typos - make them errors
+          if (/^[a-z]$/.test(varName) && !['i', 'j', 'x', 'y', 'n'].includes(varName)) {
+            warnings.push(`BLOCKING: Undefined variable '${varName}' - this looks like a typo. Did you mean 'event' or another variable?`);
+            return;
+          }
+          
+          // Other undefined variables are warnings
+          warnings.push(`Unknown variable '${varName}' - this may cause runtime errors`);
+        });
 
-      // Check for blocking errors after processing all variables
-      const blockingErrors = warnings.filter(w => w.startsWith('BLOCKING:'));
-      if (blockingErrors.length > 0) {
-        return {
-          isValid: false,
-          error: blockingErrors[0].replace('BLOCKING: ', '')
-        };
+        // Check for blocking errors after processing all variables
+        const blockingErrors = warnings.filter(w => w.startsWith('BLOCKING:'));
+        if (blockingErrors.length > 0) {
+          return {
+            isValid: false,
+            error: blockingErrors[0].replace('BLOCKING: ', '')
+          };
+        }
       }
 
       // 5. SIMPLE EXPRESSION VALIDATION
@@ -249,8 +277,8 @@ export default function FunctionPropEditor({
         };
       }
 
-      // 6. RETURN TYPE VALIDATION (warnings only)
-      if (signature.returnType !== 'any' && signature.returnType !== 'void') {
+      // 6. RETURN TYPE VALIDATION (warnings only, skip if no AST)
+      if (ast && signature.returnType !== 'any' && signature.returnType !== 'void') {
         walkSimple(ast, {
           ReturnStatement(node: any) {
             if (node.argument) {
@@ -275,28 +303,38 @@ export default function FunctionPropEditor({
         });
       }
 
-      // Create the actual function without executing it  
-      const actualFunction = new Function('return ' + fullFunction)();
-      
-      // Add debugging to track where execution comes from
-      const wrappedFunction = (...args: any[]) => {
-        debugLog('FUNCTION_EDITOR', `🚀 FUNCTION CALLED: ${prop.name} with args:`, args);
-        if (process.env.NODE_ENV === 'development') {
-          console.trace('Function call stack:');
-        }
-        return actualFunction(...args);
-      };
-      
-      // Copy properties to maintain function identity
-      Object.defineProperty(wrappedFunction, 'name', { value: actualFunction.name });
-      (wrappedFunction as any).__originalSource = code;
-      (wrappedFunction as any).__propName = prop.name;
-      
-      return {
-        isValid: true,
-        compiledFunction: wrappedFunction,
-        warnings: warnings.length > 0 ? warnings : undefined
-      };
+      // Create the actual function without executing it (skip for JSX)
+      if (ast) {
+        // Only create function for non-JSX content
+        const actualFunction = new Function('return ' + fullFunction)();
+        
+        // Add debugging to track where execution comes from
+        const wrappedFunction = (...args: any[]) => {
+          debugLog('FUNCTION_EDITOR', `🚀 FUNCTION CALLED: ${prop.name} with args:`, args);
+          if (process.env.NODE_ENV === 'development') {
+            console.trace('Function call stack:');
+          }
+          return actualFunction(...args);
+        };
+        
+        // Copy properties to maintain function identity
+        Object.defineProperty(wrappedFunction, 'name', { value: actualFunction.name });
+        (wrappedFunction as any).__originalSource = code;
+        (wrappedFunction as any).__propName = prop.name;
+        
+        return {
+          isValid: true,
+          compiledFunction: wrappedFunction,
+          warnings: warnings.length > 0 ? warnings : undefined
+        };
+      } else {
+        // For JSX content, return valid without compiled function
+        // The actual function will be created later by functionPropValueToFunction
+        return {
+          isValid: true,
+          warnings: warnings.length > 0 ? warnings : undefined
+        };
+      }
       
     } catch (error) {
       return {
@@ -324,48 +362,36 @@ export default function FunctionPropEditor({
       
       // Only update if the validation result changed or if switching between valid/invalid states
       // This prevents unnecessary regeneration while typing
-      const hasValidContent = result.isValid && result.compiledFunction && functionBody.trim();
+      const hasValidContent = result.isValid && functionBody.trim();
       const isEmpty = !functionBody.trim();
       
       // Update prop value based on validation and content
       if (result.isValid) {
         if (hasValidContent) {
-          // Function has content and is valid - include it
-          const funcWithSource = result.compiledFunction;
-          if (funcWithSource) {
-            // Store the original function body on the function object
-            (funcWithSource as any).__originalSource = functionBody;
-            (funcWithSource as any).__propName = prop.name;
-            
-            debugLog('FUNCTION_EDITOR', '🏷️  FunctionPropEditor: Attached __originalSource to function:', `"${functionBody}"`);
-            
-            // Only call onChange if the function content actually changed
-            debugLog('FUNCTION_EDITOR', '🔍 FunctionPropEditor: Change detection for', prop.name);
-            debugLog('FUNCTION_EDITOR', '  Current functionBody:', `"${functionBody}"`);
-            debugLog('FUNCTION_EDITOR', '  Last sent functionBody:', `"${lastSentFunctionBody}"`);
-            debugLog('FUNCTION_EDITOR', '  Are they equal?', functionBody === lastSentFunctionBody);
-            
-            if (functionBody !== lastSentFunctionBody) {
-              debugLog('FUNCTION_EDITOR', '✅ FunctionPropEditor: Setting function for', prop.name, 'content changed from', `"${lastSentFunctionBody}"`, 'to', `"${functionBody}"`);
-              setLastSentFunctionBody(functionBody);
-              onChangeRef.current(funcWithSource);
-            } else {
-              debugLog('FUNCTION_EDITOR', '⏭️  FunctionPropEditor: Skipping onChange for', prop.name, '- content unchanged');
-            }
+          // Function has content and is valid - store as FunctionPropValue
+          const signature = getFunctionSignature();
+          const functionPropValue = setFunctionSource(functionBody, signature);
+          
+          debugLog('FUNCTION_EDITOR', '✅ FunctionPropEditor: Setting function prop value for', prop.name, 'content:', functionBody);
+          
+          // Only call onChange if the function content actually changed
+          if (functionBody !== lastSentFunctionBody) {
+            debugLog('FUNCTION_EDITOR', '✅ FunctionPropEditor: Function content changed from', `"${lastSentFunctionBody}"`, 'to', `"${functionBody}"`);
+            setLastSentFunctionBody(functionBody);
+            onChangeRef.current(functionPropValue);
+          } else {
+            debugLog('FUNCTION_EDITOR', '⏭️  FunctionPropEditor: Skipping onChange - content unchanged');
           }
-        } else if (isEmpty) {
+        } else {
           // Function is empty - remove it from props
-          // Check both if we think we sent a function (lastSentFunctionBody) AND if the current value actually has a function
-          const shouldRemoveFunction = lastSentFunctionBody !== '' || (value && typeof value === 'function');
+          const shouldRemoveFunction = lastSentFunctionBody !== '' || value !== undefined;
           
           if (shouldRemoveFunction) {
-            debugLog('FUNCTION_EDITOR', '🛠️ FunctionPropEditor: Removing function for', prop.name, '(empty)', 
-              'lastSentFunctionBody:', `"${lastSentFunctionBody}"`, 
-              'current value exists:', !!(value && typeof value === 'function'));
+            debugLog('FUNCTION_EDITOR', '🛠️ FunctionPropEditor: Removing function for', prop.name, '(empty)');
             setLastSentFunctionBody('');
             onChangeRef.current(undefined);
           } else {
-            debugLog('FUNCTION_EDITOR', '🛠️ FunctionPropEditor: Skipping onChange for', prop.name, '- already empty');
+            debugLog('FUNCTION_EDITOR', '🛠️ FunctionPropEditor: Skipping onChange - already empty');
           }
         }
       } else {
@@ -449,9 +475,40 @@ export default function FunctionPropEditor({
           </div>
         </div>
 
+        {/* Validation Status and Warnings */}
+        {(!validationResult.isValid || (validationResult.warnings && validationResult.warnings.length > 0)) && (
+          <div className="px-3 py-2 bg-yellow-50 border-b border-yellow-200">
+            {!validationResult.isValid && (
+              <div className="flex items-center space-x-2 text-red-700 mb-2">
+                <AlertTriangleIcon className="w-4 h-4" />
+                <span className="text-sm font-medium">Function Invalid</span>
+              </div>
+            )}
+            {!validationResult.isValid && (
+              <p className="text-sm text-red-600 mb-2">
+                {validationResult.error}
+              </p>
+            )}
+            {!validationResult.isValid && (
+              <p className="text-xs text-red-500">
+                Note: This function will not appear in the generated code until fixed.
+              </p>
+            )}
+            {validationResult.warnings && validationResult.warnings.length > 0 && (
+              <div className="space-y-1">
+                {validationResult.warnings.map((warning, index) => (
+                  <p key={index} className="text-sm text-yellow-700">
+                    ⚠️ {warning}
+                  </p>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="relative">
           <Editor
-            height={isExpanded ? '200px' : '120px'}
+            height={isExpanded ? '400px' : '120px'}
             language="typescript"
             value={functionBody}
             onChange={(value) => setFunctionBody(value || '')}
@@ -505,37 +562,35 @@ export default function FunctionPropEditor({
               monaco.editor.setTheme('function-editor');
             }}
           />
-          
-          {/* Validation overlay */}
-          {!validationResult.isValid ? (
-            <div className="absolute bottom-0 left-0 right-0 bg-red-50 border-t border-red-200 p-2">
-              <div className="flex items-start space-x-2">
-                <AlertTriangleIcon className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-red-700">
-                  <div className="font-medium">⚠️ Function Invalid</div>
-                  <div className="text-xs mt-1">{validationResult.error}</div>
-                  <div className="text-xs mt-1 text-orange-600">
-                    <strong>Note:</strong> This function will not appear in the generated code until fixed.
-                  </div>
-                </div>
-              </div>
+        </div>
+
+        {/* Status Footer */}
+        <div className="px-3 py-2 bg-gray-50 border-t border-gray-200">
+          <div className="flex items-center justify-between text-xs">
+            <div className="text-gray-500">
+              Status: {isUserTyping ? (
+                <span className="text-blue-600 font-medium">✏️ Typing... (validation paused)</span>
+              ) : validationResult.isValid ? (
+                functionBody.trim() ? (
+                  validationResult.warnings && validationResult.warnings.length > 0 ? (
+                    <span className="text-yellow-600 font-medium">⚠️ Valid with warnings - will appear in generated code</span>
+                  ) : (
+                    <span className="text-green-600 font-medium">✅ Valid function - will appear in generated code</span>
+                  )
+                ) : (
+                  <span className="text-gray-500 font-medium">📝 Empty function - will not appear in generated code</span>
+                )
+              ) : (
+                <span className="text-red-600 font-medium">❌ Invalid function - will not appear in generated code</span>
+              )}
             </div>
-          ) : validationResult.warnings && validationResult.warnings.length > 0 ? (
-            <div className="absolute bottom-0 left-0 right-0 bg-yellow-50 border-t border-yellow-200 p-2">
-              <div className="flex items-start space-x-2">
-                <AlertTriangleIcon className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-yellow-800">
-                  <div className="font-medium">⚠️ Warnings</div>
-                  {validationResult.warnings.map((warning, index) => (
-                    <div key={index} className="text-xs mt-1">{warning}</div>
-                  ))}
-                  <div className="text-xs mt-1 text-yellow-700">
-                    <strong>Note:</strong> Function will still work, but may have runtime issues.
-                  </div>
-                </div>
-              </div>
+            <div className="text-gray-400">
+              {functionBody.split('\n').length} lines
+              {validationResult.warnings && validationResult.warnings.length > 0 && (
+                <span className="ml-2 text-yellow-600">({validationResult.warnings.length} warning{validationResult.warnings.length > 1 ? 's' : ''})</span>
+              )}
             </div>
-          ) : null}
+          </div>
         </div>
       </div>
 
@@ -544,33 +599,6 @@ export default function FunctionPropEditor({
           <strong>Description:</strong> {prop.description}
         </div>
       )}
-
-            {/* Function status */}
-      <div className="flex items-center justify-between text-xs">
-        <div className="text-gray-500">
-          Status: {isUserTyping ? (
-            <span className="text-blue-600 font-medium">✏️ Typing... (validation paused)</span>
-          ) : validationResult.isValid ? (
-            functionBody.trim() ? (
-              validationResult.warnings && validationResult.warnings.length > 0 ? (
-                <span className="text-yellow-600 font-medium">⚠️ Valid with warnings - will appear in generated code</span>
-              ) : (
-                <span className="text-green-600 font-medium">✅ Valid function - will appear in generated code</span>
-              )
-            ) : (
-              <span className="text-gray-500 font-medium">📝 Empty function - will not appear in generated code</span>
-            )
-          ) : (
-            <span className="text-red-600 font-medium">❌ Invalid function - will not appear in generated code</span>
-          )}
-        </div>
-        <div className="text-gray-400">
-          {functionBody.split('\n').length} lines
-          {validationResult.warnings && validationResult.warnings.length > 0 && (
-            <span className="ml-2 text-yellow-600">({validationResult.warnings.length} warning{validationResult.warnings.length > 1 ? 's' : ''})</span>
-          )}
-        </div>
-      </div>
     </div>
   );
 } 

@@ -3,8 +3,8 @@ const nextConfig = {
   output: 'export',
   trailingSlash: true,
   distDir: 'out',
-  // Configure for GitLab Pages
-  assetPrefix: process.env.NODE_ENV === 'production' ? undefined : undefined,
+  // Configure for GitLab Pages - detect if we're using a project subdomain
+  assetPrefix: process.env.NODE_ENV === 'production' ? '' : '',
   basePath: '',
   images: {
     domains: ['gitlab.com'],

@@ -5,6 +5,7 @@ import { LocalComponent } from '@/types';
 import { AlertTriangleIcon, RefreshCwIcon, LoaderIcon } from 'lucide-react';
 import { getComponentByName } from '@/lib/componentRegistry';
 import { debugLog } from '@/lib/constants';
+import { convertFunctionPropValuesToFunctions } from '@/lib/utils/functionProps';
 
 interface LocalComponentRendererProps {
   component: LocalComponent;
@@ -191,13 +192,16 @@ export default function LocalComponentRenderer({
 
     // Render the actual component
     try {
+      // Convert FunctionPropValues to actual functions before passing to component
+      const propsWithFunctions = convertFunctionPropValuesToFunctions(props);
+      
       debugLog('COMPONENT_STATE', `🎬 Rendering ${component.name} with props:`, {
-        propKeys: Object.keys(props),
-        functionProps: Object.entries(props)
+        propKeys: Object.keys(propsWithFunctions),
+        functionProps: Object.entries(propsWithFunctions)
           .filter(([key, value]) => typeof value === 'function')
           .map(([key, value]) => `${key}: ${value.name || 'function'}`)
       });
-      return <ComponentToRender {...props} />;
+      return <ComponentToRender {...propsWithFunctions} />;
     } catch (renderError) {
       console.error('Component render error:', renderError);
       return (
