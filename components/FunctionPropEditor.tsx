@@ -51,9 +51,17 @@ export default function FunctionPropEditor({
     onChangeRef.current = onChange;
   }, [onChange]);
   
-  // Extract function signature from prop description or generate default
+  // Extract function signature from prop definition, description, or generate default
   const getFunctionSignature = useCallback(() => {
-    // Try to extract signature from description
+    // First priority: Use functionSignature from prop definition if available
+    if (prop.functionSignature) {
+      return {
+        params: prop.functionSignature.params,
+        returnType: prop.functionSignature.returnType
+      };
+    }
+    
+    // Second priority: Try to extract signature from description
     if (prop.description) {
       const signatureMatch = prop.description.match(/\((.*?)\)\s*=>\s*(.+)/);
       if (signatureMatch) {
@@ -65,24 +73,24 @@ export default function FunctionPropEditor({
       }
     }
     
-    // Default signatures for common function prop patterns
+    // Last resort: Default signatures for common function prop patterns
     const commonSignatures: Record<string, { params: string; returnType: string }> = {
-      onClick: { params: 'event', returnType: 'void' },
-      onChange: { params: 'value', returnType: 'void' },
-      onSubmit: { params: 'event', returnType: 'void' },
-      onSelect: { params: 'value', returnType: 'void' },
-      onError: { params: 'error', returnType: 'void' },
-      onInput: { params: 'event', returnType: 'void' },
-      onFocus: { params: 'event', returnType: 'void' },
-      onBlur: { params: 'event', returnType: 'void' },
-      validator: { params: 'value', returnType: 'boolean' },
-      formatter: { params: 'value', returnType: 'string' },
-      filter: { params: 'item', returnType: 'boolean' },
-      transform: { params: 'value', returnType: 'any' },
+      onClick: { params: 'event: React.MouseEvent', returnType: 'void' },
+      onChange: { params: 'value: string | React.ChangeEvent', returnType: 'void' },
+      onSubmit: { params: 'event: React.FormEvent', returnType: 'void' },
+      onSelect: { params: 'value: any', returnType: 'void' },
+      onError: { params: 'error: Error', returnType: 'void' },
+      onInput: { params: 'event: React.FormEvent', returnType: 'void' },
+      onFocus: { params: 'event: React.FocusEvent', returnType: 'void' },
+      onBlur: { params: 'event: React.FocusEvent', returnType: 'void' },
+      validator: { params: 'value: any', returnType: 'boolean' },
+      formatter: { params: 'value: any', returnType: 'string' },
+      filter: { params: 'item: any', returnType: 'boolean' },
+      transform: { params: 'value: any', returnType: 'any' },
     };
     
     return commonSignatures[prop.name] || { params: '...args: any[]', returnType: 'any' };
-  }, [prop.description, prop.name]);
+  }, [prop.functionSignature, prop.description, prop.name]);
 
   // Initialize function body from current value
   useEffect(() => {
@@ -217,8 +225,21 @@ export default function FunctionPropEditor({
         ]);
 
         // Add function parameters to allowed globals
-        const params = signature.params.split(',').map(p => p.trim().split(/\s+/).pop() || '').filter(Boolean);
+        const params = signature.params.split(',').map(p => {
+          // Extract parameter name from TypeScript parameter (e.g., "event: React.MouseEvent" -> "event")
+          const trimmed = p.trim();
+          const colonIndex = trimmed.indexOf(':');
+          const paramName = colonIndex > -1 ? trimmed.substring(0, colonIndex).trim() : trimmed;
+          // Handle destructured parameters like "{value}" or rest parameters like "...args"
+          return paramName.replace(/^[{\.]+|[}]+$/g, '').split(/\s+/).pop() || '';
+        }).filter(Boolean);
         params.forEach(param => allowedGlobals.add(param));
+        
+        debugLog('FUNCTION_EDITOR', `🔍 Function signature for ${prop.name}:`, {
+          fullSignature: `(${signature.params}) => ${signature.returnType}`,
+          extractedParams: params,
+          allowedGlobals: Array.from(allowedGlobals)
+        });
 
         // Walk the AST to find undefined variables
         walkSimple(ast, {
@@ -246,16 +267,40 @@ export default function FunctionPropEditor({
           }
         });
 
-        // Process undefined variables
+        // Process undefined variables with context-aware suggestions
         Array.from(undefinedVars).forEach(varName => {
           // Single character variables (except common loop vars) are likely typos - make them errors
           if (/^[a-z]$/.test(varName) && !['i', 'j', 'x', 'y', 'n'].includes(varName)) {
-            warnings.push(`BLOCKING: Undefined variable '${varName}' - this looks like a typo. Did you mean 'event' or another variable?`);
+            const availableParams = params.length > 0 ? params.join(', ') : 'none available';
+            warnings.push(`BLOCKING: Undefined variable '${varName}' - this looks like a typo. Available parameters: ${availableParams}`);
             return;
           }
           
-          // Other undefined variables are warnings
-          warnings.push(`Unknown variable '${varName}' - this may cause runtime errors`);
+          // Provide helpful suggestions based on function signature
+          let suggestion = '';
+          if (params.length > 0) {
+            // Suggest similar parameter names
+            const similarParam = params.find(param => 
+              param.toLowerCase().includes(varName.toLowerCase()) || 
+              varName.toLowerCase().includes(param.toLowerCase())
+            );
+            if (similarParam) {
+              suggestion = ` Did you mean '${similarParam}'?`;
+            } else {
+              suggestion = ` Available parameters: ${params.join(', ')}`;
+            }
+          }
+          
+          // Provide specific suggestions for common patterns
+          if (varName === 'e' && params.includes('event')) {
+            suggestion = ` Did you mean 'event'?`;
+          } else if (varName === 'val' && params.includes('value')) {
+            suggestion = ` Did you mean 'value'?`;
+          } else if (varName === 'evt' && params.includes('event')) {
+            suggestion = ` Did you mean 'event'?`;
+          }
+          
+          warnings.push(`Unknown variable '${varName}' - this may cause runtime errors.${suggestion}`);
         });
 
         // Check for blocking errors after processing all variables
@@ -279,28 +324,69 @@ export default function FunctionPropEditor({
 
       // 6. RETURN TYPE VALIDATION (warnings only, skip if no AST)
       if (ast && signature.returnType !== 'any' && signature.returnType !== 'void') {
+        let hasExplicitReturn = false;
+        let hasImplicitReturn = false;
+        
         walkSimple(ast, {
           ReturnStatement(node: any) {
+            hasExplicitReturn = true;
             if (node.argument) {
               // This is a simplified check - in a real implementation you'd evaluate the expression type
               const returnValueSource = code.slice(node.argument.start, node.argument.end);
               
+              // Enhanced type checking with better error messages
               if (signature.returnType === 'boolean') {
-                if (/^["'`]/.test(returnValueSource) || /^\d+(\.\d+)?$/.test(returnValueSource)) {
-                  warnings.push(`Expected boolean return, but found: ${returnValueSource}`);
+                if (/^["'`]/.test(returnValueSource)) {
+                  warnings.push(`Expected boolean return type, but found string: ${returnValueSource}`);
+                } else if (/^\d+(\.\d+)?$/.test(returnValueSource)) {
+                  warnings.push(`Expected boolean return type, but found number: ${returnValueSource}`);
+                } else if (/^null|undefined$/.test(returnValueSource)) {
+                  warnings.push(`Expected boolean return type, but found: ${returnValueSource}`);
                 }
               } else if (signature.returnType === 'string') {
-                if (/^(true|false|\d+(\.\d+)?|null|undefined)$/.test(returnValueSource)) {
-                  warnings.push(`Expected string return, but found: ${returnValueSource}`);
+                if (/^(true|false)$/.test(returnValueSource)) {
+                  warnings.push(`Expected string return type, but found boolean: ${returnValueSource}`);
+                } else if (/^\d+(\.\d+)?$/.test(returnValueSource)) {
+                  warnings.push(`Expected string return type, but found number: ${returnValueSource}`);
+                } else if (/^null|undefined$/.test(returnValueSource)) {
+                  warnings.push(`Expected string return type, but found: ${returnValueSource}`);
                 }
               } else if (signature.returnType === 'number') {
-                if (/^(true|false|["'`].*["'`]|null|undefined)$/.test(returnValueSource)) {
-                  warnings.push(`Expected number return, but found: ${returnValueSource}`);
+                if (/^(true|false)$/.test(returnValueSource)) {
+                  warnings.push(`Expected number return type, but found boolean: ${returnValueSource}`);
+                } else if (/^["'`].*["'`]$/.test(returnValueSource)) {
+                  warnings.push(`Expected number return type, but found string: ${returnValueSource}`);
+                } else if (/^null|undefined$/.test(returnValueSource)) {
+                  warnings.push(`Expected number return type, but found: ${returnValueSource}`);
+                }
+              } else if (signature.returnType === 'React.ReactNode' || signature.returnType.includes('ReactNode')) {
+                // Check for valid React node patterns
+                if (!/^(<|React\.|null|undefined|["'`]|{\s*|\/\*|\d+)/.test(returnValueSource)) {
+                  warnings.push(`Expected React.ReactNode return type. Consider returning JSX, string, number, or null: ${returnValueSource}`);
                 }
               }
             }
           }
         });
+        
+        // Check for implicit returns (like arrow functions without explicit return)
+        if (!hasExplicitReturn && !code.includes('return')) {
+          const trimmedCode = code.trim();
+          if (trimmedCode && !trimmedCode.startsWith('{') && signature.returnType !== 'void') {
+            hasImplicitReturn = true;
+            // This might be an implicit return - warn about type mismatch
+            if (signature.returnType === 'boolean' && !/^(true|false|!|\w+\s*[<>=!]+)/.test(trimmedCode)) {
+              warnings.push(`Expected boolean return type. Consider adding explicit return statement or boolean expression.`);
+            } else if (signature.returnType === 'string' && !/^["'`]/.test(trimmedCode)) {
+              warnings.push(`Expected string return type. Consider wrapping in quotes or adding explicit return statement.`);
+            }
+          }
+        }
+        
+        // Warn about void return type with explicit returns
+        if (signature.returnType === 'void' && hasExplicitReturn) {
+          warnings.push(`Function has void return type but contains return statements. Consider removing return values.`);
+        }
       }
 
       // Create the actual function without executing it (skip for JSX)
@@ -436,9 +522,14 @@ export default function FunctionPropEditor({
         <label className="block text-sm font-medium text-gray-700">
           {prop.name}
           {prop.required && <span className="text-red-500 ml-1">*</span>}
+          {prop.functionSignature && (
+            <span className="ml-2 text-xs text-blue-600 bg-blue-50 px-1 rounded">
+              typed
+            </span>
+          )}
         </label>
         <div className="flex items-center space-x-2">
-          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded font-mono">
+          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded font-mono max-w-xs truncate" title={functionPreview}>
             {functionPreview}
           </span>
           {validationResult.isValid ? (
@@ -594,9 +685,21 @@ export default function FunctionPropEditor({
         </div>
       </div>
 
-      {prop.description && (
-        <div className="text-xs text-gray-500 bg-blue-50 p-2 rounded">
-          <strong>Description:</strong> {prop.description}
+      {(prop.description || prop.functionSignature) && (
+        <div className="text-xs text-gray-500 bg-blue-50 p-2 rounded space-y-1">
+          {prop.description && (
+            <div>
+              <strong>Description:</strong> {prop.description}
+            </div>
+          )}
+          {prop.functionSignature && (
+            <div>
+              <strong>Function Signature:</strong>
+              <div className="font-mono text-xs mt-1 p-2 bg-white rounded border">
+                ({prop.functionSignature.params}) =&gt; {prop.functionSignature.returnType}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
