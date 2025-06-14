@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Component, LocalComponent, PropDefinition } from '@/types';
 import { RefreshCwIcon, InfoIcon, EyeIcon, EyeOffIcon } from 'lucide-react';
 import { debugLog } from '@/lib/constants';
+import TooltipComponent from '@/components/ui/tooltip-component';
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -438,10 +439,14 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
             value={value || ''}
             onChange={(e) => onChange(e.target.value || undefined)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder={prop.name === 'className' ? 'e.g. bg-blue-500 text-white p-4' : undefined}
           />
         );
     }
   };
+
+  // Check if this is a className prop
+  const isClassNameProp = prop.name === 'className';
 
   return (
     <div className="space-y-2">
@@ -449,6 +454,43 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
         <label className="block text-sm font-medium text-gray-700">
           {prop.name}
           {prop.required && <span className="text-red-500 ml-1">*</span>}
+          {isClassNameProp && (
+            <TooltipComponent
+              trigger={
+                <span className="ml-2 text-xs text-cyan-600 bg-cyan-50 px-1 underline hover:no-underline rounded cursor-help">
+                  Tailwind CSS
+                </span>
+              }
+              content={
+                <div className="space-y-3 bg-blue-50 p-2 rounded-lg border">
+                  <div className="flex items-center text-blue-700">
+                    <span className="mr-1">🎨</span>
+                    <strong>Tailwind CSS Styling</strong>
+                  </div>
+                  <div className="text-blue-600 space-y-2">
+                    <p>This component uses <a href="https://tailwindcss.com" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:no-underline">Tailwind CSS</a> utility classes for styling.</p>
+                    <div>
+                      <p><strong>✅ Standard classes work:</strong></p>
+                      <code className="block bg-gray-100 px-2 py-1 rounded text-xs mt-1">bg-red-500 text-white p-4 w-full rounded-lg</code>
+                    </div>
+                    <div>
+                      <p><strong>✅ Predefined scales:</strong></p>
+                      <code className="block bg-gray-100 px-2 py-1 rounded text-xs mt-1">w-64 w-80 w-96 h-32 p-8 text-xl</code>
+                    </div>
+                  </div>
+                  <div className="bg-amber-50 border border-amber-200 rounded p-2 text-amber-700">
+                    <div className="flex items-start">
+                      <span className="mr-1 mt-0.5">⚠️</span>
+                      <div>
+                        <strong>Limitation:</strong> Arbitrary values like <code className="bg-white px-1 rounded text-xs">w-[220px]</code>, <code className="bg-white px-1 rounded text-xs">bg-[#123456]</code> are disabled.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+              className="w-fit p-0 bg-transparent"
+            />
+          )}
         </label>
         <div className="flex items-center space-x-2">
           <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">

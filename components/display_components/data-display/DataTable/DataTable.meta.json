@@ -33,13 +33,21 @@
       "name": "createToolbarButtons",
       "type": "function",
       "required": false,
-      "description": "Function that returns JSX for custom toolbar buttons. Receives (rowSelection, setRowSelection, hasSelected) params. Defaults to simple 'Add Item' button."
+      "description": "Function that returns JSX for custom toolbar buttons. Receives (rowSelection, setRowSelection, hasSelected) params. Defaults to simple 'Add Item' button.",
+      "functionSignature": {
+        "params": "rowSelection: Record<string, boolean>, setRowSelection: React.Dispatch<React.SetStateAction<Record<string, boolean>>>, hasSelected: boolean",
+        "returnType": "React.ReactNode"
+      }
     },
     {
       "name": "onRowClick",
       "type": "function",
       "required": false,
-      "description": "Optional callback when a row is clicked, receives row id"
+      "description": "Optional callback when a row is clicked, receives row id",
+      "functionSignature": {
+        "params": "rowId: string",
+        "returnType": "void"
+      }
     },
     {
       "name": "identifier",

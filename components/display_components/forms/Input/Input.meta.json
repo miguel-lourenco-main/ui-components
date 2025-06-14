@@ -34,19 +34,31 @@
       "name": "onChange",
       "type": "function",
       "required": false,
-      "description": "Change handler function"
+      "description": "Change handler function",
+      "functionSignature": {
+        "params": "event: React.ChangeEvent<HTMLInputElement>",
+        "returnType": "void"
+      }
     },
     {
       "name": "onFocus",
       "type": "function",
       "required": false,
-      "description": "Focus handler function"
+      "description": "Focus handler function",
+      "functionSignature": {
+        "params": "event: React.FocusEvent<HTMLInputElement>",
+        "returnType": "void"
+      }
     },
     {
       "name": "onBlur",
       "type": "function",
       "required": false,
-      "description": "Blur handler function"
+      "description": "Blur handler function",
+      "functionSignature": {
+        "params": "event: React.FocusEvent<HTMLInputElement>",
+        "returnType": "void"
+      }
     },
     {
       "name": "disabled",

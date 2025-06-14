@@ -32,10 +32,8 @@ export default function ComponentSelector({
   const [showFilters, setShowFilters] = useState(false);
 
   const filteredComponents = components.filter(component => {
-    const matchesSearch = component.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         component.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (component.tags && component.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())));
-    
+    const matchesSearch = component.name.toLowerCase().includes(searchQuery.toLowerCase())
+
     const matchesCategory = !selectedCategory || component.category === selectedCategory;
     
     return matchesSearch && matchesCategory;

@@ -5,6 +5,7 @@ import { LocalComponent } from '@/types';
 import { AlertTriangleIcon, RefreshCwIcon, LoaderIcon } from 'lucide-react';
 import { getComponentByName } from '@/lib/componentRegistry';
 import { debugLog } from '@/lib/constants';
+import { convertFunctionPropValuesToFunctions } from '@/lib/utils/functionProps';
 
 interface LocalComponentRendererProps {
   component: LocalComponent;
@@ -191,13 +192,16 @@ export default function LocalComponentRenderer({
 
     // Render the actual component
     try {
+      // Convert FunctionPropValues to actual functions before passing to component
+      const propsWithFunctions = convertFunctionPropValuesToFunctions(props);
+      
       debugLog('COMPONENT_STATE', `🎬 Rendering ${component.name} with props:`, {
-        propKeys: Object.keys(props),
-        functionProps: Object.entries(props)
+        propKeys: Object.keys(propsWithFunctions),
+        functionProps: Object.entries(propsWithFunctions)
           .filter(([key, value]) => typeof value === 'function')
           .map(([key, value]) => `${key}: ${value.name || 'function'}`)
       });
-      return <ComponentToRender {...props} />;
+      return <ComponentToRender {...propsWithFunctions} />;
     } catch (renderError) {
       console.error('Component render error:', renderError);
       return (
@@ -227,15 +231,13 @@ export default function LocalComponentRenderer({
     <div className="h-full flex flex-col">
       {/* Viewport Frame */}
       <div className="flex-1 bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div className="h-full flex items-center justify-center p-6">
-          <div 
-            style={getViewportStyles()}
-            className="w-fit transition-all duration-300"
-          >
-            <ComponentErrorBoundary onRetry={onRetry}>
-              {renderContent()}
-            </ComponentErrorBoundary>
-          </div>
+        <div 
+          style={getViewportStyles()}
+          className="size-full flex items-center justify-center p-6 transition-all duration-300"
+        >
+          <ComponentErrorBoundary onRetry={onRetry}>
+            {renderContent()}
+          </ComponentErrorBoundary>
         </div>
       </div>
     </div>

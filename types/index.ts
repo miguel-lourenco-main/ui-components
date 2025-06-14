@@ -21,6 +21,21 @@ export interface PropDefinition {
   defaultValue?: any;
   description?: string;
   options?: string[] | number[]; // For enum/select types
+  // Function signature information (only used when type === 'function')
+  functionSignature?: {
+    params: string;
+    returnType: string;
+  };
+}
+
+// New interface for function prop storage
+export interface FunctionPropValue {
+  type: 'function';
+  source: string; // The actual function body as string
+  signature?: {
+    params: string;
+    returnType: string;
+  };
 }
 
 export type PropType = 

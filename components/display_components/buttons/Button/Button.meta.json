@@ -30,7 +30,11 @@
       "name": "onClick",
       "type": "function",
       "required": false,
-      "description": "Click handler function"
+      "description": "Click handler function",
+      "functionSignature": {
+        "params": "event: React.MouseEvent<HTMLButtonElement>",
+        "returnType": "void"
+      }
     },
     {
       "name": "disabled",
