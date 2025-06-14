@@ -117,7 +117,7 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
           return value ? `  ${key}` : '';
         } else if (typeof value === 'function') {
           // For functions, show a more meaningful representation
-          const funcName = value.name || 'handleEvent';
+          const funcName = key || 'handleEvent';
           return `  ${key}={${funcName}}`;
         } else if (Array.isArray(value) || typeof value === 'object') {
           return `  ${key}={${JSON.stringify(value, null, 2).replace(/\n/g, '\n    ')}}`;
@@ -185,8 +185,6 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
         // Ultimate fallback
         return `  const ${funcName} = (...args) => {\n    console.log('${key} called:', args);\n  };`;
       });
-
-    console.log('functionDeclarations', functionDeclarations);
 
     // Generate function stubs for missing required functions
     const missingFunctionStubs = missingFunctionProps.map(propDef => {

@@ -7,8 +7,10 @@ import CodeViewer from '@/components/CodeViewer';
 import PropsPanel from '@/components/PropsPanel';
 import ViewportControls from '@/components/ViewportControls';
 import CodeButtons from '@/components/CodeButtons';
+
 import { useLocalComponentState } from '@/lib/hooks/useLocalComponentState';
-import { PlayIcon, SettingsIcon, XIcon } from 'lucide-react';
+import { PlayIcon, SettingsIcon, XIcon, FlaskConicalIcon } from 'lucide-react';
+import { useState } from 'react';
 import {
   ResizablePanelGroup,
   ResizablePanel,

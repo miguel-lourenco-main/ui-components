@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Editor from '@monaco-editor/react';
 import { PropDefinition } from '@/types';
 import { AlertTriangleIcon, CheckIcon, CodeIcon, Trash2Icon } from 'lucide-react';
-import { parse } from 'acorn';
+import { parse, Parser } from 'acorn';
 import { simple as walkSimple } from 'acorn-walk';
+import jsx from 'acorn-jsx';
 import { debugLog } from '@/lib/constants';
 import { FunctionPropValue } from '@/types';
 import { 
@@ -103,16 +104,327 @@ export default function FunctionPropEditor({
     }
   }, [value, isInitialized, prop.name]);
 
-      // Professional validation using Acorn AST parser
-  const validateFunction = useCallback((code: string): ValidationResult => {
-    debugLog('FUNCTION_EDITOR', `🔍 VALIDATION START for ${prop.name}:`, { code, propName: prop.name });
+  // Function body validation helper
+  const validateFunctionBody = useCallback((code: string, propName: string): ValidationResult | null => {
+    const bodyViolations = [
+      { pattern: /^\s*function\s+\w+\s*\(/, message: "Don't write complete function declarations - just the body" },
+      { pattern: /^\s*const\s+\w+\s*=\s*function/, message: "Don't write complete function declarations - just the body" },
+      { pattern: /^\s*\w+\s*=>\s*{/, message: "Don't write arrow functions - just the body" },
+      { pattern: /^\s*class\s+\w+/, message: "Class declarations are not allowed in function bodies" },
+    ];
+
+    for (const { pattern, message } of bodyViolations) {
+      if (pattern.test(code)) {
+        debugLog('FUNCTION_EDITOR', `❌ VALIDATION: Body violation for ${propName}:`, { pattern: pattern.toString(), message, code });
+        return {
+          isValid: false,
+          error: `Invalid function body: ${message}`
+        };
+      }
+    }
+    debugLog('FUNCTION_EDITOR', `✅ VALIDATION: Body check passed for ${propName}`);
+    return null; // No body violations found
+  }, []);
+
+    // Browser-compatible scope analysis using walkSimple
+  const performScopeAnalysis = useCallback((ast: any, jsParams: string, propName: string): ValidationResult & { warnings?: string[] } => {
+    const warnings: string[] = [];
+    const undefinedVars = new Set<string>();
     
-    if (!code.trim()) {
-      debugLog('FUNCTION_EDITOR', `✅ VALIDATION: Empty code is valid for ${prop.name}`);
-      return { isValid: true }; // Empty is valid (will clear the function)
+    // Define allowed global variables
+    const allowedGlobals = new Set([
+      // JavaScript built-ins
+      'console', 'Math', 'Date', 'JSON', 'Object', 'Array', 'String', 'Number', 'Boolean',
+      'parseInt', 'parseFloat', 'isNaN', 'isFinite', 'encodeURIComponent', 'decodeURIComponent',
+      'setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Promise',
+      // Literals and special values
+      'undefined', 'null', 'NaN', 'Infinity',
+      // Common parameters and React-related globals
+      'value', 'data', 'index', 'item', 'error', 'response', 'result',
+      'props', 'state', 'ref', 'key', 'React'
+    ]);
+
+    // Add function parameters to allowed globals
+    const params = jsParams.split(',').map(p => {
+      const trimmed = p.trim();
+      return trimmed.replace(/^[{\.]+|[}]+$/g, '').split(/\s+/).pop() || '';
+    }).filter(Boolean);
+    params.forEach(param => allowedGlobals.add(param));
+    
+    debugLog('FUNCTION_EDITOR', `🔍 Browser-compatible scope analysis for ${propName}:`, {
+      extractedParams: params,
+      allowedGlobals: Array.from(allowedGlobals)
+    });
+
+    // Get cached known methods for validation
+    const getKnownMethods = (): Record<string, string[]> => {
+      if (!(window as any).__functionEditorMethodCache) {
+        const cache: Record<string, string[]> = {
+          console: ['log', 'error', 'warn', 'info', 'debug', 'trace', 'table', 'group', 'groupEnd', 'clear'],
+          Math: ['abs', 'ceil', 'floor', 'round', 'max', 'min', 'random', 'sqrt', 'pow', 'sin', 'cos', 'tan'],
+          Date: ['now', 'parse', 'UTC'],
+          JSON: ['parse', 'stringify'],
+          Object: ['keys', 'values', 'entries', 'assign', 'create', 'freeze', 'hasOwnProperty'],
+          Array: ['from', 'isArray', 'of'],
+          String: ['fromCharCode', 'raw'],
+          Number: ['isNaN', 'isFinite', 'parseInt', 'parseFloat', 'isInteger'],
+          React: ['createElement', 'Fragment', 'Component', 'PureComponent']
+        };
+        (window as any).__functionEditorMethodCache = cache;
+      }
+      return (window as any).__functionEditorMethodCache;
+    };
+
+    const knownMethods = getKnownMethods();
+
+    // Walk the AST to find undefined variables and validate method calls
+    walkSimple(ast, {
+      Identifier(node: any) {
+        const name = node.name;
+        if (!allowedGlobals.has(name)) {
+          undefinedVars.add(name);
+        }
+      },
+      
+      MemberExpression(node: any) {
+        if (node.object && node.object.type === 'Identifier') {
+          const objectName = node.object.name;
+          if (allowedGlobals.has(objectName)) {
+            undefinedVars.delete(objectName);
+            
+            // Validate method/property names on known objects
+            if (knownMethods[objectName] && node.property && node.property.type === 'Identifier') {
+              const propertyName = node.property.name;
+              const validMethods = knownMethods[objectName];
+              
+              if (!validMethods.includes(propertyName)) {
+                warnings.push(`BLOCKING: Unknown method '${objectName}.${propertyName}' - this will cause a runtime error. Available methods: ${validMethods.slice(0, 5).join(', ')}${validMethods.length > 5 ? '...' : ''}`);
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Process undefined variables with suggestions
+    Array.from(undefinedVars).forEach(varName => {
+      if (/^[a-z]$/.test(varName) && !['i', 'j', 'x', 'y', 'n'].includes(varName)) {
+        warnings.push(`BLOCKING: Undefined variable '${varName}' - this looks like a typo. Available parameters: ${params.join(', ') || 'none'}`);
+        return;
+      }
+      
+      let suggestion = '';
+      if (params.length > 0) {
+        const similarParam = params.find(param => 
+          param.toLowerCase().includes(varName.toLowerCase()) || 
+          varName.toLowerCase().includes(param.toLowerCase())
+        );
+        suggestion = similarParam ? ` Did you mean '${similarParam}'?` : ` Available parameters: ${params.join(', ')}`;
+      }
+      
+      warnings.push(`Unknown variable '${varName}' - this may cause runtime errors.${suggestion}`);
+    });
+
+    // Check for blocking errors
+    const blockingErrors = warnings.filter(w => w.startsWith('BLOCKING:'));
+    if (blockingErrors.length > 0) {
+      return {
+        isValid: false,
+        error: blockingErrors[0].replace('BLOCKING: ', '')
+      };
     }
 
-    // 1. SECURITY VALIDATION - Block dangerous patterns
+    debugLog('FUNCTION_EDITOR', `✅ Browser-compatible scope analysis complete for ${propName}:`, {
+      warnings: warnings.length,
+      undefinedVariables: undefinedVars.size,
+      allowedGlobals: allowedGlobals.size
+    });
+
+    return { isValid: true, warnings };
+  }, []);
+
+  // Return type validation helper
+  const validateReturnType = useCallback((ast: any, code: string, returnType: string): string[] => {
+    const warnings: string[] = [];
+    let hasExplicitReturn = false;
+    
+    walkSimple(ast, {
+      ReturnStatement(node: any) {
+        hasExplicitReturn = true;
+        if (node.argument) {
+          const returnValueSource = code.slice(node.argument.start, node.argument.end);
+          
+          // Enhanced type checking with better error messages
+          if (returnType === 'boolean') {
+            if (/^["'`]/.test(returnValueSource)) {
+              warnings.push(`Expected boolean return type, but found string: ${returnValueSource}`);
+            } else if (/^\d+(\.\d+)?$/.test(returnValueSource)) {
+              warnings.push(`Expected boolean return type, but found number: ${returnValueSource}`);
+            } else if (/^null|undefined$/.test(returnValueSource)) {
+              warnings.push(`Expected boolean return type, but found: ${returnValueSource}`);
+            }
+          } else if (returnType === 'string') {
+            if (/^(true|false)$/.test(returnValueSource)) {
+              warnings.push(`Expected string return type, but found boolean: ${returnValueSource}`);
+            } else if (/^\d+(\.\d+)?$/.test(returnValueSource)) {
+              warnings.push(`Expected string return type, but found number: ${returnValueSource}`);
+            } else if (/^null|undefined$/.test(returnValueSource)) {
+              warnings.push(`Expected string return type, but found: ${returnValueSource}`);
+            }
+          } else if (returnType === 'number') {
+            if (/^(true|false)$/.test(returnValueSource)) {
+              warnings.push(`Expected number return type, but found boolean: ${returnValueSource}`);
+            } else if (/^["'`].*["'`]$/.test(returnValueSource)) {
+              warnings.push(`Expected number return type, but found string: ${returnValueSource}`);
+            } else if (/^null|undefined$/.test(returnValueSource)) {
+              warnings.push(`Expected number return type, but found: ${returnValueSource}`);
+            }
+          } else if (returnType === 'React.ReactNode' || returnType.includes('ReactNode')) {
+            if (!/^(<|React\.|null|undefined|["'`]|{\s*|\/\*|\d+)/.test(returnValueSource)) {
+              warnings.push(`Expected React.ReactNode return type. Consider returning JSX, string, number, or null: ${returnValueSource}`);
+            }
+          }
+        }
+      }
+    });
+    
+    // Check for implicit returns
+    if (!hasExplicitReturn && !code.includes('return')) {
+      const trimmedCode = code.trim();
+      if (trimmedCode && !trimmedCode.startsWith('{') && returnType !== 'void') {
+        if (returnType === 'boolean' && !/^(true|false|!|\w+\s*[<>=!]+)/.test(trimmedCode)) {
+          warnings.push(`Expected boolean return type. Consider adding explicit return statement or boolean expression.`);
+        } else if (returnType === 'string' && !/^["'`]/.test(trimmedCode)) {
+          warnings.push(`Expected string return type. Consider wrapping in quotes or adding explicit return statement.`);
+        }
+      }
+    }
+    
+    // Warn about void return type with explicit returns
+    if (returnType === 'void' && hasExplicitReturn) {
+      warnings.push(`Function has void return type but contains return statements. Consider removing return values.`);
+    }
+    
+    return warnings;
+  }, []);
+
+  // Function compilation helper
+  const compileFunction = useCallback((fullFunction: string, code: string, propName: string, warnings: string[]): ValidationResult => {
+    try {
+      // Only create function for non-JSX content
+      const actualFunction = new Function('return ' + fullFunction)();
+      
+      // Add debugging to track where execution comes from
+      const wrappedFunction = (...args: any[]) => {
+        debugLog('FUNCTION_EDITOR', `🚀 FUNCTION CALLED: ${propName} with args:`, args);
+        if (process.env.NODE_ENV === 'development') {
+          console.trace('Function call stack:');
+        }
+        return actualFunction(...args);
+      };
+      
+      // Copy properties to maintain function identity
+      Object.defineProperty(wrappedFunction, 'name', { value: actualFunction.name });
+      (wrappedFunction as any).__originalSource = code;
+      (wrappedFunction as any).__propName = propName;
+      
+      debugLog('FUNCTION_EDITOR', `✅ VALIDATION: Function compilation successful for ${propName}`);
+      return {
+        isValid: true,
+        compiledFunction: wrappedFunction,
+        warnings: warnings.length > 0 ? warnings : undefined
+      };
+    } catch (error) {
+      debugLog('FUNCTION_EDITOR', `❌ VALIDATION: Function compilation failed for ${propName}:`, error);
+      return {
+        isValid: false,
+        error: `Function compilation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
+    }
+  }, []);
+
+  // Enhanced helper to detect JSX elements in JSX-aware AST
+  const containsJSXElements = useCallback((ast: any): boolean => {
+    let hasJSX = false;
+    
+    const checkNode = (node: any) => {
+      if (!node || hasJSX) return;
+      
+      // Check for JSX node types from acorn-jsx
+      if (node.type === 'JSXElement' || 
+          node.type === 'JSXFragment' || 
+          node.type === 'JSXText' ||
+          node.type === 'JSXExpressionContainer' ||
+          node.type === 'JSXAttribute' ||
+          node.type === 'JSXOpeningElement' ||
+          node.type === 'JSXClosingElement' ||
+          node.type === 'JSXIdentifier') {
+        hasJSX = true;
+        return;
+      }
+      
+      // Recursively check child nodes
+      for (const key in node) {
+        if (node.hasOwnProperty(key)) {
+          const child = node[key];
+          if (Array.isArray(child)) {
+            child.forEach(checkNode);
+          } else if (child && typeof child === 'object') {
+            checkNode(child);
+          }
+        }
+      }
+    };
+    
+    checkNode(ast);
+    return hasJSX;
+  }, []);
+
+  // Enhanced JSX validation helper using JSX parser
+  const validateJSX = useCallback((code: string, fullFunction: string, propName: string): ValidationResult | null => {
+    try {
+      // Try to parse with JSX parser - if it succeeds, JSX is valid
+      const JSXParser = Parser.extend(jsx());
+      const jsxAst = JSXParser.parse(fullFunction, { 
+        ecmaVersion: 2020,
+        sourceType: 'script',
+        locations: false
+      });
+      
+      // Check if it actually contains JSX
+      const actuallyHasJSX = containsJSXElements(jsxAst);
+      
+      debugLog('FUNCTION_EDITOR', `✅ VALIDATION: JSX parsing successful for ${propName}, contains JSX: ${actuallyHasJSX}`);
+      return null; // JSX validation passed
+      
+    } catch (jsxError) {
+      // JSX parsing failed - provide helpful error message
+      const errorMessage = jsxError instanceof Error ? jsxError.message : 'Invalid JSX syntax';
+      
+      debugLog('FUNCTION_EDITOR', `❌ VALIDATION: JSX parsing failed for ${propName}:`, errorMessage);
+      
+      // Provide more specific error messages for common JSX issues
+      if (errorMessage.includes('Unexpected token')) {
+        return {
+          isValid: false,
+          error: `JSX syntax error: ${errorMessage}. Make sure JSX elements are properly closed and expression syntax is correct.`
+        };
+      } else if (errorMessage.includes('Missing closing tag')) {
+        return {
+          isValid: false,
+          error: `JSX syntax error: Missing closing tag. Make sure all JSX elements are properly closed.`
+        };
+      } else {
+        return {
+          isValid: false,
+          error: `JSX syntax error: ${errorMessage}`
+        };
+      }
+    }
+  }, [containsJSXElements]);
+
+  // Security validation helper
+  const validateSecurity = useCallback((code: string, propName: string): ValidationResult | null => {
     const securityPatterns = [
       { pattern: /\beval\s*\(/, message: "eval() is not allowed for security reasons" },
       { pattern: /\bFunction\s*\(/, message: "Function constructor is not allowed for security reasons" },
@@ -126,515 +438,174 @@ export default function FunctionPropEditor({
 
     for (const { pattern, message } of securityPatterns) {
       if (pattern.test(code)) {
-        debugLog('FUNCTION_EDITOR', `❌ VALIDATION: Security violation for ${prop.name}:`, { pattern: pattern.toString(), message, code });
+        debugLog('FUNCTION_EDITOR', `❌ VALIDATION: Security violation for ${propName}:`, { pattern: pattern.toString(), message, code });
         return {
           isValid: false,
           error: `Security violation: ${message}`
         };
       }
     }
-    debugLog('FUNCTION_EDITOR', `✅ VALIDATION: Security check passed for ${prop.name}`);
+    debugLog('FUNCTION_EDITOR', `✅ VALIDATION: Security check passed for ${propName}`);
+    return null; // No security issues found
+  }, []);
 
-    // 2. FUNCTION BODY VALIDATION - Check it's not a complete function declaration
-    const bodyViolations = [
-      { pattern: /^\s*function\s+\w+\s*\(/, message: "Don't write complete function declarations - just the body" },
-      { pattern: /^\s*const\s+\w+\s*=\s*function/, message: "Don't write complete function declarations - just the body" },
-      { pattern: /^\s*\w+\s*=>\s*{/, message: "Don't write arrow functions - just the body" },
-      { pattern: /^\s*class\s+\w+/, message: "Class declarations are not allowed in function bodies" },
-    ];
+  // Validation cache for performance optimization
+  const validationCache = useRef(new Map<string, ValidationResult>());
 
-    for (const { pattern, message } of bodyViolations) {
-      if (pattern.test(code)) {
-        debugLog('FUNCTION_EDITOR', `❌ VALIDATION: Body violation for ${prop.name}:`, { pattern: pattern.toString(), message, code });
-        return {
-          isValid: false,
-          error: `Invalid function body: ${message}`
-        };
-      }
+  // Main validation function - orchestrates all validation steps with caching and performance monitoring
+  const validateFunction = useCallback((code: string): ValidationResult => {
+    const startTime = performance.now();
+    debugLog('FUNCTION_EDITOR', `🔍 VALIDATION START for ${prop.name}:`, { code, propName: prop.name });
+    
+    // Step 1: Handle empty code
+    if (!code.trim()) {
+      const duration = performance.now() - startTime;
+      debugLog('FUNCTION_EDITOR', `✅ VALIDATION: Empty code is valid for ${prop.name} (${duration.toFixed(2)}ms)`);
+      return { isValid: true };
     }
-    debugLog('FUNCTION_EDITOR', `✅ VALIDATION: Body check passed for ${prop.name}`);
 
-                try {
-        const signature = getFunctionSignature();
-        
-        // Strip TypeScript type annotations for JavaScript parsing
-        const jsParams = signature.params.split(',').map(param => {
-          const trimmed = param.trim();
-          const colonIndex = trimmed.indexOf(':');
-          // Extract just the parameter name, removing type annotations
-          return colonIndex > -1 ? trimmed.substring(0, colonIndex).trim() : trimmed;
-        }).join(', ');
-        
-        const fullFunction = `(${jsParams}) => {\n${code}\n}`;
-        debugLog('FUNCTION_EDITOR', `🔍 VALIDATION: Creating full function for ${prop.name}:`, { 
-          originalSignature: signature, 
-          jsParams,
-          fullFunction 
-        });
-        
-        // 3. SYNTAX VALIDATION using Acorn AST parser
-        let ast;
-        try {
-          // For JSX content, skip AST parsing entirely and use simple validation
-          if (code.includes('<') && code.includes('>')) {
-            // This looks like JSX, so we'll do a simpler validation
-            // Just check for basic syntax issues without full parsing
-            const jsxValidationErrors = [];
-            
-            // Check for unmatched brackets
-            const openBrackets = (code.match(/</g) || []).length;
-            const closeBrackets = (code.match(/>/g) || []).length;
-            if (openBrackets !== closeBrackets) {
-              jsxValidationErrors.push('Unmatched JSX brackets');
-            }
-            
-            // Check for unmatched braces
-            const openBraces = (code.match(/\{/g) || []).length;
-            const closeBraces = (code.match(/\}/g) || []).length;
-            if (openBraces !== closeBraces) {
-              jsxValidationErrors.push('Unmatched braces in JSX');
-            }
-            
-            // Check for unmatched parentheses
-            const openParens = (code.match(/\(/g) || []).length;
-            const closeParens = (code.match(/\)/g) || []).length;
-            if (openParens !== closeParens) {
-              jsxValidationErrors.push('Unmatched parentheses in JSX');
-            }
-            
-            if (jsxValidationErrors.length > 0) {
-              debugLog('FUNCTION_EDITOR', `❌ VALIDATION: JSX validation failed for ${prop.name}:`, jsxValidationErrors);
-              return {
-                isValid: false,
-                error: `JSX syntax error: ${jsxValidationErrors.join(', ')}`
-              };
-            }
-            
-            // If basic JSX validation passes, skip AST validation and proceed
-            debugLog('FUNCTION_EDITOR', `✅ VALIDATION: JSX validation passed for ${prop.name}, skipping AST`);
-            ast = null;
-          } else {
-            // For non-JSX content, use normal AST parsing with JavaScript-compatible function
-            debugLog('FUNCTION_EDITOR', `🔍 VALIDATION: Parsing AST for ${prop.name} with JS function:`, fullFunction);
-            ast = parse(fullFunction, { 
-              ecmaVersion: 2020, 
-              sourceType: 'script',
-              locations: false // We don't need location info for validation
-            });
-            debugLog('FUNCTION_EDITOR', `✅ VALIDATION: AST parsing successful for ${prop.name}`);
-          }
-              } catch (parseError) {
-          debugLog('FUNCTION_EDITOR', `❌ VALIDATION: Parse error for ${prop.name}:`, { parseError: parseError instanceof Error ? parseError.message : 'Invalid JavaScript', code, fullFunction });
-          return {
-            isValid: false,
-            error: `Syntax error: ${parseError instanceof Error ? parseError.message : 'Invalid JavaScript'}`
-          };
-        }
+    // Step 2: Check cache for this exact code
+    const signature = getFunctionSignature();
+    const cacheKey = `${prop.name}:${JSON.stringify(signature)}:${code}`;
+    
+    if (validationCache.current.has(cacheKey)) {
+      const cachedResult = validationCache.current.get(cacheKey)!;
+      const duration = performance.now() - startTime;
+      debugLog('FUNCTION_EDITOR', `🚀 VALIDATION: Cache hit for ${prop.name} (${duration.toFixed(2)}ms)`);
+      return cachedResult;
+    }
 
-      // 4. VARIABLE SCOPE ANALYSIS using AST (skip if JSX detected)
-      const warnings: string[] = [];
-      const undefinedVars = new Set<string>();
+    // Step 3: Security validation
+    const securityResult = validateSecurity(code, prop.name);
+    if (securityResult) {
+      validationCache.current.set(cacheKey, securityResult);
+      return securityResult;
+    }
+
+    // Step 4: Function body validation
+    const bodyResult = validateFunctionBody(code, prop.name);
+    if (bodyResult) {
+      validationCache.current.set(cacheKey, bodyResult);
+      return bodyResult;
+    }
+
+    try {
+      // Step 4: Prepare function signature
+      const signature = getFunctionSignature();
+      const jsParams = signature.params.split(',').map(param => {
+        const trimmed = param.trim();
+        const colonIndex = trimmed.indexOf(':');
+        return colonIndex > -1 ? trimmed.substring(0, colonIndex).trim() : trimmed;
+      }).join(', ');
       
-      if (ast) {
-        // Define allowed global variables
-        const allowedGlobals = new Set([
-          // JavaScript built-ins
-          'console', 'Math', 'Date', 'JSON', 'Object', 'Array', 'String', 'Number', 'Boolean',
-          'parseInt', 'parseFloat', 'isNaN', 'isFinite', 'encodeURIComponent', 'decodeURIComponent',
-          'setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Promise',
-          // Literals and special values
-          'undefined', 'null', 'NaN', 'Infinity',
-          // Common parameters (these should mainly come from function parameters, not globals)
-          'value', 'data', 'index', 'item', 'error', 'response', 'result',
-          'props', 'state', 'ref', 'key',
-          // Note: 'event' removed from globals since it should be a parameter
-        ]);
-
-        // Add function parameters to allowed globals (use the same JS params we created for parsing)
-        const params = jsParams.split(',').map(p => {
-          const trimmed = p.trim();
-          // Handle destructured parameters like "{value}" or rest parameters like "...args"
-          return trimmed.replace(/^[{\.]+|[}]+$/g, '').split(/\s+/).pop() || '';
-        }).filter(Boolean);
-        params.forEach(param => allowedGlobals.add(param));
+      const fullFunction = `(${jsParams}) => {\n${code}\n}`;
+      debugLog('FUNCTION_EDITOR', `🔍 VALIDATION: Creating full function for ${prop.name}:`, { 
+        originalSignature: signature, 
+        jsParams,
+        fullFunction 
+      });
+      
+            // Step 5: Enhanced syntax validation and AST parsing with JSX support
+      let ast;
+      let isJSXContent = false;
+      try {
+        // Use Acorn with JSX plugin for browser-compatible parsing with full JSX support
+        debugLog('FUNCTION_EDITOR', `🔍 VALIDATION: Enhanced JSX-capable parsing for ${prop.name}`);
         
-        debugLog('FUNCTION_EDITOR', `🔍 Function signature for ${prop.name}:`, {
-          fullSignature: `(${signature.params}) => ${signature.returnType}`,
-          extractedParams: params,
-          allowedGlobals: Array.from(allowedGlobals)
-        });
-
-        // Helper function to calculate string similarity for typo detection
-        const levenshteinDistance = (str1: string, str2: string): number => {
-          const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
-          
-          for (let i = 0; i <= str1.length; i++) matrix[0][i] = i;
-          for (let j = 0; j <= str2.length; j++) matrix[j][0] = j;
-          
-          for (let j = 1; j <= str2.length; j++) {
-            for (let i = 1; i <= str1.length; i++) {
-              const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
-              matrix[j][i] = Math.min(
-                matrix[j][i - 1] + 1,
-                matrix[j - 1][i] + 1,
-                matrix[j - 1][i - 1] + indicator
-              );
-            }
-          }
-          
-          return matrix[str2.length][str1.length];
-        };
-
-        // Get actual methods from browser environment (runtime introspection)
-        const getObjectMethods = (obj: any): string[] => {
-          if (!obj) return [];
-          
-          const methods: string[] = [];
-          const proto = Object.getPrototypeOf(obj);
-          
-          // Properties to skip (restricted in strict mode or not useful for validation)
-          const restrictedProps = new Set([
-            'caller', 'callee', 'arguments', 'constructor', 
-            '__proto__', '__defineGetter__', '__defineSetter__',
-            '__lookupGetter__', '__lookupSetter__', 'prototype'
-          ]);
-          
-          const safeGetProperty = (target: any, propName: string): boolean => {
-            try {
-              if (restrictedProps.has(propName)) return false;
-              
-              const descriptor = Object.getOwnPropertyDescriptor(target, propName);
-              if (descriptor && descriptor.get && !descriptor.set) {
-                // Skip getter-only properties that might throw
-                return false;
-              }
-              
-              const value = target[propName];
-              return typeof value === 'function' || 
-                     (typeof value !== 'undefined' && value !== null);
-            } catch (error) {
-              // Skip properties that throw errors when accessed
-              return false;
-            }
-          };
-          
-          // Get own properties safely
-          try {
-            Object.getOwnPropertyNames(obj).forEach(name => {
-              if (safeGetProperty(obj, name)) {
-                methods.push(name);
-              }
-            });
-          } catch (error) {
-            // If we can't enumerate properties, fall back to known safe ones
-            debugLog('FUNCTION_EDITOR', `⚠️ Could not enumerate properties for object, using fallback`, error);
-          }
-          
-          // Get prototype methods safely (for static methods like Math.abs)
-          if (proto && proto !== Object.prototype) {
-            try {
-              Object.getOwnPropertyNames(proto).forEach(name => {
-                if (safeGetProperty(obj, name)) {
-                  methods.push(name);
-                }
-              });
-            } catch (error) {
-              // Skip prototype enumeration if it fails
-              debugLog('FUNCTION_EDITOR', `⚠️ Could not enumerate prototype properties`, error);
-            }
-          }
-          
-          return Array.from(new Set(methods)).sort();
-        };
-
-        // Fallback method lists for when runtime introspection fails
-        const fallbackMethods: Record<string, string[]> = {
-          console: ['log', 'error', 'warn', 'info', 'debug', 'trace', 'table', 'group', 'groupEnd', 'time', 'timeEnd', 'clear'],
-          Math: ['abs', 'ceil', 'floor', 'round', 'max', 'min', 'random', 'sqrt', 'pow', 'sin', 'cos', 'tan'],
-          Date: ['now', 'parse'],
-          JSON: ['parse', 'stringify'],
-          Object: ['keys', 'values', 'entries', 'assign', 'create', 'freeze'],
-          Array: ['from', 'isArray'],
-          String: ['fromCharCode'],
-          Number: ['isNaN', 'isFinite', 'parseInt', 'parseFloat']
-        };
-
-        // Cache for performance - only compute once per validation session
-        const getKnownMethods = (): Record<string, string[]> => {
-          // Use a simple cache to avoid recomputing on every validation
-          if (!(window as any).__functionEditorMethodCache) {
-            const cache: Record<string, string[]> = {};
-            
-            // Try runtime introspection first, fall back to static lists
-            const safeObjects = [
-              { name: 'console', obj: console },
-              { name: 'Math', obj: Math },
-              { name: 'Date', obj: Date },
-              { name: 'JSON', obj: JSON },
-              { name: 'Object', obj: Object },
-              { name: 'Array', obj: Array },
-              { name: 'String', obj: String },
-              { name: 'Number', obj: Number }
-            ];
-            
-            safeObjects.forEach(({ name, obj }) => {
-              try {
-                const methods = getObjectMethods(obj);
-                // Use runtime methods if we got a reasonable number, otherwise fallback
-                cache[name] = methods.length > 0 ? methods : (fallbackMethods[name] || []);
-              } catch (error) {
-                debugLog('FUNCTION_EDITOR', `⚠️ Runtime introspection failed for ${name}, using fallback`, error);
-                cache[name] = fallbackMethods[name] || [];
-              }
-            });
-            
-            // Handle optional browser objects
-            try {
-              if (typeof localStorage !== 'undefined') {
-                cache.localStorage = getObjectMethods(localStorage);
-              }
-            } catch (error) {
-              cache.localStorage = ['getItem', 'setItem', 'removeItem', 'clear', 'key'];
-            }
-            
-            try {
-              if (typeof sessionStorage !== 'undefined') {
-                cache.sessionStorage = getObjectMethods(sessionStorage);
-              }
-            } catch (error) {
-              cache.sessionStorage = ['getItem', 'setItem', 'removeItem', 'clear', 'key'];
-            }
-            
-            (window as any).__functionEditorMethodCache = cache;
-          }
-          return (window as any).__functionEditorMethodCache;
-        };
-
-        const knownMethods = getKnownMethods();
-
-        // Walk the AST to find undefined variables and validate method calls
-        walkSimple(ast, {
-          Identifier(node: any) {
-            const name = node.name;
-            
-            // Skip if it's an allowed global
-            if (allowedGlobals.has(name)) return;
-            
-            // Skip if it's a property access (will be handled by MemberExpression)
-            // This is a simple heuristic - Acorn gives us proper context
-            undefinedVars.add(name);
-          },
-          
-          MemberExpression(node: any) {
-            // Remove the object from undefined vars if it's a member expression
-            // e.g., in "console.log", "console" is not undefined
-            if (node.object && node.object.type === 'Identifier') {
-              const objectName = node.object.name;
-              if (allowedGlobals.has(objectName)) {
-                // It's a known global, so this is fine
-                undefinedVars.delete(objectName);
-                
-                                 // Validate method/property names on known objects
-                 if (knownMethods[objectName] && node.property && node.property.type === 'Identifier') {
-                   const propertyName = node.property.name;
-                   const validMethods = knownMethods[objectName];
-                   
-                   if (!validMethods.includes(propertyName)) {
-                     // Check for common typos and suggest corrections
-                     const suggestions = validMethods.filter((method: string) => 
-                       method.toLowerCase().includes(propertyName.toLowerCase()) ||
-                       propertyName.toLowerCase().includes(method.toLowerCase()) ||
-                       levenshteinDistance(method, propertyName) <= 2
-                     );
-                     
-                     let suggestionText = '';
-                     if (suggestions.length > 0) {
-                       suggestionText = ` Did you mean: ${suggestions.join(', ')}?`;
-                     } else {
-                       suggestionText = ` Available methods: ${validMethods.slice(0, 5).join(', ')}${validMethods.length > 5 ? '...' : ''}`;
-                     }
-                     
-                     warnings.push(`BLOCKING: Unknown method '${objectName}.${propertyName}' - this will cause a runtime error.${suggestionText}`);
-                   }
-                 }
-              }
-            }
-          }
-        });
-
-        // Process undefined variables with context-aware suggestions
-        Array.from(undefinedVars).forEach(varName => {
-          // Single character variables (except common loop vars) are likely typos - make them errors
-          if (/^[a-z]$/.test(varName) && !['i', 'j', 'x', 'y', 'n'].includes(varName)) {
-            const availableParams = params.length > 0 ? params.join(', ') : 'none available';
-            warnings.push(`BLOCKING: Undefined variable '${varName}' - this looks like a typo. Available parameters: ${availableParams}`);
-            return;
-          }
-          
-          // Provide helpful suggestions based on function signature
-          let suggestion = '';
-          if (params.length > 0) {
-            // Suggest similar parameter names
-            const similarParam = params.find(param => 
-              param.toLowerCase().includes(varName.toLowerCase()) || 
-              varName.toLowerCase().includes(param.toLowerCase())
-            );
-            if (similarParam) {
-              suggestion = ` Did you mean '${similarParam}'?`;
-            } else {
-              suggestion = ` Available parameters: ${params.join(', ')}`;
-            }
-          }
-          
-          // Provide specific suggestions for common patterns
-          if (varName === 'e' && params.includes('event')) {
-            suggestion = ` Did you mean 'event'?`;
-          } else if (varName === 'val' && params.includes('value')) {
-            suggestion = ` Did you mean 'value'?`;
-          } else if (varName === 'evt' && params.includes('event')) {
-            suggestion = ` Did you mean 'event'?`;
-          }
-          
-          warnings.push(`Unknown variable '${varName}' - this may cause runtime errors.${suggestion}`);
-        });
-
-        // Check for blocking errors after processing all variables
-        const blockingErrors = warnings.filter(w => w.startsWith('BLOCKING:'));
-        debugLog('FUNCTION_EDITOR', `🔍 VALIDATION: Variable analysis complete for ${prop.name}:`, { 
-          undefinedVars: Array.from(undefinedVars), 
-          warnings, 
-          blockingErrors,
-          allowedGlobals: Array.from(allowedGlobals)
+        // Create JSX-capable parser
+        const JSXParser = Parser.extend(jsx());
+        ast = JSXParser.parse(fullFunction, { 
+          ecmaVersion: 2020,
+          sourceType: 'script',
+          locations: false
         });
         
-        if (blockingErrors.length > 0) {
-          debugLog('FUNCTION_EDITOR', `❌ VALIDATION: Blocking error for ${prop.name}:`, blockingErrors[0]);
-          return {
-            isValid: false,
-            error: blockingErrors[0].replace('BLOCKING: ', '')
-          };
-        }
-      }
-
-      // 5. SIMPLE EXPRESSION VALIDATION
-      const trimmedCode = code.trim();
-      if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(trimmedCode) && undefinedVars.has(trimmedCode)) {
+        // Check if AST contains JSX elements
+        isJSXContent = containsJSXElements(ast);
+        debugLog('FUNCTION_EDITOR', `✅ VALIDATION: Enhanced AST parsing successful for ${prop.name}, JSX: ${isJSXContent}`);
+      } catch (parseError) {
+        debugLog('FUNCTION_EDITOR', `❌ VALIDATION: Parse error for ${prop.name}:`, parseError);
         return {
           isValid: false,
-          error: `Undefined variable '${trimmedCode}'. Did you mean to call a function like '${trimmedCode}()' or access a property like 'event.${trimmedCode}'?`
+          error: `Syntax error: ${parseError instanceof Error ? parseError.message : 'Invalid JavaScript'}`
         };
       }
 
-      // 6. RETURN TYPE VALIDATION (warnings only, skip if no AST)
-      if (ast && signature.returnType !== 'any' && signature.returnType !== 'void') {
-        let hasExplicitReturn = false;
-        let hasImplicitReturn = false;
-        
-        walkSimple(ast, {
-          ReturnStatement(node: any) {
-            hasExplicitReturn = true;
-            if (node.argument) {
-              // This is a simplified check - in a real implementation you'd evaluate the expression type
-              const returnValueSource = code.slice(node.argument.start, node.argument.end);
-              
-              // Enhanced type checking with better error messages
-              if (signature.returnType === 'boolean') {
-                if (/^["'`]/.test(returnValueSource)) {
-                  warnings.push(`Expected boolean return type, but found string: ${returnValueSource}`);
-                } else if (/^\d+(\.\d+)?$/.test(returnValueSource)) {
-                  warnings.push(`Expected boolean return type, but found number: ${returnValueSource}`);
-                } else if (/^null|undefined$/.test(returnValueSource)) {
-                  warnings.push(`Expected boolean return type, but found: ${returnValueSource}`);
-                }
-              } else if (signature.returnType === 'string') {
-                if (/^(true|false)$/.test(returnValueSource)) {
-                  warnings.push(`Expected string return type, but found boolean: ${returnValueSource}`);
-                } else if (/^\d+(\.\d+)?$/.test(returnValueSource)) {
-                  warnings.push(`Expected string return type, but found number: ${returnValueSource}`);
-                } else if (/^null|undefined$/.test(returnValueSource)) {
-                  warnings.push(`Expected string return type, but found: ${returnValueSource}`);
-                }
-              } else if (signature.returnType === 'number') {
-                if (/^(true|false)$/.test(returnValueSource)) {
-                  warnings.push(`Expected number return type, but found boolean: ${returnValueSource}`);
-                } else if (/^["'`].*["'`]$/.test(returnValueSource)) {
-                  warnings.push(`Expected number return type, but found string: ${returnValueSource}`);
-                } else if (/^null|undefined$/.test(returnValueSource)) {
-                  warnings.push(`Expected number return type, but found: ${returnValueSource}`);
-                }
-              } else if (signature.returnType === 'React.ReactNode' || signature.returnType.includes('ReactNode')) {
-                // Check for valid React node patterns
-                if (!/^(<|React\.|null|undefined|["'`]|{\s*|\/\*|\d+)/.test(returnValueSource)) {
-                  warnings.push(`Expected React.ReactNode return type. Consider returning JSX, string, number, or null: ${returnValueSource}`);
-                }
-              }
-            }
-          }
-        });
-        
-        // Check for implicit returns (like arrow functions without explicit return)
-        if (!hasExplicitReturn && !code.includes('return')) {
-          const trimmedCode = code.trim();
-          if (trimmedCode && !trimmedCode.startsWith('{') && signature.returnType !== 'void') {
-            hasImplicitReturn = true;
-            // This might be an implicit return - warn about type mismatch
-            if (signature.returnType === 'boolean' && !/^(true|false|!|\w+\s*[<>=!]+)/.test(trimmedCode)) {
-              warnings.push(`Expected boolean return type. Consider adding explicit return statement or boolean expression.`);
-            } else if (signature.returnType === 'string' && !/^["'`]/.test(trimmedCode)) {
-              warnings.push(`Expected string return type. Consider wrapping in quotes or adding explicit return statement.`);
-            }
-          }
-        }
-        
-        // Warn about void return type with explicit returns
-        if (signature.returnType === 'void' && hasExplicitReturn) {
-          warnings.push(`Function has void return type but contains return statements. Consider removing return values.`);
-        }
-      }
+      const warnings: string[] = [];
 
-      // Create the actual function without executing it (skip for JSX)
+      // Step 6: Enhanced scope analysis (works with both JS and JSX)
       if (ast) {
-        // Only create function for non-JSX content
-        const actualFunction = new Function('return ' + fullFunction)();
+        const scopeResult = performScopeAnalysis(ast, jsParams, prop.name);
+        if (scopeResult.isValid === false) {
+          return scopeResult;
+        }
+        warnings.push(...(scopeResult.warnings || []));
+      }
+
+      // Step 7: Simple expression validation
+      const trimmedCode = code.trim();
+      if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(trimmedCode)) {
+        const params = jsParams.split(',').map(p => p.trim()).filter(Boolean);
+        const commonGlobals = ['console', 'Math', 'Date', 'JSON', 'undefined', 'null'];
         
-        // Add debugging to track where execution comes from
-        const wrappedFunction = (...args: any[]) => {
-          debugLog('FUNCTION_EDITOR', `🚀 FUNCTION CALLED: ${prop.name} with args:`, args);
-          if (process.env.NODE_ENV === 'development') {
-            console.trace('Function call stack:');
-          }
-          return actualFunction(...args);
-        };
-        
-        // Copy properties to maintain function identity
-        Object.defineProperty(wrappedFunction, 'name', { value: actualFunction.name });
-        (wrappedFunction as any).__originalSource = code;
-        (wrappedFunction as any).__propName = prop.name;
-        
-        debugLog('FUNCTION_EDITOR', `✅ VALIDATION: Function compilation successful for ${prop.name}`);
-        return {
-          isValid: true,
-          compiledFunction: wrappedFunction,
-          warnings: warnings.length > 0 ? warnings : undefined
-        };
+        if (!params.includes(trimmedCode) && !commonGlobals.includes(trimmedCode)) {
+          return {
+            isValid: false,
+            error: `Undefined variable '${trimmedCode}'. Did you mean to call a function like '${trimmedCode}()' or access a property like 'event.${trimmedCode}'?`
+          };
+        }
+      }
+
+      // Step 8: Enhanced return type validation (works with both JS and JSX)
+      if (ast && signature.returnType !== 'any' && signature.returnType !== 'void') {
+        const typeWarnings = validateReturnType(ast, code, signature.returnType);
+        warnings.push(...typeWarnings);
+      }
+
+      // Step 9: Enhanced function compilation
+      let result: ValidationResult;
+      if (ast) {
+        result = compileFunction(fullFunction, code, prop.name, warnings);
       } else {
-        // For JSX content, return valid without compiled function
-        // The actual function will be created later by functionPropValueToFunction
-        debugLog('FUNCTION_EDITOR', `✅ VALIDATION: JSX content validation successful for ${prop.name}`);
-        return {
+        // This should rarely happen with typescript-estree
+        debugLog('FUNCTION_EDITOR', `⚠️ VALIDATION: No AST generated for ${prop.name}`);
+        result = {
           isValid: true,
           warnings: warnings.length > 0 ? warnings : undefined
         };
       }
+      
+      // Cache the result before returning
+      validationCache.current.set(cacheKey, result);
+      
+      // Limit cache size to prevent memory leaks
+      if (validationCache.current.size > 100) {
+        const firstKey = validationCache.current.keys().next().value;
+        if (firstKey) {
+          validationCache.current.delete(firstKey);
+        }
+      }
+      
+      // Log performance metrics
+      const duration = performance.now() - startTime;
+      debugLog('FUNCTION_EDITOR', `✅ VALIDATION: Complete for ${prop.name} (${duration.toFixed(2)}ms)`, {
+        cacheSize: validationCache.current.size,
+        hasWarnings: result.warnings && result.warnings.length > 0,
+        isValid: result.isValid
+      });
+      
+      return result;
       
     } catch (error) {
       debugLog('FUNCTION_EDITOR', `❌ VALIDATION: Unexpected error for ${prop.name}:`, error);
-      return {
+      const errorResult = {
         isValid: false,
         error: error instanceof Error ? error.message : 'Validation error'
       };
+      validationCache.current.set(cacheKey, errorResult);
+      return errorResult;
     }
-  }, [getFunctionSignature]);
+  }, [getFunctionSignature, validateSecurity, validateFunctionBody, validateJSX, performScopeAnalysis, validateReturnType, compileFunction, containsJSXElements]);
 
   // Handle code changes with debounced validation
   useEffect(() => {
@@ -706,6 +677,12 @@ export default function FunctionPropEditor({
   // Clear function - resets the function body and removes it from props
   const handleClearFunction = useCallback(() => {
     debugLog('FUNCTION_EDITOR', '🗑️ FunctionPropEditor: Clearing function for', prop.name);
+    
+    // Clear the validation cache for this prop to ensure fresh validation
+    const keysToDelete = Array.from(validationCache.current.keys()).filter(key => 
+      key.startsWith(`${prop.name}:`)
+    );
+    keysToDelete.forEach(key => validationCache.current.delete(key));
     
     // Clear the function body - this will trigger the validation useEffect
     // which will automatically call onChange(undefined) when it sees empty content

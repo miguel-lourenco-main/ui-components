@@ -231,15 +231,13 @@ export default function LocalComponentRenderer({
     <div className="h-full flex flex-col">
       {/* Viewport Frame */}
       <div className="flex-1 bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div className="h-full flex items-center justify-center p-6">
-          <div 
-            style={getViewportStyles()}
-            className="w-fit transition-all duration-300"
-          >
-            <ComponentErrorBoundary onRetry={onRetry}>
-              {renderContent()}
-            </ComponentErrorBoundary>
-          </div>
+        <div 
+          style={getViewportStyles()}
+          className="size-full flex items-center justify-center p-6 transition-all duration-300"
+        >
+          <ComponentErrorBoundary onRetry={onRetry}>
+            {renderContent()}
+          </ComponentErrorBoundary>
         </div>
       </div>
     </div>

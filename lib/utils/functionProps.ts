@@ -118,13 +118,21 @@ export function functionPropValueToFunction(propValue: FunctionPropValue, propNa
   try {
     const signature = propValue.signature || { params: '...args', returnType: 'any' };
     
+    // Strip TypeScript type annotations from parameters for JavaScript execution
+    const jsParams = signature.params.split(',').map(param => {
+      const trimmed = param.trim();
+      const colonIndex = trimmed.indexOf(':');
+      // Extract just the parameter name, removing type annotations
+      return colonIndex > -1 ? trimmed.substring(0, colonIndex).trim() : trimmed;
+    }).join(', ');
+    
     // Check if the source contains JSX
     const containsJSX = propValue.source.includes('<') && propValue.source.includes('>');
     
     if (containsJSX) {
       // Convert JSX to React.createElement calls
       const reactCode = jsxToReactCreateElement(propValue.source);
-      const fullFunction = `(${signature.params}) => {\n${reactCode}\n}`;
+      const fullFunction = `(${jsParams}) => {\n${reactCode}\n}`;
       
       // Create the actual function with React in scope
       const actualFunction = new Function('React', 'return ' + fullFunction)(React);
@@ -142,9 +150,9 @@ export function functionPropValueToFunction(propValue: FunctionPropValue, propNa
       
       return wrappedFunction;
     } else {
-      // For non-JSX content, use the original approach
-      const fullFunction = `(${signature.params}) => {\n${propValue.source}\n}`;
-      
+      // For non-JSX content, use the original approach with JavaScript-compatible parameters
+      const fullFunction = `(${jsParams}) => {\n${propValue.source}\n}`;
+            
       // Create the actual function
       const actualFunction = new Function('return ' + fullFunction)();
       
@@ -163,6 +171,7 @@ export function functionPropValueToFunction(propValue: FunctionPropValue, propNa
     }
   } catch (error) {
     console.warn(`Failed to create function for ${propName}:`, error);
+    console.log(`Full function that failed:`, propValue);
     return () => {};
   }
 }

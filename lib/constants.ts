@@ -8,11 +8,11 @@ export const MAX_FILE_SIZE_STRING = `${MAX_FILE_SIZE_MB / 1024 / 1024}MB`;
 export const DEBUG_CONFIG = {
   // Component system debugging
   COMPONENT_REGISTRY: false, // Component loading/discovery
-  COMPONENT_STATE: true, // Hook state changes (very verbose)
-  COMPONENT_PROPS: true, // Props updates and function generation
+  COMPONENT_STATE: false, // Hook state changes (very verbose)
+  COMPONENT_PROPS: false, // Props updates and function generation
   
   // Editor debugging
-  FUNCTION_EDITOR: true, // Function prop editor debugging
+  FUNCTION_EDITOR: false, // Function prop editor debugging
   
   // Build and scripts
   BUILD_SCRIPTS: false, // Keep build script logs as they're helpful
