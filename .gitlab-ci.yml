@@ -5,6 +5,7 @@ image: node:18-alpine
 # Define variables
 variables:
   NODE_ENV: production
+  CI_COMMIT_REF_SLUG: $CI_COMMIT_REF_SLUG
 
 # Cache node_modules for faster builds
 cache:
@@ -25,6 +26,10 @@ build:
     - pnpm install --frozen-lockfile
     - pnpm run build-registry
   script:
+    - echo "Environment variables for debugging:"
+    - echo "NODE_ENV=$NODE_ENV"
+    - echo "CI_COMMIT_REF_SLUG=$CI_COMMIT_REF_SLUG"
+    - echo "CI_DEFAULT_BRANCH=$CI_DEFAULT_BRANCH"
     - pnpm run type-check
     - pnpm run lint
     - pnpm run build
