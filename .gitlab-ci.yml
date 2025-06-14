@@ -82,31 +82,7 @@ pages-review:
     on_stop: stop_review
   rules:
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
-
-# Deploy to GitLab Pages - Merge Request Previews
-pages-mr:
-  stage: deploy
-  script:
-    - echo "Deploying merge request preview for MR-$CI_MERGE_REQUEST_IID"
-    - echo "MR Preview URL - ${CI_PAGES_URL}/mr-$CI_MERGE_REQUEST_IID/"
-    - cp -r out/* public/
-  artifacts:
-    paths:
-      - public/
-    expire_in: 1 week
-  pages:
-    path_prefix: "mr-$CI_MERGE_REQUEST_IID"  # Creates URL: site.com/mr-123/
-    expire_in: 1 week
-  dependencies:
-    - build
-  environment:
-    name: mr-preview/$CI_MERGE_REQUEST_IID
-    url: $CI_PAGES_URL/mr-$CI_MERGE_REQUEST_IID/
-    on_stop: stop-mr-review
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: manual  # Deploy MR previews manually
-
+    
 # Stop review environment (automatic cleanup when branch is deleted)
 stop_review:
   stage: deploy
@@ -118,15 +94,3 @@ stop_review:
   rules:
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       when: manual
-
-# Stop MR preview environment (automatic cleanup when MR is closed/merged)
-stop-mr-review:
-  stage: deploy
-  script:
-    - echo "Stopping MR preview environment for MR-$CI_MERGE_REQUEST_IID"
-  environment:
-    name: mr-preview/$CI_MERGE_REQUEST_IID
-    action: stop
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: manual 
