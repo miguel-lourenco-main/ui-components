@@ -193,7 +193,7 @@ export default function LocalComponentRenderer({
     // Render the actual component
     try {
       // Convert FunctionPropValues to actual functions before passing to component
-      const propsWithFunctions = convertFunctionPropValuesToFunctions(props);
+      const propsWithFunctions = convertFunctionPropValuesToFunctions(props, component.props);
       
       debugLog('COMPONENT_STATE', `🎬 Rendering ${component.name} with props:`, {
         propKeys: Object.keys(propsWithFunctions),

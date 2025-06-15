@@ -78,7 +78,7 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
     debugLog('COMPONENT_PROPS', '🏗️ generateCodeWithProps called for:', component.name);
     
     // Convert FunctionPropValues to actual functions for code generation
-    const propsWithFunctions = convertFunctionPropValuesToFunctions(props);
+    const propsWithFunctions = convertFunctionPropValuesToFunctions(props, component.props);
     
     // Filter out function props for the main props display
     const functionProps = Object.entries(propsWithFunctions).filter(([key, value]) => typeof value === 'function');
