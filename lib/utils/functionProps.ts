@@ -5,6 +5,7 @@ import React from 'react';
 import type { PropDefinition } from '@/types';
 // @ts-ignore - Babel standalone doesn't have perfect types
 import * as Babel from '@babel/standalone';
+import { validateFunctionCode, determineLanguageFromReturnType, getValidationSummary } from './codeValidation';
 
 /**
  * Check if a value is a function prop value object
@@ -198,15 +199,29 @@ export function functionPropValueToFunction(
     // Use metadata from PropDefinition first, then fall back to signature in propValue
     const functionSignature = propDefinition?.functionSignature || propValue.signature;
     
-    console.log(`🔍 Processing function ${propName}:`, {
-      hasMetadata: !!propDefinition?.functionSignature,
-      originalParams: functionSignature?.params,
-      source: propValue.source.substring(0, 100) + '...'
-    });
+        console.log(`🔍 Processing function ${propName}:`, {
+    hasMetadata: !!propDefinition?.functionSignature,
+    originalParams: functionSignature?.params,
+    source: propValue.source.substring(0, 100) + '...'
+  });
     
-    // Extract parameter names from metadata
-    const paramNames = extractParamNamesFromMetadata(functionSignature);
-    const jsParams = paramNames.join(', ');
+  // Extract parameter names from metadata
+  const paramNames = extractParamNamesFromMetadata(functionSignature);
+  const jsParams = paramNames.join(', ');
+
+  // Validate the function code based on its return type
+  const validation = validateFunctionCode(
+    propValue.source,
+    propName,
+    propDefinition,
+    jsParams
+  );
+
+  console.log(`🔍 Validation result for ${propName}:`, {
+    language: validation.language,
+    summary: getValidationSummary(validation),
+    hasErrors: validation.errors.length > 0
+  });
     
     console.log(`🔍 Extracted parameters for ${propName}:`, {
       originalParams: functionSignature?.params,

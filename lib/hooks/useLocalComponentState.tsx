@@ -74,7 +74,7 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
   /**
    * Generate component code with current props, including validation warnings
    */
-  const generateCodeWithProps = useCallback((component: LocalComponent, props: Record<string, any>) => {
+  const generateCodeWithProps = (component: LocalComponent, props: Record<string, any>) => {
     debugLog('COMPONENT_PROPS', '🏗️ generateCodeWithProps called for:', component.name);
     
     // Convert FunctionPropValues to actual functions for code generation
@@ -229,7 +229,7 @@ export default function Example() {${functionDeclarationsCode}
 }`;
 
     return usageCode;
-  }, []);
+  };
 
 
 
