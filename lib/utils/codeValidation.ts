@@ -136,26 +136,14 @@ function validateSyntax(source: string, language: string, params?: string): Vali
       : `function temp() {\n${source}\n}`;
     
     if (language === 'jsx' || language === 'tsx') {
-      // For JSX, we need to use a JSX-aware parser
-      // This is a simplified check - in production you'd use Babel parser
-      if (source.includes('<') && source.includes('>')) {
-        // Basic JSX syntax check
-        const openTags = (source.match(/</g) || []).length;
-        const closeTags = (source.match(/>/g) || []).length;
-        if (openTags !== closeTags) {
-          errors.push({
-            line: 1,
-            column: 1,
-            message: 'JSX syntax error: Mismatched JSX tags',
-            severity: 'error',
-            source: 'syntax'
-          });
-        }
-      }
+        babelParse(fullFunction, {
+          sourceType: 'module',
+          plugins: ['jsx', 'typescript'],
+        });
     } else {
-      // Use native JavaScript parsing for JS/TS
+      // Use Acorn for plain JS/TS for performance
       try {
-        new Function(fullFunction);
+        acornParse(fullFunction, { ecmaVersion: 2020, sourceType: 'module' });
       } catch (syntaxError) {
         errors.push({
           line: 1,

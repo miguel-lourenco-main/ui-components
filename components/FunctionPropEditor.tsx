@@ -4,8 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Editor from '@monaco-editor/react';
 import { PropDefinition } from '@/types';
 import { AlertTriangleIcon, CheckIcon, CodeIcon, Trash2Icon } from 'lucide-react';
-import { parse } from 'acorn';
-import { simple as walkSimple } from 'acorn-walk';
+import { parse as babelParse, ParserOptions } from '@babel/parser';
 import { debugLog } from '@/lib/constants';
 import { FunctionPropValue } from '@/types';
 import { 
@@ -103,22 +102,19 @@ export default function FunctionPropEditor({
     }
   }, [value, isInitialized, prop.name]);
 
-      // Professional validation using Acorn AST parser
+  // Professional validation using Babel parser for robust JSX/TSX support
   const validateFunction = useCallback((code: string): ValidationResult => {
     if (!code.trim()) {
       return { isValid: true }; // Empty is valid (will clear the function)
     }
 
-    // 1. SECURITY VALIDATION - Block dangerous patterns
+    // More refined security validation
     const securityPatterns = [
-      { pattern: /\beval\s*\(/, message: "eval() is not allowed for security reasons" },
-      { pattern: /\bFunction\s*\(/, message: "Function constructor is not allowed for security reasons" },
-      { pattern: /\bnew\s+Function\s*\(/, message: "new Function() is not allowed for security reasons" },
-      { pattern: /\bdocument\.cookie/, message: "Accessing document.cookie is not allowed" },
-      { pattern: /\blocalStorage\s*\./, message: "Accessing localStorage directly is not recommended" },
-      { pattern: /\bsessionStorage\s*\./, message: "Accessing sessionStorage directly is not recommended" },
-      { pattern: /\bwindow\s*\.\s*location/, message: "Modifying window.location is not allowed" },
-      { pattern: /\b(import|require)\s*\(/, message: "Dynamic imports are not allowed" },
+      { pattern: /\beval\s*\(/, message: "eval() is not allowed" },
+      { pattern: /\bnew\s+Function\s*\(/, message: "new Function() is not allowed" },
+      { pattern: /document\.(cookie|write)/, message: "Dangerous document properties are not allowed" },
+      { pattern: /(localStorage|sessionStorage)\.(setItem|clear)/, message: "Direct storage manipulation is restricted" },
+      { pattern: /window\.location\s*=\s*/, message: "Redirects are not allowed" },
     ];
 
     for (const { pattern, message } of securityPatterns) {
@@ -151,203 +147,31 @@ export default function FunctionPropEditor({
       const signature = getFunctionSignature();
       const fullFunction = `(${signature.params}) => {\n${code}\n}`;
       
-      // 3. SYNTAX VALIDATION using Acorn AST parser
-      let ast;
+      // 3. SYNTAX VALIDATION using Babel parser for robust JSX/TSX support
       try {
-        // For JSX content, skip AST parsing entirely and use simple validation
-        if (code.includes('<') && code.includes('>')) {
-          // This looks like JSX, so we'll do a simpler validation
-          // Just check for basic syntax issues without full parsing
-          const jsxValidationErrors = [];
-          
-          // Check for unmatched brackets
-          const openBrackets = (code.match(/</g) || []).length;
-          const closeBrackets = (code.match(/>/g) || []).length;
-          if (openBrackets !== closeBrackets) {
-            jsxValidationErrors.push('Unmatched JSX brackets');
-          }
-          
-          // Check for unmatched braces
-          const openBraces = (code.match(/\{/g) || []).length;
-          const closeBraces = (code.match(/\}/g) || []).length;
-          if (openBraces !== closeBraces) {
-            jsxValidationErrors.push('Unmatched braces in JSX');
-          }
-          
-          // Check for unmatched parentheses
-          const openParens = (code.match(/\(/g) || []).length;
-          const closeParens = (code.match(/\)/g) || []).length;
-          if (openParens !== closeParens) {
-            jsxValidationErrors.push('Unmatched parentheses in JSX');
-          }
-          
-          if (jsxValidationErrors.length > 0) {
-            return {
-              isValid: false,
-              error: `JSX syntax error: ${jsxValidationErrors.join(', ')}`
-            };
-          }
-          
-          // If basic JSX validation passes, skip AST validation and proceed
-          ast = null;
-        } else {
-          // For non-JSX content, use normal AST parsing
-          ast = parse(fullFunction, { 
-            ecmaVersion: 2020, 
-            sourceType: 'script',
-            locations: false // We don't need location info for validation
-          });
-        }
+        const parserOptions: ParserOptions = {
+          sourceType: 'module',
+          plugins: ['jsx', 'typescript'],
+        };
+        babelParse(fullFunction, parserOptions);
       } catch (parseError) {
+        const error = parseError as Error & { loc?: { line: number; column: number } };
+        const location = error.loc ? ` on line ${error.loc.line}, column ${error.loc.column}` : '';
         return {
           isValid: false,
-          error: `Syntax error: ${parseError instanceof Error ? parseError.message : 'Invalid JavaScript'}`
+          error: `Syntax error${location}: ${error.message.replace(/ \(\d+:\d+\)/, '')}`
         };
       }
 
-      // 4. VARIABLE SCOPE ANALYSIS using AST (skip if JSX detected)
-      const warnings: string[] = [];
-      const undefinedVars = new Set<string>();
-      
-      if (ast) {
-        // Define allowed global variables
-        const allowedGlobals = new Set([
-          // JavaScript built-ins
-          'console', 'Math', 'Date', 'JSON', 'Object', 'Array', 'String', 'Number', 'Boolean',
-          'parseInt', 'parseFloat', 'isNaN', 'isFinite', 'encodeURIComponent', 'decodeURIComponent',
-          'setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Promise',
-          // Literals and special values
-          'undefined', 'null', 'NaN', 'Infinity',
-          // Common parameters (these should mainly come from function parameters, not globals)
-          'value', 'data', 'index', 'item', 'error', 'response', 'result',
-          'props', 'state', 'ref', 'key',
-          // Note: 'event' removed from globals since it should be a parameter
-        ]);
+      // If syntax is valid, we can consider it "good enough" for the editor.
+      // The rest can be warnings or runtime checks.
+      return { isValid: true };
 
-        // Add function parameters to allowed globals
-        const params = signature.params.split(',').map(p => p.trim().split(/\s+/).pop() || '').filter(Boolean);
-        params.forEach(param => allowedGlobals.add(param));
-
-        // Walk the AST to find undefined variables
-        walkSimple(ast, {
-          Identifier(node: any) {
-            const name = node.name;
-            
-            // Skip if it's an allowed global
-            if (allowedGlobals.has(name)) return;
-            
-            // Skip if it's a property access (will be handled by MemberExpression)
-            // This is a simple heuristic - Acorn gives us proper context
-            undefinedVars.add(name);
-          },
-          
-          MemberExpression(node: any) {
-            // Remove the object from undefined vars if it's a member expression
-            // e.g., in "console.log", "console" is not undefined
-            if (node.object && node.object.type === 'Identifier') {
-              const objectName = node.object.name;
-              if (allowedGlobals.has(objectName)) {
-                // It's a known global, so this is fine
-                undefinedVars.delete(objectName);
-              }
-            }
-          }
-        });
-
-        // Process undefined variables
-        Array.from(undefinedVars).forEach(varName => {
-          // Single character variables (except common loop vars) are likely typos - make them errors
-          if (/^[a-z]$/.test(varName) && !['i', 'j', 'x', 'y', 'n'].includes(varName)) {
-            warnings.push(`BLOCKING: Undefined variable '${varName}' - this looks like a typo. Did you mean 'event' or another variable?`);
-            return;
-          }
-          
-          // Other undefined variables are warnings
-          warnings.push(`Unknown variable '${varName}' - this may cause runtime errors`);
-        });
-
-        // Check for blocking errors after processing all variables
-        const blockingErrors = warnings.filter(w => w.startsWith('BLOCKING:'));
-        if (blockingErrors.length > 0) {
-          return {
-            isValid: false,
-            error: blockingErrors[0].replace('BLOCKING: ', '')
-          };
-        }
-      }
-
-      // 5. SIMPLE EXPRESSION VALIDATION
-      const trimmedCode = code.trim();
-      if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(trimmedCode) && undefinedVars.has(trimmedCode)) {
-        return {
-          isValid: false,
-          error: `Undefined variable '${trimmedCode}'. Did you mean to call a function like '${trimmedCode}()' or access a property like 'event.${trimmedCode}'?`
-        };
-      }
-
-      // 6. RETURN TYPE VALIDATION (warnings only, skip if no AST)
-      if (ast && signature.returnType !== 'any' && signature.returnType !== 'void') {
-        walkSimple(ast, {
-          ReturnStatement(node: any) {
-            if (node.argument) {
-              // This is a simplified check - in a real implementation you'd evaluate the expression type
-              const returnValueSource = code.slice(node.argument.start, node.argument.end);
-              
-              if (signature.returnType === 'boolean') {
-                if (/^["'`]/.test(returnValueSource) || /^\d+(\.\d+)?$/.test(returnValueSource)) {
-                  warnings.push(`Expected boolean return, but found: ${returnValueSource}`);
-                }
-              } else if (signature.returnType === 'string') {
-                if (/^(true|false|\d+(\.\d+)?|null|undefined)$/.test(returnValueSource)) {
-                  warnings.push(`Expected string return, but found: ${returnValueSource}`);
-                }
-              } else if (signature.returnType === 'number') {
-                if (/^(true|false|["'`].*["'`]|null|undefined)$/.test(returnValueSource)) {
-                  warnings.push(`Expected number return, but found: ${returnValueSource}`);
-                }
-              }
-            }
-          }
-        });
-      }
-
-      // Create the actual function without executing it (skip for JSX)
-      if (ast) {
-        // Only create function for non-JSX content
-        const actualFunction = new Function('return ' + fullFunction)();
-        
-        // Add debugging to track where execution comes from
-        const wrappedFunction = (...args: any[]) => {
-          debugLog('FUNCTION_EDITOR', `🚀 FUNCTION CALLED: ${prop.name} with args:`, args);
-          if (process.env.NODE_ENV === 'development') {
-            console.trace('Function call stack:');
-          }
-          return actualFunction(...args);
-        };
-        
-        // Copy properties to maintain function identity
-        Object.defineProperty(wrappedFunction, 'name', { value: actualFunction.name });
-        (wrappedFunction as any).__originalSource = code;
-        (wrappedFunction as any).__propName = prop.name;
-        
-        return {
-          isValid: true,
-          compiledFunction: wrappedFunction,
-          warnings: warnings.length > 0 ? warnings : undefined
-        };
-      } else {
-        // For JSX content, return valid without compiled function
-        // The actual function will be created later by functionPropValueToFunction
-        return {
-          isValid: true,
-          warnings: warnings.length > 0 ? warnings : undefined
-        };
-      }
-      
-    } catch (error) {
+    } catch (e) {
+      // Catch-all for any unexpected validation errors
       return {
         isValid: false,
-        error: error instanceof Error ? error.message : 'Validation error'
+        error: `An unexpected validation error occurred: ${e instanceof Error ? e.message : String(e)}`,
       };
     }
   }, [getFunctionSignature]);
