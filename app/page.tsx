@@ -1,7 +1,6 @@
 'use client';
 
 import ComponentSelector from '@/components/ComponentSelector';
-import ComponentRenderer from '@/components/ComponentRenderer';
 import LocalComponentRenderer from '@/components/LocalComponentRenderer';
 import CodeViewer from '@/components/CodeViewer';
 import PropsPanel from '@/components/PropsPanel';
@@ -9,8 +8,7 @@ import ViewportControls from '@/components/ViewportControls';
 import CodeButtons from '@/components/CodeButtons';
 
 import { useLocalComponentState } from '@/lib/hooks/useLocalComponentState';
-import { PlayIcon, SettingsIcon, XIcon, FlaskConicalIcon } from 'lucide-react';
-import { useState } from 'react';
+import { PlayIcon, SettingsIcon, XIcon } from 'lucide-react';
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -94,10 +92,6 @@ export default function PlaygroundPage() {
               key={`header-controls-${playgroundState.selectedComponent?.name}`}
               className="flex items-center space-x-2 slide-in-left"
             >
-              <ViewportControls
-                viewMode={playgroundState.viewMode}
-                onViewModeChange={setViewMode}
-              />
               <button
                 onClick={() => togglePanel('props')}
                 className={`p-2 rounded transition-colors duration-200 ${playgroundState.showProps ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'}`}
@@ -152,8 +146,12 @@ export default function PlaygroundPage() {
                   minSize={30}
                   className="bg-gray-50 flex flex-col"
                 >
-                  <div className="w-full flex justify-end pt-4 pr-4">
+                  <div className="w-full flex items-center justify-between p-4 pb-0">
                     {/* Component Information Section */}
+                    <ViewportControls
+                      viewMode={playgroundState.viewMode}
+                      onViewModeChange={setViewMode}
+                    />
                     <CodeButtons
                       component={playgroundState.selectedComponent}
                       showCode={playgroundState.showCode}
@@ -162,21 +160,12 @@ export default function PlaygroundPage() {
                   </div>
                   <div className="flex-1 p-6">
                     {playgroundState.selectedComponent ? (
-                      'isLocal' in playgroundState.selectedComponent && playgroundState.selectedComponent.isLocal ? (
-                        <LocalComponentRenderer
-                          component={playgroundState.selectedComponent}
-                          props={playgroundState.currentProps}
-                          viewMode={playgroundState.viewMode}
-                          onRetry={() => selectComponent(playgroundState.selectedComponent!)}
-                        />
-                      ) : (
-                        <ComponentRenderer
-                          component={playgroundState.selectedComponent}
-                          props={playgroundState.currentProps}
-                          code={playgroundState.currentCode}
-                          viewMode={playgroundState.viewMode}
-                        />
-                      )
+                      <LocalComponentRenderer
+                        component={playgroundState.selectedComponent}
+                        props={playgroundState.currentProps}
+                        viewMode={playgroundState.viewMode}
+                        onRetry={() => selectComponent(playgroundState.selectedComponent!)}
+                      />
                     ) : (
                       <div className="h-full flex items-center justify-center text-gray-500">
                         <div className="text-center">
@@ -225,21 +214,12 @@ export default function PlaygroundPage() {
                 </div>
                 <div className="flex-1 p-6">
                   {playgroundState.selectedComponent ? (
-                    'isLocal' in playgroundState.selectedComponent && playgroundState.selectedComponent.isLocal ? (
-                      <LocalComponentRenderer
-                        component={playgroundState.selectedComponent}
-                        props={playgroundState.currentProps}
-                        viewMode={playgroundState.viewMode}
-                        onRetry={() => selectComponent(playgroundState.selectedComponent!)}
-                      />
-                    ) : (
-                      <ComponentRenderer
-                        component={playgroundState.selectedComponent}
-                        props={playgroundState.currentProps}
-                        code={playgroundState.currentCode}
-                        viewMode={playgroundState.viewMode}
-                      />
-                    )
+                    <LocalComponentRenderer
+                      component={playgroundState.selectedComponent}
+                      props={playgroundState.currentProps}
+                      viewMode={playgroundState.viewMode}
+                      onRetry={() => selectComponent(playgroundState.selectedComponent!)}
+                    />
                   ) : (
                     <div className="h-full flex items-center justify-center text-gray-500">
                       <div className="text-center">

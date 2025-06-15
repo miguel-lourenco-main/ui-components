@@ -25,7 +25,7 @@ interface UseLocalComponentStateReturn {
   
   // Actions
   loadComponents: () => Promise<void>;
-  selectComponent: (component: LocalComponent | Component) => void;
+  selectComponent: (component: LocalComponent) => void;
   selectExample: (exampleIndex: number) => void;
   updateProps: (props: Record<string, any>) => void;
   resetToDefaults: () => void;
@@ -271,23 +271,14 @@ export default function Example() {${functionDeclarationsCode}
   /**
    * Select a component and initialize its state
    */
-  const selectComponent = useCallback((component: LocalComponent | Component) => {
+  const selectComponent = useCallback((component: LocalComponent) => {
     debugLog('COMPONENT_STATE', '🎯 selectComponent called:', {
       componentName: component.name,
       currentSelectedExampleIndex: selectedExampleIndex
     });
     
     try {
-      // Check if it's a LocalComponent
-      const isLocalComponent = 'isLocal' in component && component.isLocal;
-      
-      if (!isLocalComponent) {
-        // Handle regular Component - for now, we'll just show an error
-        setError('Regular components are not supported in local mode. Please use local components.');
-        return;
-      }
-
-      const localComponent = component as LocalComponent;
+      const localComponent = component;
 
       // Use first example's props if available, otherwise fall back to default props
       let initialProps: Record<string, any> = {};

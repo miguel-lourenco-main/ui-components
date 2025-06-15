@@ -228,18 +228,16 @@ export default function LocalComponentRenderer({
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col items-center justify-center">
       {/* Viewport Frame */}
-      <div className="flex-1 bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div 
-          style={getViewportStyles()}
-          className="size-full flex items-center justify-center p-6 transition-all duration-300"
-        >
-          <ComponentErrorBoundary onRetry={onRetry}>
+      <div 
+        style={getViewportStyles()}
+        className="size-full flex items-center justify-center p-6 bg-white rounded-lg border transition-all duration-300 border-gray-200 overflow-hidden"
+      >
+        <ComponentErrorBoundary onRetry={onRetry}>
             {renderContent()}
           </ComponentErrorBoundary>
         </div>
-      </div>
     </div>
   );
 } 

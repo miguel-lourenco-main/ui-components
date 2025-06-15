@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Component, LocalComponent } from '@/types';
+import { LocalComponent } from '@/types';
 import { SearchIcon, FilterIcon, TagIcon } from 'lucide-react';
 
 interface ComponentSelectorProps {
-  components: (Component | LocalComponent)[];
-  selectedComponent: (Component | LocalComponent) | null;
-  onSelect: (component: Component | LocalComponent) => void;
+  components: LocalComponent[];
+  selectedComponent: LocalComponent | null;
+  onSelect: (component: LocalComponent) => void;
   searchQuery: string;
   selectedCategory: string | null;
   onSearchChange: (query: string) => void;
@@ -42,7 +42,7 @@ export default function ComponentSelector({
   const groupedComponents = categories.reduce((acc, category) => {
     acc[category.id] = filteredComponents.filter(c => c.category === category.id);
     return acc;
-  }, {} as Record<string, Component[]>);
+  }, {} as Record<string, LocalComponent[]>);
 
   return (
     <div className="flex flex-col h-full">
@@ -168,9 +168,9 @@ export default function ComponentSelector({
 }
 
 interface ComponentItemProps {
-  component: Component;
+  component: LocalComponent;
   isSelected: boolean;
-  onSelect: (component: Component) => void;
+  onSelect: (component: LocalComponent) => void;
 }
 
 function ComponentItem({ component, isSelected, onSelect }: ComponentItemProps) {
