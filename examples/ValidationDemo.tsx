@@ -77,7 +77,9 @@ alert('Task completed!');`,
   <ul className="todo-list">
     {items.map(item => (
       <li key={item.id} className={item.completed ? 'completed' : ''}>
-        <input 
+        <input
+          id={\`todo-checkbox-\${item.id}\`}
+          name={\`todo-checkbox-\${item.id}\`}
           type="checkbox" 
           checked={item.completed}
           onChange={() => onToggle(item.id)}

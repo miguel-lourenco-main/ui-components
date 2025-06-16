@@ -24,12 +24,16 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
   const [expandedProps, setExpandedProps] = useState<Set<string>>(new Set());
   const [showOptionalProps, setShowOptionalProps] = useState<boolean>(true);
 
+  debugLog('COMPONENT_PROPS', `PropsPanel receiving props for ${component.name}`, { values });
+
   const handlePropChange = (propName: string, value: any) => {
     onChange({
       ...values,
       [propName]: value,
     });
   };
+
+  console.log("values", values);
 
   const resetToDefaults = () => {
     debugLog('COMPONENT_STATE', '🎛️ PropsPanel resetToDefaults called');
@@ -373,10 +377,14 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
     switch (prop.type) {
       case 'boolean':
         return (
-          <label className="flex items-center">
+          <label 
+            className="flex items-center"
+            data-testid={`prop-control-${prop.name}`}
+          >
             <input
               type="checkbox"
-              checked={value || false}
+              id={`prop-${prop.name}`}
+              name={`prop-${prop.name}`}              checked={value || false}
               onChange={(e) => onChange(e.target.checked)}
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
@@ -388,6 +396,8 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
         return (
           <input
             type="number"
+            id={`prop-${prop.name}`}
+            name={`prop-${prop.name}`}
             value={value || ''}
             onChange={(e) => onChange(e.target.value ? Number(e.target.value) : undefined)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -417,12 +427,16 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
           <div className="flex items-center space-x-2">
             <input
               type="color"
+              id={`prop-${prop.name}-color`}
+              name={`prop-${prop.name}-color`}
               value={value || '#000000'}
               onChange={(e) => onChange(e.target.value)}
               className="w-12 h-8 border border-gray-300 rounded"
             />
             <input
               type="text"
+              id={`prop-${prop.name}-text`}
+              name={`prop-${prop.name}-text`}
               value={value || ''}
               onChange={(e) => onChange(e.target.value || undefined)}
               placeholder="#000000"
@@ -464,6 +478,8 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
               <div className="mt-2">
                 <div className="text-xs text-gray-500 mb-1">JSON Editor:</div>
                 <textarea
+                  id={`prop-${prop.name}`}
+                  name={`prop-${prop.name}`}
                   value={value ? JSON.stringify(value, null, 2) : ''}
                   onChange={(e) => {
                     try {
@@ -486,10 +502,12 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
         return (
           <input
             type="text"
+            id={`prop-${prop.name}`}
+            name={`prop-${prop.name}`}
             value={value || ''}
             onChange={(e) => onChange(e.target.value || undefined)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder={prop.name === 'className' ? 'e.g. bg-blue-500 text-white p-4' : undefined}
+            placeholder={prop.name === 'className' ? 'e.g. bg-blue-500 text-white p-4' : 'Enter value'}
           />
         );
     }

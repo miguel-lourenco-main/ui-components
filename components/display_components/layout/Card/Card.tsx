@@ -1,14 +1,14 @@
 import React from 'react';
 
 interface CardProps {
-  children: React.ReactNode;
+  children: React.ReactNode | (() => React.ReactNode);
   className?: string;
   padding?: 'none' | 'sm' | 'md' | 'lg';
   shadow?: 'none' | 'sm' | 'md' | 'lg';
   border?: boolean;
   rounded?: 'none' | 'sm' | 'md' | 'lg';
-  header?: React.ReactNode;
-  footer?: React.ReactNode;
+  header?: React.ReactNode | (() => React.ReactNode);
+  footer?: React.ReactNode | (() => React.ReactNode);
 }
 
 export default function Card({
@@ -56,17 +56,17 @@ export default function Card({
     <div className={cardClassName}>
       {header && (
         <div className={`border-b border-gray-200 ${headerFooterPadding}`}>
-          {header}
+          {typeof header === 'function' ? header() : header}
         </div>
       )}
       
       <div className={header || footer ? headerFooterPadding : bodyPadding}>
-        {children}
+        {typeof children === 'function' ? children() : children}
       </div>
       
       {footer && (
         <div className={`border-t border-gray-200 ${headerFooterPadding}`}>
-          {footer}
+          {typeof footer === 'function' ? footer() : footer}
         </div>
       )}
     </div>

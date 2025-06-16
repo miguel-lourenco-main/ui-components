@@ -2,10 +2,41 @@ import { PropDefinition } from '@/types';
 
 // Browser-compatible parsers (like CodeSandbox/StackBlitz use)
 import { parse as babelParse } from '@babel/parser';
-import { parse as acornParse } from 'acorn';
-import { simple as walkSimple } from 'acorn-walk';
+import traverse, { NodePath } from '@babel/traverse';
 // @ts-ignore - TypeScript compiler API for browser
 import * as ts from 'typescript';
+
+// A simple cache for TypeScript library files fetched from a CDN
+const tsLibCache: { [key: string]: string } = {};
+const tsLibVersion = '5.3.3'; // From package.json
+
+/**
+ * Fetch TypeScript library files from a CDN and cache them.
+ */
+async function ensureTsLibsAreLoaded(libNames: string[]): Promise<void> {
+  const promises: Promise<void>[] = [];
+  for (const libName of libNames) {
+    if (!tsLibCache[libName]) {
+      promises.push(
+        fetch(`https://cdn.jsdelivr.net/npm/typescript@${tsLibVersion}/lib/${libName}`)
+          .then(res => {
+            if (!res.ok) {
+              throw new Error(`Failed to fetch TS lib: ${libName}`);
+            }
+            return res.text();
+          })
+          .then(text => {
+            tsLibCache[libName] = text;
+            console.log(`[Validation] Loaded and cached TS lib: ${libName}`);
+          })
+          .catch(err => {
+            console.error(`[Validation] Error fetching TS lib ${libName}:`, err);
+          })
+      );
+    }
+  }
+  await Promise.all(promises);
+}
 
 export interface ValidationResult {
   isValid: boolean;
@@ -67,37 +98,56 @@ export function determineLanguageFromReturnType(returnType: string): 'javascript
 /**
  * Validate function source code based on its expected return type
  */
-export function validateFunctionCode(
+export async function validateFunctionCode(
   source: string,
   propName: string,
   propDefinition?: PropDefinition,
   params?: string
-): ValidationResult {
+): Promise<ValidationResult> {
   const returnType = propDefinition?.functionSignature?.returnType || 'any';
   const language = determineLanguageFromReturnType(returnType);
+  
+  // Skip validation for empty source code
+  if (!source.trim()) {
+    return {
+      isValid: true,
+      errors: [],
+      warnings: [],
+      language
+    };
+  }
   
   console.log(`🔍 Validating function ${propName}:`, {
     returnType,
     detectedLanguage: language,
     hasParams: !!params
   });
-  
+
   const errors: ValidationError[] = [];
   const warnings: ValidationWarning[] = [];
   
   try {
     // Basic syntax validation first
     const syntaxErrors = validateSyntax(source, language, params);
+    if (syntaxErrors.length > 0) {
+      console.log(`[Validation] Syntax errors for ${propName}:`, syntaxErrors);
+    }
     errors.push(...syntaxErrors);
     
     // TypeScript validation for TS/TSX
-    if (language === 'typescript' || language === 'tsx') {
-      const tsErrors = validateWithTypeScript(source, language, params, returnType);
-      errors.push(...tsErrors);
+    if (language === 'typescript' || language === 'tsx' || language === 'javascript') {
+      const tsValidationErrors = await validateWithTypeScript(source, language, params, returnType);
+      if (tsValidationErrors.length > 0) {
+        console.log(`[Validation] TypeScript errors for ${propName}:`, tsValidationErrors);
+      }
+      errors.push(...tsValidationErrors);
     }
     
     // Custom linting with browser-compatible parsers
     const lintResults = validateWithCustomLinter(source, language, params);
+    if (lintResults.errors.length > 0 || lintResults.warnings.length > 0) {
+      console.log(`[Validation] Linter results for ${propName}:`, lintResults);
+    }
     errors.push(...lintResults.errors);
     warnings.push(...lintResults.warnings);
     
@@ -135,30 +185,19 @@ function validateSyntax(source: string, language: string, params?: string): Vali
       ? `function temp(${params}) {\n${source}\n}`
       : `function temp() {\n${source}\n}`;
     
-    if (language === 'jsx' || language === 'tsx') {
-        babelParse(fullFunction, {
-          sourceType: 'module',
-          plugins: ['jsx', 'typescript'],
-        });
-    } else {
-      // Use Acorn for plain JS/TS for performance
-      try {
-        acornParse(fullFunction, { ecmaVersion: 2020, sourceType: 'module' });
-      } catch (syntaxError) {
-        errors.push({
-          line: 1,
-          column: 1,
-          message: `Syntax error: ${syntaxError instanceof Error ? syntaxError.message : String(syntaxError)}`,
-          severity: 'error',
-          source: 'syntax'
-        });
-      }
-    }
-  } catch (error) {
+    // Always use Babel parser for its robustness with modern syntax, JSX, and TS
+    babelParse(fullFunction, {
+      sourceType: 'module',
+      plugins: ['jsx', 'typescript'], // Enable both for maximum compatibility
+    });
+
+  } catch (error: any) {
     errors.push({
-      line: 1,
-      column: 1,
-      message: `Parse error: ${error instanceof Error ? error.message : String(error)}`,
+      line: error.loc ? error.loc.line : 1,
+      column: error.loc ? error.loc.column + 1 : 1,
+      message: error.message
+        .replace(/\(\d+:\d+\)$/, '') // Clean up Babel's error message
+        .trim(),
       severity: 'error',
       source: 'syntax'
     });
@@ -170,65 +209,149 @@ function validateSyntax(source: string, language: string, params?: string): Vali
 /**
  * TypeScript validation using TypeScript Compiler API
  */
-function validateWithTypeScript(
+async function validateWithTypeScript(
   source: string, 
   language: string, 
   params?: string, 
   returnType?: string
-): ValidationError[] {
+): Promise<ValidationError[]> {
+  if (typeof ts === 'undefined' || !ts.createSourceFile) {
+    console.warn('TypeScript compiler API is not available. Skipping TypeScript validation.');
+    return [];
+  }
   const errors: ValidationError[] = [];
   
   try {
+    // Ensure required TypeScript library files are loaded
+    const libFiles = ["lib.esnext.d.ts", "lib.dom.d.ts"];
+    await ensureTsLibsAreLoaded(libFiles);
+
     // Create TypeScript source file
-    const fullSource = params 
-      ? `function temp(${params}): ${returnType || 'any'} {\n${source}\n}`
-      : `function temp(): ${returnType || 'any'} {\n${source}\n}`;
+    const fullSource = `
+      declare var React: any; // Add React declaration for JSX
+      function temp(${params || ''}): ${returnType || 'any'} {
+        ${source}
+      }
+    `;
     
     const options: ts.CompilerOptions = {
-      target: ts.ScriptTarget.ES2020,
+      target: ts.ScriptTarget.ESNext,
       module: ts.ModuleKind.ESNext,
-      jsx: language === 'tsx' ? ts.JsxEmit.React : ts.JsxEmit.None,
+      jsx: (language === 'tsx' || language === 'jsx') ? ts.JsxEmit.ReactJSX : ts.JsxEmit.None,
       strict: true,
+      noImplicitAny: false,
       noEmit: true,
       skipLibCheck: true,
+      esModuleInterop: true,
+      allowSyntheticDefaultImports: true,
+      lib: libFiles
     };
     
-    // Create TypeScript program
-    const sourceFile = ts.createSourceFile(
-      'temp.ts',
-      fullSource,
-      ts.ScriptTarget.ES2020,
-      true
-    );
+    const compilerHost: ts.CompilerHost = {
+      getSourceFile: (fileName, languageVersion) => {
+        if (fileName === 'temp.ts') {
+          return ts.createSourceFile(fileName, fullSource, options.target!, true);
+        }
+        const libSource = tsLibCache[fileName];
+        if (libSource) {
+          return ts.createSourceFile(fileName, libSource, options.target!, true);
+        }
+        console.warn(`[Validation] TS source file not found in cache: ${fileName}`);
+        return undefined;
+      },
+      writeFile: () => {},
+      getDefaultLibFileName: () => ts.getDefaultLibFileName(options),
+      useCaseSensitiveFileNames: () => false,
+      getCanonicalFileName: fileName => fileName,
+      getCurrentDirectory: () => '',
+      getNewLine: () => '\n',
+      fileExists: fileName => {
+        return fileName === 'temp.ts' || !!tsLibCache[fileName];
+      },
+      readFile: fileName => {
+        if (fileName === 'temp.ts') {
+          return fullSource;
+        }
+        return tsLibCache[fileName];
+      },
+      resolveModuleNames: (moduleNames, containingFile) => {
+        // Basic module resolution for things like 'react'
+        return moduleNames.map(moduleName => {
+          if (moduleName === 'react' || moduleName.startsWith('@types/react')) {
+            // In a browser environment, we can't really resolve node_modules.
+            // We rely on ambient declarations (like `declare var React: any;`)
+            // or pre-loaded type definitions.
+            return { resolvedFileName: `node_modules/${moduleName}/index.d.ts`, isExternalLibraryImport: true };
+          }
+          return undefined;
+        });
+      }
+    };
     
-    const host = ts.createCompilerHost(options);
-    const program = ts.createProgram(['temp.ts'], options, host);
-    
-    // Get diagnostics
-    const diagnostics = ts.getPreEmitDiagnostics(program, sourceFile);
-    
+    const program = ts.createProgram(['temp.ts'], options, compilerHost);
+    const diagnostics = ts.getPreEmitDiagnostics(program);
+
     diagnostics.forEach(diagnostic => {
-      if (diagnostic.file) {
-        const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(
-          diagnostic.start!
-        );
+      if (diagnostic.file && diagnostic.start !== undefined) {
+        const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+        const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
         
         errors.push({
           line: line + 1,
           column: character + 1,
+          message,
+          severity: 'error',
+          source: 'typescript'
+        });
+      } else {
+        errors.push({
+          line: 1,
+          column: 1,
           message: ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'),
-          severity: diagnostic.category === ts.DiagnosticCategory.Error ? 'error' : 'warning',
+          severity: 'error',
           source: 'typescript'
         });
       }
     });
-    
+
   } catch (error) {
-    // TypeScript validation failed, but don't fail the entire validation
-    console.warn('TypeScript validation failed:', error);
+    errors.push({
+      line: 1,
+      column: 1,
+      message: `TypeScript validation failed: ${error instanceof Error ? error.message : String(error)}`,
+      severity: 'error',
+      source: 'syntax'
+    });
   }
   
-  return errors;
+  return filterIgnoredTsErrors(errors);
+}
+
+/**
+ * Filter out common, unhelpful TypeScript errors that arise from the virtual environment.
+ */
+function filterIgnoredTsErrors(errors: ValidationError[]): ValidationError[] {
+  const ignoredErrorPatterns = [
+    /Cannot find global type \'\w+\'\./,
+    /Cannot find name \'\w+\'\. Did you mean \'.*\'\?/,
+    /Cannot find namespace \'\w+\'\./,
+    /File \'lib\.\w+\.d\.ts\' not found\./,
+  ];
+
+  const specificAllowedErrors = [
+    /Cannot find name \'\w+\'\./, // This will keep errors like "Cannot find name 'con'."
+  ];
+
+  return errors.filter(error => {
+    // If a more specific pattern allows it, keep it.
+    if (specificAllowedErrors.some(pattern => pattern.test(error.message))) {
+      // But still check if it's a generic "did you mean" error that should be ignored
+      return !/Cannot find name \'\w+\'\. Did you mean \'.*\'\?/.test(error.message);
+    }
+
+    // Otherwise, filter it out if it matches any of the ignored patterns.
+    return !ignoredErrorPatterns.some(pattern => pattern.test(error.message));
+  });
 }
 
 /**
@@ -248,116 +371,59 @@ function validateWithCustomLinter(source: string, language: string, params?: str
       : `function temp() {\n${source}\n}`;
     
     // Use Babel parser for TypeScript/JSX (like Prettier does)
-    if (language === 'tsx' || language === 'typescript') {
-      const ast = babelParse(fullSource, {
-        sourceType: 'module',
-        plugins: [
-          'typescript', 
-          language === 'tsx' ? 'jsx' : null
-        ].filter(Boolean) as any[],
-        allowReturnOutsideFunction: true
-      });
-      
-      // Custom validation rules using AST
-      validateCustomRules(ast, source, params, errors, warnings);
-    } 
-    // Use Acorn for JavaScript/JSX (faster, what ESLint uses under hood)  
-    else {
-      const ast = acornParse(fullSource, {
-        ecmaVersion: 2020,
-        sourceType: 'module'
-      });
-      
-      // Basic JavaScript validation using Acorn
-      validateJavaScriptRules(ast, source, params, errors, warnings);
-    }
-    
-  } catch (error: any) {
-    errors.push({
-      line: 1,
-      column: 1,
-      message: `Parse error: ${error.message || String(error)}`,
-      severity: 'error',
-      source: 'syntax'
+    const ast = babelParse(fullSource, {
+      sourceType: 'module',
+      plugins: ['jsx', 'typescript'], // Enable both for maximum compatibility
+      allowReturnOutsideFunction: true
     });
+        
+    // Validate custom rules with Babel traverse
+    validateCustomRules(ast, source, params, errors, warnings);
+
+  } catch (error) {
+    // Linter should not crash validation, just report it
+    console.warn('Custom linter failed:', error);
   }
   
   return { errors, warnings };
 }
 
 /**
- * Custom validation rules using Babel AST (for TypeScript)
+ * Validates custom rules using @babel/traverse for a unified AST
  */
 function validateCustomRules(ast: any, source: string, params: string | undefined, errors: ValidationError[], warnings: ValidationWarning[]) {
-  // Check for common issues
-  const lines = source.split('\n');
-  
-  // Rule: Prefer const over let when possible
-  lines.forEach((line, index) => {
-    if (line.trim().startsWith('let ') && !line.includes('=')) {
-      warnings.push({
-        line: index + 1,
-        column: 1,
-        message: 'Prefer const over let when variable is not reassigned',
-        source: 'linter'
-      });
-    }
-  });
-  
-  // Rule: Check for var usage
-  lines.forEach((line, index) => {
-    if (line.trim().startsWith('var ')) {
-      warnings.push({
-        line: index + 1,
-        column: 1,
-        message: 'Prefer const or let over var',
-        source: 'linter'
-      });
-    }
-  });
-  
-  // Rule: Check for console statements (warn but allow in playground)
-  lines.forEach((line, index) => {
-    if (line.includes('console.') && !line.includes('// playground')) {
-      warnings.push({
-        line: index + 1,
-        column: line.indexOf('console.') + 1,
-        message: 'console statement left in code',
-        source: 'linter'
-      });
+  // Example custom rule: Check for console.log statements
+  traverse(ast, {
+    CallExpression(path: NodePath) {
+      if (!path.isCallExpression()) return;
+      const { node } = path;
+      if (
+        node.callee.type === 'MemberExpression' &&
+        node.callee.object.type === 'Identifier' &&
+        node.callee.object.name === 'console' &&
+        node.callee.property.type === 'Identifier' &&
+        ['log', 'warn', 'error', 'info', 'debug'].includes(node.callee.property.name)
+      ) {
+        // @ts-ignore
+        const { line, column } = node.loc.start;
+        
+        warnings.push({
+          line: line > 2 ? line - 2 : line, // Adjust for function wrapper
+          column: column + 1,
+          message: `Avoid using console.${node.callee.property.name} in component props.`,
+          source: 'linter'
+        });
+      }
     }
   });
 }
 
 /**
- * JavaScript validation rules using Acorn AST
+ * Validates JavaScript-specific rules (currently empty, for future use)
+ * This is where you might check for things like `var` usage, etc.
  */
 function validateJavaScriptRules(ast: any, source: string, params: string | undefined, errors: ValidationError[], warnings: ValidationWarning[]) {
-  // Walk the AST for validation
-  walkSimple(ast, {
-    VariableDeclaration(node: any) {
-      if (node.kind === 'var') {
-        warnings.push({
-          line: node.loc?.start?.line || 1,
-          column: node.loc?.start?.column || 1,
-          message: 'Prefer const or let over var',
-          source: 'linter'
-        });
-      }
-    },
-    
-    CallExpression(node: any) {
-      // Check for console usage
-      if (node.callee?.object?.name === 'console') {
-        warnings.push({
-          line: node.loc?.start?.line || 1,
-          column: node.loc?.start?.column || 1,
-          message: 'console statement left in code',
-          source: 'linter'
-        });
-      }
-    }
-  });
+  // Placeholder for future JS-specific rules using Babel's traverse
 }
 
 /**
@@ -365,48 +431,53 @@ function validateJavaScriptRules(ast: any, source: string, params: string | unde
  */
 function validateReturnType(source: string, expectedReturnType: string, language: string): ValidationError[] {
   const errors: ValidationError[] = [];
+  const normalizedType = expectedReturnType.toLowerCase().trim();
   
-  // Skip validation for 'any' type
-  if (expectedReturnType === 'any' || expectedReturnType === 'unknown') {
+  // Skip if we don't have a clear type to check against
+  if (normalizedType === 'any' || normalizedType === 'void') {
     return errors;
   }
   
-  try {
-    const normalizedExpected = expectedReturnType.toLowerCase().trim();
-    const hasReturn = source.includes('return');
-    
-    if (!hasReturn && normalizedExpected !== 'void' && normalizedExpected !== 'undefined') {
+  // Check for JSX return when it's not expected
+  if (language !== 'jsx' && language !== 'tsx') {
+    if (source.includes('<') && source.includes('>')) {
       errors.push({
         line: 1,
         column: 1,
-        message: `Function should return ${expectedReturnType} but no return statement found`,
-        severity: 'warning',
-        source: 'typescript'
+        message: `Function may not return JSX, but code contains JSX-like syntax. Expected return type: ${expectedReturnType}`,
+        severity: 'error',
+        source: 'linter'
       });
     }
-    
-    // Basic return type checks
-    if (normalizedExpected.includes('string') && hasReturn) {
-      if (!source.includes('"') && !source.includes("'") && !source.includes('`')) {
-        // This is a loose check - in reality you'd need proper AST parsing
-        // But it gives basic feedback
-      }
-    }
-    
-    // JSX return type validation
-    if ((normalizedExpected.includes('jsx') || normalizedExpected.includes('reactnode')) && language !== 'jsx' && language !== 'tsx') {
+  }
+
+  // Check for explicit return statements
+  if (source.trim() && !source.includes('return')) {
+    // If it's a single line and looks like an expression, it's likely an implicit return
+    const isSingleLineExpression = !source.includes('\n') && !source.endsWith(';');
+    if (!isSingleLineExpression) {
       errors.push({
         line: 1,
         column: 1,
-        message: `Function returns ${expectedReturnType} but no JSX detected. Consider using JSX syntax.`,
-        severity: 'warning',
-        source: 'typescript'
+        message: `Function is expected to return a value of type '${expectedReturnType}', but no return statement was found.`,
+        severity: 'error',
+        source: 'linter'
       });
     }
-    
-  } catch (error) {
-    // Return type validation failed, but don't fail the entire validation
-    console.warn('Return type validation failed:', error);
+  }
+
+  // A simple check to see if the return statement is followed by something that looks like JSX
+  if (language === 'jsx' || language === 'tsx') {
+    const returnRegex = /return\s*([(<[{])[\s\S]*?[>}\])]/;
+    if (source.includes('return') && !returnRegex.test(source)) {
+      errors.push({
+        line: 1,
+        column: 1,
+        message: `Function is expected to return JSX, but the return statement doesn't seem to return a valid JSX element. Try wrapping your JSX in parentheses: return (...)`,
+        severity: 'error',
+        source: 'linter'
+      });
+    }
   }
   
   return errors;

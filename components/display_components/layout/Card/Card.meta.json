@@ -6,9 +6,17 @@
   "props": [
     {
       "name": "children",
-      "type": "string",
+      "type": "function",
       "required": true,
-      "description": "Card content"
+      "description": "Function that returns JSX for the card content.",
+      "defaultValue": {
+        "type": "function",
+        "source": "return \"This is the card content.\";"
+      },
+      "functionSignature": {
+        "params": "",
+        "returnType": "React.ReactNode"
+      }
     },
     {
       "name": "className",
@@ -50,15 +58,23 @@
     },
     {
       "name": "header",
-      "type": "string",
+      "type": "function",
       "required": false,
-      "description": "Card header content"
+      "description": "Function that returns JSX for the card header.",
+      "functionSignature": {
+        "params": "",
+        "returnType": "React.ReactNode"
+      }
     },
     {
       "name": "footer",
-      "type": "string",
+      "type": "function",
       "required": false,
-      "description": "Card footer content"
+      "description": "Function that returns JSX for the card footer.",
+      "functionSignature": {
+        "params": "",
+        "returnType": "React.ReactNode"
+      }
     }
   ],
   "tags": ["layout", "container", "card"],

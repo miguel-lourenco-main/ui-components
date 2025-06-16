@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Editor from '@monaco-editor/react';
 import { PropDefinition } from '@/types';
-import { AlertTriangleIcon, CheckIcon, CodeIcon, Trash2Icon, PencilIcon } from 'lucide-react';
+import { AlertTriangleIcon, CheckIcon, CodeIcon, Trash2Icon, PencilIcon, Loader2 } from 'lucide-react';
 import { parse as babelParse, ParserOptions } from '@babel/parser';
 import { debugLog } from '@/lib/constants';
 import { FunctionPropValue } from '@/types';
@@ -13,6 +13,11 @@ import {
   setFunctionSource,
   functionPropValueToFunction 
 } from '@/lib/utils/functionProps';
+import { 
+  validateFunctionCode, 
+  getValidationSummary,
+  ValidationResult 
+} from '@/lib/utils/codeValidation';
 
 interface FunctionPropEditorProps {
   prop: PropDefinition;
@@ -20,13 +25,6 @@ interface FunctionPropEditorProps {
   onChange: (value: any) => void;
   isExpanded: boolean;
   onToggleExpansion: () => void;
-}
-
-interface ValidationResult {
-  isValid: boolean;
-  error?: string;
-  compiledFunction?: Function;
-  warnings?: string[];
 }
 
 export default function FunctionPropEditor({
@@ -37,9 +35,18 @@ export default function FunctionPropEditor({
   onToggleExpansion,
 }: FunctionPropEditorProps) {
   const [functionBody, setFunctionBody] = useState('');
-  const [validationResult, setValidationResult] = useState<ValidationResult>({ isValid: true });
+  const [validationResult, setValidationResult] = useState<ValidationResult>({ 
+    isValid: true, 
+    errors: [], 
+    warnings: [], 
+    language: 'javascript' 
+  });
+
+  debugLog('FUNCTION_EDITOR', `[${prop.name}] receiving value:`, { value, isFunctionPropValue: isFunctionPropValue(value) });
+
   const [isInitialized, setIsInitialized] = useState(false);
   const [isUserTyping, setIsUserTyping] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
   const [lastSentFunctionBody, setLastSentFunctionBody] = useState<string>('');
   
   // Use ref to store current onChange to avoid dependency loops
@@ -102,80 +109,6 @@ export default function FunctionPropEditor({
     }
   }, [value, isInitialized, prop.name]);
 
-  // Professional validation using Babel parser for robust JSX/TSX support
-  const validateFunction = useCallback((code: string): ValidationResult => {
-    if (!code.trim()) {
-      return { isValid: true }; // Empty is valid (will clear the function)
-    }
-
-    // More refined security validation
-    const securityPatterns = [
-      { pattern: /\beval\s*\(/, message: "eval() is not allowed" },
-      { pattern: /\bnew\s+Function\s*\(/, message: "new Function() is not allowed" },
-      { pattern: /document\.(cookie|write)/, message: "Dangerous document properties are not allowed" },
-      { pattern: /(localStorage|sessionStorage)\.(setItem|clear)/, message: "Direct storage manipulation is restricted" },
-      { pattern: /window\.location\s*=\s*/, message: "Redirects are not allowed" },
-    ];
-
-    for (const { pattern, message } of securityPatterns) {
-      if (pattern.test(code)) {
-        return {
-          isValid: false,
-          error: `Security violation: ${message}`
-        };
-      }
-    }
-
-    // 2. FUNCTION BODY VALIDATION - Check it's not a complete function declaration
-    const bodyViolations = [
-      { pattern: /^\s*function\s+\w+\s*\(/, message: "Don't write complete function declarations - just the body" },
-      { pattern: /^\s*const\s+\w+\s*=\s*function/, message: "Don't write complete function declarations - just the body" },
-      { pattern: /^\s*\w+\s*=>\s*{/, message: "Don't write arrow functions - just the body" },
-      { pattern: /^\s*class\s+\w+/, message: "Class declarations are not allowed in function bodies" },
-    ];
-
-    for (const { pattern, message } of bodyViolations) {
-      if (pattern.test(code)) {
-        return {
-          isValid: false,
-          error: `Invalid function body: ${message}`
-        };
-      }
-    }
-
-    try {
-      const signature = getFunctionSignature();
-      const fullFunction = `(${signature.params}) => {\n${code}\n}`;
-      
-      // 3. SYNTAX VALIDATION using Babel parser for robust JSX/TSX support
-      try {
-        const parserOptions: ParserOptions = {
-          sourceType: 'module',
-          plugins: ['jsx', 'typescript'],
-        };
-        babelParse(fullFunction, parserOptions);
-      } catch (parseError) {
-        const error = parseError as Error & { loc?: { line: number; column: number } };
-        const location = error.loc ? ` on line ${error.loc.line}, column ${error.loc.column}` : '';
-        return {
-          isValid: false,
-          error: `Syntax error${location}: ${error.message.replace(/ \(\d+:\d+\)/, '')}`
-        };
-      }
-
-      // If syntax is valid, we can consider it "good enough" for the editor.
-      // The rest can be warnings or runtime checks.
-      return { isValid: true };
-
-    } catch (e) {
-      // Catch-all for any unexpected validation errors
-      return {
-        isValid: false,
-        error: `An unexpected validation error occurred: ${e instanceof Error ? e.message : String(e)}`,
-      };
-    }
-  }, [getFunctionSignature]);
-
   // Handle code changes with debounced validation
   useEffect(() => {
     // Only call onChange after initial setup to prevent infinite loops
@@ -184,64 +117,52 @@ export default function FunctionPropEditor({
       return;
     }
 
-    // Set typing flag
-    setIsUserTyping(true);
-    
     const timer = setTimeout(() => {
-      debugLog('FUNCTION_EDITOR', '🛠️ FunctionPropEditor: Validating and calling onChange for', prop.name, 'functionBody:', functionBody.trim() ? 'has content' : 'empty', 'content preview:', functionBody.substring(0, 50));
-      const result = validateFunction(functionBody);
-      setValidationResult(result);
-      
-      // Only update if the validation result changed or if switching between valid/invalid states
-      // This prevents unnecessary regeneration while typing
-      const hasValidContent = result.isValid && functionBody.trim();
-      const isEmpty = !functionBody.trim();
-      
-      // Update prop value based on validation and content
-      if (result.isValid) {
-        if (hasValidContent) {
-          // Function has content and is valid - store as FunctionPropValue
-          const signature = getFunctionSignature();
-          const functionPropValue = setFunctionSource(functionBody, signature);
-          
-          debugLog('FUNCTION_EDITOR', '✅ FunctionPropEditor: Setting function prop value for', prop.name, 'content:', functionBody);
-          
-          // Only call onChange if the function content actually changed
-          if (functionBody !== lastSentFunctionBody) {
-            debugLog('FUNCTION_EDITOR', '✅ FunctionPropEditor: Function content changed from', `"${lastSentFunctionBody}"`, 'to', `"${functionBody}"`);
-            setLastSentFunctionBody(functionBody);
-            onChangeRef.current(functionPropValue);
+      const runValidation = async () => {
+        setIsValidating(true);
+        debugLog('FUNCTION_EDITOR', '🛠️ FunctionPropEditor: Validating for', prop.name, 'content:', functionBody.substring(0, 50));
+        
+        const signature = getFunctionSignature();
+        const validation = await validateFunctionCode(
+          functionBody, 
+          prop.name, 
+          prop,
+          signature.params
+        );
+        setValidationResult(validation);
+        setIsValidating(false);
+        
+        debugLog('FUNCTION_EDITOR', '🛠️ Validation result for', prop.name, ':', getValidationSummary(validation));
+
+        if (validation.isValid) {
+          if (functionBody.trim()) {
+            const functionPropValue = setFunctionSource(functionBody, signature);
+            if (functionBody !== lastSentFunctionBody) {
+              debugLog('FUNCTION_EDITOR', '✅ FunctionPropEditor: Content valid and changed for', prop.name, '- updating props.');
+              setLastSentFunctionBody(functionBody);
+              onChangeRef.current(functionPropValue);
+            } else {
+              debugLog('FUNCTION_EDITOR', '⏭️  FunctionPropEditor: Skipping onChange - content unchanged');
+            }
           } else {
-            debugLog('FUNCTION_EDITOR', '⏭️  FunctionPropEditor: Skipping onChange - content unchanged');
+            // If body is empty, remove the function prop
+            if (value !== undefined) {
+              debugLog('FUNCTION_EDITOR', '🗑️ FunctionPropEditor: Content empty for', prop.name, '- removing prop.');
+              setLastSentFunctionBody('');
+              onChangeRef.current(undefined);
+            }
           }
         } else {
-          // Function is empty - remove it from props
-          const shouldRemoveFunction = lastSentFunctionBody !== '' || value !== undefined;
-          
-          if (shouldRemoveFunction) {
-            debugLog('FUNCTION_EDITOR', '🛠️ FunctionPropEditor: Removing function for', prop.name, '(empty)');
-            setLastSentFunctionBody('');
-            onChangeRef.current(undefined);
-          } else {
-            debugLog('FUNCTION_EDITOR', '🛠️ FunctionPropEditor: Skipping onChange - already empty');
-          }
+          // If not valid, don't update the prop value
+          debugLog('FUNCTION_EDITOR', '❌ FunctionPropEditor: Content invalid for', prop.name, '- not updating props.');
         }
-      } else {
-        // Invalid function - don't update props, just show validation error
-        debugLog('FUNCTION_EDITOR', '🛠️ FunctionPropEditor: Function invalid for', prop.name, '- not updating props');
-      }
+      };
 
-      // Reset typing flag after validation completes
-      setIsUserTyping(false);
-    }, 1000); // 1 second debounce as requested
+      runValidation();
+    }, 500); // 500ms debounce
 
-    return () => {
-      if (timer) {
-        clearTimeout(timer);
-      }
-      // Don't reset typing flag here - let the timer handle it
-    };
-  }, [functionBody, validateFunction, isInitialized, prop.name]);
+    return () => clearTimeout(timer);
+  }, [functionBody, getFunctionSignature, isInitialized, lastSentFunctionBody, prop, value]);
 
   // Clear function - resets the function body and removes it from props
   const handleClearFunction = useCallback(() => {
@@ -252,7 +173,7 @@ export default function FunctionPropEditor({
     setFunctionBody('');
     
     // Reset other state immediately  
-    setValidationResult({ isValid: true });
+    setValidationResult({ isValid: true, errors: [], warnings: [], language: 'javascript' });
     setLastSentFunctionBody('');
     setIsUserTyping(false);
     
@@ -284,7 +205,9 @@ export default function FunctionPropEditor({
             <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded font-mono max-w-xs truncate" title={functionPreview}>
               {functionPreview}
             </span>
-            {validationResult.isValid ? (
+            {isValidating ? (
+              <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
+            ) : validationResult.isValid ? (
               <CheckIcon className="w-4 h-4 text-green-500" />
             ) : (
               <AlertTriangleIcon className="w-4 h-4 text-red-500" />
@@ -328,23 +251,28 @@ export default function FunctionPropEditor({
                 <span className="text-sm font-medium">Function Invalid</span>
               </div>
             )}
-            {!validationResult.isValid && (
-              <p className="text-sm text-red-600 mb-2">
-                {validationResult.error}
-              </p>
-            )}
-            {!validationResult.isValid && (
-              <p className="text-xs text-red-500">
-                Note: This function will not appear in the generated code until fixed.
-              </p>
+            {!validationResult.isValid && validationResult.errors.length > 0 && (
+              <ul className="text-sm text-red-600 mb-2 list-disc pl-5 space-y-1">
+                {validationResult.errors.map((error, index) => (
+                  <li key={index}>
+                    {error.message} (line: {error.line})
+                  </li>
+                ))}
+              </ul>
             )}
             {validationResult.warnings && validationResult.warnings.length > 0 && (
-              <div className="space-y-1">
-                {validationResult.warnings.map((warning, index) => (
-                  <p key={index} className="text-sm text-yellow-700">
-                    ⚠️ {warning}
-                  </p>
-                ))}
+              <div>
+                <div className="flex items-center space-x-2 text-yellow-800 mb-1">
+                  <AlertTriangleIcon className="w-4 h-4" />
+                  <span className="text-sm font-medium">Warnings</span>
+                </div>
+                <ul className="text-sm text-yellow-700 list-disc pl-5 space-y-1">
+                  {validationResult.warnings.map((warning, index) => (
+                    <li key={index}>
+                      {warning.message} (line: {warning.line})
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>
@@ -411,7 +339,7 @@ export default function FunctionPropEditor({
         {/* Status Footer */}
         <div className="px-3 py-2 bg-gray-50 border-t border-gray-200">
           <div className="flex items-center justify-between text-xs">
-            <div className="text-gray-500">
+            <div className="text-gray-500" data-testid="function-prop-status">
               Status: {isUserTyping ? (
                 <span className="text-blue-600 font-medium">✏️ Typing... (validation paused)</span>
               ) : validationResult.isValid ? (
@@ -460,7 +388,6 @@ export default function FunctionPropEditor({
         <div className="p-3 border-t border-gray-200">
           <div
             className="text-xs text-gray-500 mb-2"
-            data-testid="function-prop-status"
           >
             {validationResult.isValid ? (
               <span className="text-green-600 font-medium">✅ Valid function</span>

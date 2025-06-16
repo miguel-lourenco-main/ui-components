@@ -164,7 +164,11 @@ export default function PlaygroundPage() {
                         component={playgroundState.selectedComponent}
                         props={playgroundState.currentProps}
                         viewMode={playgroundState.viewMode}
-                        onRetry={() => selectComponent(playgroundState.selectedComponent!)}
+                        onRetry={() => {
+                          if (playgroundState.selectedComponent) {
+                            selectComponent(playgroundState.selectedComponent, selectedExampleIndex);
+                          }
+                        }}
                       />
                     ) : (
                       <div className="h-full flex items-center justify-center text-gray-500">
@@ -218,7 +222,11 @@ export default function PlaygroundPage() {
                       component={playgroundState.selectedComponent}
                       props={playgroundState.currentProps}
                       viewMode={playgroundState.viewMode}
-                      onRetry={() => selectComponent(playgroundState.selectedComponent!)}
+                      onRetry={() => {
+                        if (playgroundState.selectedComponent) {
+                          selectComponent(playgroundState.selectedComponent, selectedExampleIndex);
+                        }
+                      }}
                     />
                   ) : (
                     <div className="h-full flex items-center justify-center text-gray-500">

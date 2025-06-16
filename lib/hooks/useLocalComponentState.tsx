@@ -25,7 +25,7 @@ interface UseLocalComponentStateReturn {
   
   // Actions
   loadComponents: () => Promise<void>;
-  selectComponent: (component: LocalComponent) => void;
+  selectComponent: (component: LocalComponent, exampleIndex?: number) => void;
   selectExample: (exampleIndex: number) => void;
   updateProps: (props: Record<string, any>) => void;
   resetToDefaults: () => void;
@@ -80,16 +80,13 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
     // Convert FunctionPropValues to actual functions for code generation
     const propsWithFunctions = convertFunctionPropValuesToFunctions(props, component.props);
     
-    // Filter out function props for the main props display
-    const functionProps = Object.entries(propsWithFunctions).filter(([key, value]) => typeof value === 'function');
-    
     // Check for missing function props that are required
     const functionPropDefs = component.props.filter(p => p.type === 'function');
     const missingFunctionProps = functionPropDefs.filter(propDef => 
-      propDef.required && (!props[propDef.name] || typeof props[propDef.name] !== 'function')
+      propDef.required && (!props[propDef.name] || (typeof props[propDef.name] !== 'function' && !isFunctionPropValue(props[propDef.name])))
     );
     const optionalMissingFunctionProps = functionPropDefs.filter(propDef => 
-      !propDef.required && (!props[propDef.name] || typeof props[propDef.name] !== 'function')
+      !propDef.required && (!props[propDef.name] || (typeof props[propDef.name] !== 'function' && !isFunctionPropValue(props[propDef.name])))
     );
 
     // Generate warnings for missing or invalid functions
@@ -154,7 +151,9 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
           let params = '...args';
           const signatureMatch = propDef?.description?.match(/\((.*?)\)\s*=>/);
           
-          if (signatureMatch) {
+          if (propDef?.functionSignature?.params) {
+            params = propDef.functionSignature.params;
+          } else if (signatureMatch) {
             params = signatureMatch[1].trim();
           } else {
             // Default parameters for common prop patterns
@@ -164,9 +163,8 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
               'onSubmit': 'event',
               'onFocus': 'event',
               'onBlur': 'event',
-              'createToolbarButtons': 'rowSelection, setRowSelection, hasSelected',
             };
-            params = defaultParams[key] || '...args';
+            params = defaultParams[key] || ''; // Default to no params
           }
           
           return `  const ${funcName} = (${params}) => {\n${functionBody.split('\n').map(line => line ? '    ' + line : '').join('\n')}\n  };`;
@@ -189,17 +187,12 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
     // Generate function stubs for missing required functions
     const missingFunctionStubs = missingFunctionProps.map(propDef => {
       const signature = propDef.description?.match(/\((.*?)\)\s*=>\s*(.+)/);
-      const params = signature ? signature[1].trim() : '...3';
+      const params = signature ? signature[1].trim() : '...args';
       const returnType = signature ? signature[2].trim() : 'void';
       
-      const defaultHandlers: Record<string, string> = {
-        'onClick': `  const handle${propDef.name.charAt(2).toUpperCase() + propDef.name.slice(3)} = (event) => {\n    // TODO: Implement click handler\n    console.log('${propDef.name} called:', event);\n  };`,
-        'onChange': `  const handle${propDef.name.charAt(2).toUpperCase() + propDef.name.slice(3)} = (value) => {\n    // TODO: Implement change handler\n    console.log('${propDef.name} called:', value);\n  };`,
-        'onSubmit': `  const handle${propDef.name.charAt(2).toUpperCase() + propDef.name.slice(3)} = (event) => {\n    // TODO: Implement submit handler\n    event.preventDefault();\n    console.log('${propDef.name} called:', event);\n  };`,
-      };
+      const stubName = `handle${propDef.name.charAt(0).toUpperCase() + propDef.name.slice(1)}`;
       
-      const stubName = `handle${propDef.name.charAt(2).toUpperCase() + propDef.name.slice(3)}`;
-      return defaultHandlers[propDef.name] || `  const ${stubName} = (${params}) => {\n    // TODO: Implement ${propDef.name} handler\n    // Expected return type: ${returnType}\n    console.log('${propDef.name} called:', arguments);\n  };`;
+      return `  const ${stubName} = (${params}) => {\n    // TODO: Implement ${propDef.name} handler\n    // Expected return type: ${returnType}\n    console.log('${propDef.name} called with:', ${params});\n  };`;
     });
 
     const allFunctionDeclarations = [...functionDeclarations, ...missingFunctionStubs];
@@ -209,7 +202,7 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
 
     // Generate missing props for the JSX
     const missingPropsString = missingFunctionProps.map(propDef => {
-      const stubName = `handle${propDef.name.charAt(2).toUpperCase() + propDef.name.slice(3)}`;
+      const stubName = `handle${propDef.name.charAt(0).toUpperCase() + propDef.name.slice(1)}`;
       return `  ${propDef.name}={${stubName}} // ⚠️ Required prop - implement this function`;
     }).join('\n');
 
@@ -271,306 +264,99 @@ export default function Example() {${functionDeclarationsCode}
   /**
    * Select a component and initialize its state
    */
-  const selectComponent = useCallback((component: LocalComponent) => {
+  const selectComponent = useCallback((component: LocalComponent | null, exampleIndex: number = 0) => {
+    if (!component) {
+      setPlaygroundState(prevState => ({
+        ...prevState,
+        selectedComponent: null,
+        currentProps: {},
+        currentCode: '',
+      }));
+      setSelectedExampleIndex(-1);
+      return;
+    }
+
     debugLog('COMPONENT_STATE', '🎯 selectComponent called:', {
       componentName: component.name,
-      currentSelectedExampleIndex: selectedExampleIndex
+      exampleIndex,
     });
-    
-    try {
-      const localComponent = component;
 
-      // Use first example's props if available, otherwise fall back to default props
-      let initialProps: Record<string, any> = {};
+    const defaultProps = component.props.reduce((acc, prop) => {
+      if (prop.defaultValue !== undefined) {
+        acc[prop.name] = prop.defaultValue;
+      }
+      return acc;
+    }, {} as Record<string, any>);
+
+    let initialProps: Record<string, any> = { ...defaultProps };
+    let selectedExampleIdx = -1;
+
+    if (component.examples?.length > 0 && exampleIndex >= 0 && component.examples[exampleIndex]) {
+      const example = component.examples[exampleIndex];
+      debugLog('COMPONENT_PROPS', `🔍 Found example "${example.name}" to apply.`, { props: example.props });
       
-      if (localComponent.examples && localComponent.examples.length > 0) {
-        // Create safe props by re-importing the examples to get fresh function references
-        const exampleProps = localComponent.examples[0].props;
-        
-                 // Handle components that need special prop handling
-         if (localComponent.name === 'DataTable') {
-          
-          // Sample data - safe to copy
-          const sampleData = [
-            { id: '1', name: 'John Doe', email: 'john@example.com', role: 'Admin', status: 'Active' },
-            { id: '2', name: 'Jane Smith', email: 'jane@example.com', role: 'User', status: 'Active' },
-            { id: '3', name: 'Bob Johnson', email: 'bob@example.com', role: 'User', status: 'Inactive' },
-            { id: '4', name: 'Alice Brown', email: 'alice@example.com', role: 'Manager', status: 'Active' },
-            { id: '5', name: 'Charlie Wilson', email: 'charlie@example.com', role: 'User', status: 'Pending' }
-          ];
-          
-          // Sample columns - safe to copy
-          const sampleColumns = [
-            { accessorKey: 'name', header: 'Name', id: 'name' },
-            { accessorKey: 'email', header: 'Email', id: 'email' },
-            { accessorKey: 'role', header: 'Role', id: 'role' },
-            { accessorKey: 'status', header: 'Status', id: 'status' }
-          ];
-          
-          // Sample filters - safe to copy
-          const sampleFilters = [
-            {
-              id: 'role',
-              options: [
-                { label: 'Admin', value: 'Admin' },
-                { label: 'Manager', value: 'Manager' },
-                { label: 'User', value: 'User' }
-              ]
-            },
-            {
-              id: 'status',
-              options: [
-                { label: 'Active', value: 'Active' },
-                { label: 'Inactive', value: 'Inactive' },
-                { label: 'Pending', value: 'Pending' }
-              ]
-            }
-          ];
-          
-          // Create function as FunctionPropValue
-          const createToolbarButtonsSource = `return (
-  <div className="flex gap-2">
-    <button 
-      key="add"
-      className="px-3 py-1 text-sm border rounded hover:bg-gray-50"
-    >
-      Add User
-    </button>
-    {hasSelected && (
-      <button 
-        key="delete"
-        className="px-3 py-1 text-sm border rounded bg-red-600 text-white hover:bg-red-700"
-      >
-        Delete Selected
-      </button>
-    )}
-  </div>
-);`;
-          
-          initialProps = {
-            columns: sampleColumns,
-            data: sampleData,
-            tableLabel: "Users",
-            filters: sampleFilters,
-            createToolbarButtons: setFunctionSource(createToolbarButtonsSource, {
-              params: 'rowSelection, setRowSelection, hasSelected',
-              returnType: 'JSX.Element'
-            })
-          };
-         } else {
-          // For other components, copy all props converting functions to FunctionPropValues
-          initialProps = {};
-          for (const [key, value] of Object.entries(exampleProps)) {
-            if (typeof value !== 'function') {
-              // Deep clone non-function values to avoid reference issues
-              initialProps[key] = JSON.parse(JSON.stringify(value));
+      const exampleProps = example.props;
+      if (exampleProps) {
+        for (const key in exampleProps) {
+          if (Object.prototype.hasOwnProperty.call(exampleProps, key)) {
+            const propDef = component.props.find(p => p.name === key);
+            const value = exampleProps[key];
+
+            if (propDef?.type === 'function' && typeof value === 'string') {
+              debugLog('COMPONENT_PROPS', `  🔄 Converting string to FunctionPropValue for: ${key}`);
+              initialProps[key] = setFunctionSource(value, propDef.functionSignature);
             } else {
-              // Convert function to FunctionPropValue
-              const functionSource = extractFunctionSource(value);
-              initialProps[key] = setFunctionSource(functionSource);
+              initialProps[key] = value;
             }
+            debugLog('COMPONENT_PROPS', `  ➡️ Copying prop: ${key}`, { value: initialProps[key] });
           }
-        }
-        
-        debugLog('COMPONENT_PROPS', `🎯 Using safe props for ${localComponent.name}:`, {
-          ...initialProps,
-          createToolbarButtons: initialProps.createToolbarButtons ? '[Function]' : undefined
-        });
-        
-        // Log function props specifically
-        const functionProps = Object.entries(initialProps).filter(([key, value]) => isFunctionPropValue(value));
-        if (functionProps.length > 0) {
-          debugLog('COMPONENT_PROPS', `🎯 Function props for ${localComponent.name}:`, functionProps.map(([key, value]) => `${key}: ${isFunctionPropValue(value) ? value.source.substring(0, 30) + '...' : 'unknown'}`));
-          debugLog('COMPONENT_PROPS', `🎯 These functions WILL be applied to the component and appear in generated code`);
-        } else {
-          debugLog('COMPONENT_PROPS', `🎯 No function props found for ${localComponent.name} - checking metadata for defaults...`);
-          const functionPropDefs = localComponent.props.filter(prop => prop.type === 'function');
-          functionPropDefs.forEach(prop => {
-            debugLog('COMPONENT_PROPS', `🎯 Function prop "${prop.name}" - defaultValue:`, prop.defaultValue !== undefined ? 'HAS DEFAULT' : 'NO DEFAULT');
-          });
-        }
-      } else {
-        // Fall back to default props from metadata
-        initialProps = localComponent.props.reduce((acc, prop) => {
-          if (prop.defaultValue !== undefined) {
-            acc[prop.name] = prop.defaultValue;
-          }
-          return acc;
-        }, {} as Record<string, any>);
-        debugLog('COMPONENT_PROPS', `📝 Using default props for ${localComponent.name}:`, initialProps);
-        
-        // Log function props specifically
-        const functionProps = Object.entries(initialProps).filter(([key, value]) => isFunctionPropValue(value));
-        if (functionProps.length > 0) {
-          debugLog('COMPONENT_PROPS', `📝 Function props from metadata for ${localComponent.name}:`, functionProps.map(([key, value]) => `${key}: ${isFunctionPropValue(value) ? value.source.substring(0, 30) + '...' : 'unknown'}`));
-          debugLog('COMPONENT_PROPS', `📝 These functions WILL be applied to the component and appear in generated code`);
-        } else {
-          debugLog('COMPONENT_PROPS', `📝 No function props with defaultValues found for ${localComponent.name}`);
-          const functionPropDefs = localComponent.props.filter(prop => prop.type === 'function');
-          functionPropDefs.forEach(prop => {
-            debugLog('COMPONENT_PROPS', `📝 Function prop "${prop.name}" - will be EMPTY and NOT appear in generated code`);
-          });
         }
       }
-
-      setPlaygroundState(prev => ({
-        ...prev,
-        selectedComponent: localComponent,
-        currentProps: initialProps,
-        currentCode: generateCodeWithProps(localComponent, initialProps)
-      }));
-
-      // Set the selected example index (0 for first example if available, -1 for default)
-      const exampleIndex = localComponent.examples && localComponent.examples.length > 0 ? 0 : -1;
-      debugLog('COMPONENT_STATE', '🎯 selectComponent setting example index:', {
-        componentName: localComponent.name,
-        exampleIndex,
-        hasExamples: localComponent.examples?.length || 0
-      });
-      setSelectedExampleIndex(exampleIndex);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to select component');
+      selectedExampleIdx = exampleIndex;
     }
+    
+    debugLog('COMPONENT_PROPS', `🎯 Using initial props for ${component.name}:`, { ...initialProps });
+
+    const childrenProp = initialProps.children;
+    debugLog('COMPONENT_PROPS', '🔍 Children Prop Details:', {
+      children: childrenProp,
+      isFunctionPropValue: isFunctionPropValue(childrenProp),
+      type: typeof childrenProp,
+      source: childrenProp ? (childrenProp as any).source : 'N/A'
+    });
+
+    setPlaygroundState(prevState => {
+      // Avoid unnecessary re-renders if nothing has changed
+      if (prevState.selectedComponent?.name === component.name && prevState.currentProps === initialProps) {
+        return prevState;
+      }
+      return {
+        ...prevState,
+        selectedComponent: component,
+        currentProps: initialProps,
+        currentCode: generateCodeWithProps(component, initialProps),
+      };
+    });
+    
+    setSelectedExampleIndex(selectedExampleIdx);
   }, []);
 
   /**
    * Select a specific example
    */
   const selectExample = useCallback((exampleIndex: number) => {
-    debugLog('COMPONENT_STATE', '📋 selectExample called:', {
-      exampleIndex,
-      currentSelectedExampleIndex: selectedExampleIndex,
-      componentName: playgroundState.selectedComponent?.name,
-      hasExamples: playgroundState.selectedComponent?.examples?.length || 0
-    });
-    
-    if (!playgroundState.selectedComponent || !playgroundState.selectedComponent.examples) {
-      debugLog('COMPONENT_STATE', '📋 selectExample: No component or examples available');
-      return;
+    if (playgroundState.selectedComponent) {
+      debugLog('COMPONENT_STATE', '🎛️ selectExample called with index:', exampleIndex);
+      // Directly call selectComponent, which now safely handles this
+      selectComponent(playgroundState.selectedComponent, exampleIndex);
     }
-
-    const example = playgroundState.selectedComponent.examples[exampleIndex];
-    if (!example) {
-      debugLog('COMPONENT_STATE', '📋 selectExample: Example not found at index', exampleIndex);
-      return;
-    }
-    
-    debugLog('COMPONENT_STATE', '📋 selectExample: Found example:', {
-      exampleName: example.name,
-      exampleProps: Object.keys(example.props)
-    });
-
-    let safeProps: Record<string, any> = {};
-    
-    // Handle components that need special prop handling (like DataTable)
-    if (playgroundState.selectedComponent.name === 'DataTable') {
-      // Use the same safe props handling as in selectComponent
-      const sampleData = [
-        { id: '1', name: 'John Doe', email: 'john@example.com', role: 'Admin', status: 'Active' },
-        { id: '2', name: 'Jane Smith', email: 'jane@example.com', role: 'User', status: 'Active' },
-        { id: '3', name: 'Bob Johnson', email: 'bob@example.com', role: 'User', status: 'Inactive' },
-        { id: '4', name: 'Alice Brown', email: 'alice@example.com', role: 'Manager', status: 'Active' },
-        { id: '5', name: 'Charlie Wilson', email: 'charlie@example.com', role: 'User', status: 'Pending' }
-      ];
-      
-      const sampleColumns = [
-        { accessorKey: 'name', header: 'Name', id: 'name' },
-        { accessorKey: 'email', header: 'Email', id: 'email' },
-        { accessorKey: 'role', header: 'Role', id: 'role' },
-        { accessorKey: 'status', header: 'Status', id: 'status' }
-      ];
-      
-      const sampleFilters = [
-        {
-          id: 'role',
-          options: [
-            { label: 'Admin', value: 'Admin' },
-            { label: 'Manager', value: 'Manager' },
-            { label: 'User', value: 'User' }
-          ]
-        },
-        {
-          id: 'status',
-          options: [
-            { label: 'Active', value: 'Active' },
-            { label: 'Inactive', value: 'Inactive' },
-            { label: 'Pending', value: 'Pending' }
-          ]
-        }
-      ];
-      
-      const createToolbarButtonsSource = `return (
-  <div className="flex gap-2">
-    <button 
-      key="add"
-      className="px-3 py-1 text-sm border rounded hover:bg-gray-50"
-    >
-      Add User
-    </button>
-    {hasSelected && (
-      <button 
-        key="delete"
-        className="px-3 py-1 text-sm border rounded bg-red-600 text-white hover:bg-red-700"
-      >
-        Delete Selected
-      </button>
-    )}
-  </div>
-);`;
-      
-      safeProps = {
-        columns: sampleColumns,
-        data: sampleData,
-        tableLabel: "Users",
-        filters: sampleFilters,
-        createToolbarButtons: setFunctionSource(createToolbarButtonsSource, {
-          params: 'rowSelection, setRowSelection, hasSelected',
-          returnType: 'JSX.Element'
-        })
-      };
-    } else {
-       // For other components, copy all props converting functions to FunctionPropValues
-       for (const [key, value] of Object.entries(example.props)) {
-         if (typeof value !== 'function') {
-           safeProps[key] = JSON.parse(JSON.stringify(value));
-         } else {
-           // Convert function to FunctionPropValue
-           const functionSource = extractFunctionSource(value);
-           safeProps[key] = setFunctionSource(functionSource);
-         }
-       }
-     }
-
-    debugLog('COMPONENT_STATE', '📋 selectExample: Setting state:', {
-      exampleIndex,
-      safePropsKeys: Object.keys(safeProps)
-    });
-    
-    setSelectedExampleIndex(exampleIndex);
-    setPlaygroundState(prev => ({
-      ...prev,
-      currentProps: safeProps,
-      currentCode: generateCodeWithProps(prev.selectedComponent!, safeProps)
-    }));
-  }, [playgroundState.selectedComponent, generateCodeWithProps]);
+  }, [playgroundState.selectedComponent, selectComponent]);
 
   /**
    * Update props
    */
-  const updateProps = useCallback((props: Record<string, any>) => {
-    debugLog('COMPONENT_STATE', '🔄 updateProps called:', {
-      currentSelectedExampleIndex: selectedExampleIndex,
-      componentName: playgroundState.selectedComponent?.name,
-      propsKeys: Object.keys(props),
-      functionProps: Object.entries(props)
-        .filter(([key, value]) => typeof value === 'function')
-        .map(([key, value]) => `${key}: ${value.name || 'anonymous'}`)
-    });
-    
-    if (!playgroundState.selectedComponent) {
-      debugLog('COMPONENT_STATE', '🔄 updateProps: No selected component, returning');
-      return;
-    }
+  const updateProps = useCallback((newProps: Record<string, any>) => {
+    if (!playgroundState.selectedComponent) return;
 
     // Prevent infinite loops by checking if props actually changed
     const currentProps = playgroundState.currentProps;
@@ -578,7 +364,7 @@ export default function Example() {${functionDeclarationsCode}
     // Better comparison that handles FunctionPropValues properly
     const propsChanged = (() => {
       const currentKeys = Object.keys(currentProps).sort();
-      const newKeys = Object.keys(props).sort();
+      const newKeys = Object.keys(newProps).sort();
       
       // Different number of props
       if (currentKeys.length !== newKeys.length) return true;
@@ -589,7 +375,7 @@ export default function Example() {${functionDeclarationsCode}
       // Check each prop value
       for (const key of currentKeys) {
         const currentValue = currentProps[key];
-        const newValue = props[key];
+        const newValue = newProps[key];
         
         // Both are FunctionPropValues - compare by source
         if (isFunctionPropValue(currentValue) && isFunctionPropValue(newValue)) {
@@ -617,12 +403,12 @@ export default function Example() {${functionDeclarationsCode}
     
     // Log function prop changes specifically
     const currentFunctionProps = Object.entries(playgroundState.currentProps).filter(([k, v]) => isFunctionPropValue(v));
-    const newFunctionProps = Object.entries(props).filter(([k, v]) => isFunctionPropValue(v));
+    const newFunctionProps = Object.entries(newProps).filter(([k, v]) => isFunctionPropValue(v));
     if (currentFunctionProps.length !== newFunctionProps.length || 
         currentFunctionProps.some(([key, funcProp]) => {
-          if (!props[key]) return true;
+          if (!newProps[key]) return true;
           const currentSource = (funcProp as any).source || '';
-          const newSource = isFunctionPropValue(props[key]) ? props[key].source : '';
+          const newSource = isFunctionPropValue(newProps[key]) ? newProps[key].source : '';
           return currentSource !== newSource;
         })) {
       debugLog('COMPONENT_PROPS', '🔄 updateProps: Function props changed!', {
@@ -653,8 +439,8 @@ export default function Example() {${functionDeclarationsCode}
 
     setPlaygroundState(prev => ({
       ...prev,
-      currentProps: props,
-      currentCode: generateCodeWithProps(prev.selectedComponent!, props)
+      currentProps: newProps,
+      currentCode: generateCodeWithProps(prev.selectedComponent!, newProps)
     }));
   }, [playgroundState.selectedComponent, generateCodeWithProps, selectedExampleIndex]);
 

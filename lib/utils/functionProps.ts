@@ -199,29 +199,15 @@ export function functionPropValueToFunction(
     // Use metadata from PropDefinition first, then fall back to signature in propValue
     const functionSignature = propDefinition?.functionSignature || propValue.signature;
     
-        console.log(`🔍 Processing function ${propName}:`, {
-    hasMetadata: !!propDefinition?.functionSignature,
-    originalParams: functionSignature?.params,
-    source: propValue.source.substring(0, 100) + '...'
-  });
+    console.log(`🔍 Processing function ${propName}:`, {
+      hasMetadata: !!propDefinition?.functionSignature,
+      originalParams: functionSignature?.params,
+      source: propValue.source.substring(0, 100) + '...'
+    });
     
   // Extract parameter names from metadata
   const paramNames = extractParamNamesFromMetadata(functionSignature);
   const jsParams = paramNames.join(', ');
-
-  // Validate the function code based on its return type
-  const validation = validateFunctionCode(
-    propValue.source,
-    propName,
-    propDefinition,
-    jsParams
-  );
-
-  console.log(`🔍 Validation result for ${propName}:`, {
-    language: validation.language,
-    summary: getValidationSummary(validation),
-    hasErrors: validation.errors.length > 0
-  });
     
     console.log(`🔍 Extracted parameters for ${propName}:`, {
       originalParams: functionSignature?.params,
@@ -248,15 +234,8 @@ export function functionPropValueToFunction(
           console.log(`🔍 Creating JSX function for ${propName} with Babel transformation`);
           console.log(`🔍 Transformed source:`, transformedSource);
           
-          // Create the function with transformed JSX
-          const executableFunction = new Function('React', 'return ' + functionCode)(React);
-          
-          // Execute the function
-          const result = executableFunction(...args);
-          
-          console.log(`🔍 JSX function ${propName} executed successfully`);
-          
-          return result;
+          const createdFunction = new Function('React', ...paramNames, `return (${functionCode})(...arguments)`);
+          return createdFunction(React, ...args);
         } catch (error) {
           console.error(`❌ Error in JSX function ${propName}:`, error);
           

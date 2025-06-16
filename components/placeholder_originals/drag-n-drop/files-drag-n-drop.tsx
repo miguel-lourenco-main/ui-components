@@ -182,7 +182,7 @@ export const FilesDragNDrop = forwardRef<
           >
             {children}
           </div>
-          <input {...dropzone.getInputProps()} />
+          <input {...dropzone.getInputProps()} id="drag-n-drop-input" name="drag-n-drop-input" />
         </div>
       </div>
     );
