@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Editor from '@monaco-editor/react';
 import { PropDefinition } from '@/types';
-import { AlertTriangleIcon, CheckIcon, CodeIcon, Trash2Icon } from 'lucide-react';
+import { AlertTriangleIcon, CheckIcon, CodeIcon, Trash2Icon, PencilIcon } from 'lucide-react';
 import { parse as babelParse, ParserOptions } from '@babel/parser';
 import { debugLog } from '@/lib/constants';
 import { FunctionPropValue } from '@/types';
@@ -263,26 +263,33 @@ export default function FunctionPropEditor({
   const functionPreview = `(${signature.params}) => ${signature.returnType}`;
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <label className="block text-sm font-medium text-gray-700">
-          {prop.name}
-          {prop.required && <span className="text-red-500 ml-1">*</span>}
-          {prop.functionSignature && (
-            <span className="ml-2 text-xs text-blue-600 bg-blue-50 px-1 rounded">
-              typed
-            </span>
-          )}
-        </label>
-                  <div className="flex items-center space-x-2">
+    <div
+      className="border border-gray-200 rounded-lg"
+      data-testid={`prop-control-${prop.name}`}
+    >
+      <div
+        className="flex items-center justify-between p-3 bg-gray-50 cursor-pointer"
+      >
+        <div className="flex items-center space-x-2">
+          <label className="block text-sm font-medium text-gray-700">
+            {prop.name}
+            {prop.required && <span className="text-red-500 ml-1">*</span>}
+            {prop.functionSignature && (
+              <span className="ml-2 text-xs text-blue-600 bg-blue-50 px-1 rounded">
+                typed
+              </span>
+            )}
+          </label>
+          <div className="flex items-center space-x-2">
             <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded font-mono max-w-xs truncate" title={functionPreview}>
               {functionPreview}
             </span>
-          {validationResult.isValid ? (
-            <CheckIcon className="w-4 h-4 text-green-500" />
-          ) : (
-            <AlertTriangleIcon className="w-4 h-4 text-red-500" />
-          )}
+            {validationResult.isValid ? (
+              <CheckIcon className="w-4 h-4 text-green-500" />
+            ) : (
+              <AlertTriangleIcon className="w-4 h-4 text-red-500" />
+            )}
+          </div>
         </div>
       </div>
 
@@ -431,23 +438,44 @@ export default function FunctionPropEditor({
         </div>
       </div>
 
-              {(prop.description || prop.functionSignature) && (
-          <div className="text-xs text-gray-500 bg-blue-50 p-2 rounded space-y-1">
-            {prop.description && (
-              <div>
-                <strong>Description:</strong> {prop.description}
+      {(prop.description || prop.functionSignature) && (
+        <div className="text-xs text-gray-500 bg-blue-50 p-2 rounded space-y-1">
+          {prop.description && (
+            <div>
+              <strong>Description:</strong> {prop.description}
+            </div>
+          )}
+          {prop.functionSignature && (
+            <div>
+              <strong>Function Signature:</strong>
+              <div className="font-mono text-xs mt-1 p-2 bg-white rounded border">
+                ({prop.functionSignature.params}) =&gt; {prop.functionSignature.returnType}
               </div>
-            )}
-            {prop.functionSignature && (
-              <div>
-                <strong>Function Signature:</strong>
-                <div className="font-mono text-xs mt-1 p-2 bg-white rounded border">
-                  ({prop.functionSignature.params}) =&gt; {prop.functionSignature.returnType}
-                </div>
-              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {isExpanded && (
+        <div className="p-3 border-t border-gray-200">
+          <div
+            className="text-xs text-gray-500 mb-2"
+            data-testid="function-prop-status"
+          >
+            {validationResult.isValid ? (
+              <span className="text-green-600 font-medium">✅ Valid function</span>
+            ) : (
+              <span className="text-red-600 font-medium">❌ Invalid function</span>
             )}
           </div>
-        )}
+          <div className="text-gray-400">
+            {functionBody.split('\n').length} lines
+            {validationResult.warnings && validationResult.warnings.length > 0 && (
+              <span className="ml-2 text-yellow-600">({validationResult.warnings.length} warning{validationResult.warnings.length > 1 ? 's' : ''})</span>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

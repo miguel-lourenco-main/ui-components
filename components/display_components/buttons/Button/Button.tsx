@@ -55,6 +55,7 @@ export default function Button({
       className={combinedClassName}
       onClick={onClick}
       disabled={disabled}
+      data-testid="rendered-component-button"
     >
       {children}
     </button>

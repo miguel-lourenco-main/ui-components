@@ -158,7 +158,7 @@ export default function PlaygroundPage() {
                       onToggleCode={() => togglePanel('code')}
                     />
                   </div>
-                  <div className="flex-1 p-6">
+                  <div className="flex-1 p-6" data-testid="component-preview">
                     {playgroundState.selectedComponent ? (
                       <LocalComponentRenderer
                         component={playgroundState.selectedComponent}
@@ -243,7 +243,7 @@ export default function PlaygroundPage() {
                 minSize={15} 
                 className="bg-white border-l border-gray-200"
               >
-                <div className="h-full flex flex-col slide-in-right">
+                <div className="h-full flex flex-col slide-in-right" data-testid="props-panel">
                   <div className="p-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
                     <h3 className="font-semibold">Props</h3>
                     <button

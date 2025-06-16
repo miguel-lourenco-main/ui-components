@@ -79,7 +79,7 @@ export default function ComponentSelector({
         
         {/* Category Filters */}
         {showFilters && (
-          <div className="mt-3 space-y-1">
+          <div className="mt-3 space-y-1" data-testid="filter-list">
             {categories.map(category => (
               <button
                 key={category.id}
