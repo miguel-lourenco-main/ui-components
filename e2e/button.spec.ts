@@ -43,12 +43,17 @@ test.describe('Component: Button', () => {
     // 1. Select the Button component
     await page.getByRole('button', { name: 'Button' }).click();
     
-    // 2. Listen for the specific console message
+    // 2. Set up console listener EARLY and capture ALL console messages for debugging
     const consoleMessages: string[] = [];
+    const allConsoleMessages: string[] = [];
+    
     page.on('console', msg => {
-      // Only capture the exact message we're looking for
-      if (msg.text() === 'Button was clicked!') {
-        consoleMessages.push(msg.text());
+      const text = msg.text();
+      allConsoleMessages.push(text);
+      
+      // Capture our specific message
+      if (text === 'Button was clicked!') {
+        consoleMessages.push(text);
       }
     });
 
@@ -63,16 +68,29 @@ test.describe('Component: Button', () => {
     
     // 4. Wait for the app to validate the new function
     const status = onClickEditor.getByTestId('function-prop-status');
-    await expect(status).toHaveText(/Valid function/, { timeout: 5000 });
+    await expect(status).toHaveText(/Valid function/, { timeout: 10000 });
 
-    // 5. Click the button in the preview
+    // 5. Wait a bit for the function to be properly set up
+    await page.waitForTimeout(1000);
+
+    // 6. Click the button in the preview
     const componentPreview = page.getByTestId('component-preview');
-    await componentPreview.getByTestId('rendered-component-button').click();
+    const button = componentPreview.getByTestId('rendered-component-button');
+    await expect(button).toBeVisible();
+    await button.click();
 
-    // 6. Verify that the console message was logged
-    await expect.poll(() => consoleMessages.length > 0, {
+    // 7. Wait a bit for console message to be processed
+    await page.waitForTimeout(500);
+
+    // 8. Verify that the console message was logged
+    await expect.poll(() => {
+      console.log('Console messages captured:', consoleMessages);
+      console.log('All console messages:', allConsoleMessages.slice(-10)); // Show last 10 for debugging
+      return consoleMessages.length > 0;
+    }, {
       message: 'The onClick handler did not fire the expected console message',
-      timeout: 5000,
+      timeout: 3000,
+      intervals: [500],
     }).toBe(true);
   });
 }); 

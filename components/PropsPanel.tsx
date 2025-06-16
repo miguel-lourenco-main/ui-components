@@ -24,7 +24,7 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
   const [expandedProps, setExpandedProps] = useState<Set<string>>(new Set());
   const [showOptionalProps, setShowOptionalProps] = useState<boolean>(true);
 
-  debugLog('COMPONENT_PROPS', `PropsPanel receiving props for ${component.name}`, { values });
+  debugLog('props', `PropsPanel receiving props for ${component.name}`, { values });
 
   const handlePropChange = (propName: string, value: any) => {
     onChange({
@@ -36,19 +36,19 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
   console.log("values", values);
 
   const resetToDefaults = () => {
-    debugLog('COMPONENT_STATE', '🎛️ PropsPanel resetToDefaults called');
+    debugLog('state', '🎛️ PropsPanel resetToDefaults called');
     
     // If there's a selected example, reset to that example using selectExample
     // This ensures we use the same safe prop copying logic as the example selection
     if (selectedExampleIndex >= 0 && component.examples && component.examples[selectedExampleIndex] && onSelectExample) {
       const currentExample = component.examples[selectedExampleIndex];
-      debugLog('COMPONENT_STATE', '🎛️ Resetting to current example props via selectExample:', currentExample.name);
+      debugLog('state', '🎛️ Resetting to current example props via selectExample:', currentExample.name);
       onSelectExample(selectedExampleIndex);
       return;
     }
     
     // Otherwise, fall back to metadata defaults
-    debugLog('COMPONENT_STATE', '🎛️ Resetting to metadata defaults (no example selected)');
+    debugLog('state', '🎛️ Resetting to metadata defaults (no example selected)');
     const defaultValues = component.props.reduce((acc, prop) => {
       acc[prop.name] = prop.defaultValue;
       return acc;
@@ -219,7 +219,7 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
                         <button
                           key={index}
                           onClick={() => {
-                            debugLog('COMPONENT_STATE', '🎛️ PropsPanel example button clicked:', {
+                            debugLog('state', '🎛️ PropsPanel example button clicked:', {
                               exampleIndex: index,
                               exampleName: example.name,
                               hasOnSelectExample: !!onSelectExample,
@@ -379,12 +379,12 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
         return (
           <label 
             className="flex items-center"
-            data-testid={`prop-control-${prop.name}`}
           >
             <input
               type="checkbox"
               id={`prop-${prop.name}`}
-              name={`prop-${prop.name}`}              checked={value || false}
+              name={`prop-${prop.name}`}
+              checked={value || false}
               onChange={(e) => onChange(e.target.checked)}
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
@@ -411,7 +411,6 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
             value={value || ''}
             onChange={(e) => onChange(e.target.value || undefined)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            data-testid={`prop-control-${prop.name}`}
           >
             <option value="">Select...</option>
             {prop.options?.map(option => (
@@ -429,6 +428,7 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
               type="color"
               id={`prop-${prop.name}-color`}
               name={`prop-${prop.name}-color`}
+              data-testid={`prop-control-${prop.name}-color`}
               value={value || '#000000'}
               onChange={(e) => onChange(e.target.value)}
               className="w-12 h-8 border border-gray-300 rounded"
@@ -437,6 +437,7 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
               type="text"
               id={`prop-${prop.name}-text`}
               name={`prop-${prop.name}-text`}
+              data-testid={`prop-control-${prop.name}-text`}
               value={value || ''}
               onChange={(e) => onChange(e.target.value || undefined)}
               placeholder="#000000"
@@ -517,7 +518,7 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
   const isClassNameProp = prop.name === 'className';
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" data-testid={`prop-control-${prop.name}`}>
       <div className="flex items-center justify-between">
         <label className="block text-sm font-medium text-gray-700">
           {prop.name}

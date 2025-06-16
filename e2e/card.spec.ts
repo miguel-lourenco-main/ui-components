@@ -36,16 +36,22 @@ test.describe('Component: Card', () => {
   test('should correctly render header and footer slots', async ({ page }) => {
     const componentPreview = page.getByTestId('component-preview');
     const propsPanel = page.getByTestId('props-panel');
-    
+
     // 1. Test 'header' prop
-    const headerInput = propsPanel.getByTestId('prop-control-header').locator('input');
-    await headerInput.fill('<h2>Card Header</h2>');
+    const headerEditor = page.getByTestId('prop-control-header');
+    const monacoHeaderEditor = headerEditor.locator('.monaco-editor').first();
+    
+    await monacoHeaderEditor.click();
+    await page.keyboard.type('return <h2>Card Header</h2>');    
     await expect(componentPreview.getByRole('heading', { name: 'Card Header' })).toBeVisible();
     await expect(componentPreview).toHaveScreenshot('card-with-header.png');
     
     // 2. Test 'footer' prop
-    const footerInput = propsPanel.getByTestId('prop-control-footer').locator('input');
-    await footerInput.fill('<p>Card Footer</p>');
+    const footerEditor = page.getByTestId('prop-control-footer');
+    const monacoFooterEditor = footerEditor.locator('.monaco-editor').first();
+    
+    await monacoFooterEditor.click();
+    await page.keyboard.type('return <p>Card Footer</p>');
     await expect(componentPreview.getByText('Card Footer')).toBeVisible();
     await expect(componentPreview).toHaveScreenshot('card-with-footer.png');
   });

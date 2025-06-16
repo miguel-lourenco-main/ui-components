@@ -93,14 +93,14 @@ export default function LocalComponentRenderer({
         setLoading(true);
         setError(null);
         
-        debugLog('COMPONENT_REGISTRY', `🔄 Loading component: ${component.name}`);
+        debugLog('general', `🔄 Loading component: ${component.name}`);
         
         // Get component from static registry
         const loadedComponent = getComponentByName(component.name);
         
         if (loadedComponent) {
           setComponentToRender(() => loadedComponent);
-          debugLog('COMPONENT_REGISTRY', `✅ Component ${component.name} loaded successfully`);
+          debugLog('general', `✅ Component ${component.name} loaded successfully`);
         } else {
           throw new Error(`Component ${component.name} not found in registry`);
         }
@@ -195,7 +195,7 @@ export default function LocalComponentRenderer({
       // Convert FunctionPropValues to actual functions before passing to component
       const propsWithFunctions = convertFunctionPropValuesToFunctions(props, component.props);
       
-      debugLog('COMPONENT_STATE', `🎬 Rendering ${component.name} with props:`, {
+      debugLog('state', `🎬 Rendering ${component.name} with props:`, {
         propKeys: Object.keys(propsWithFunctions),
         functionProps: Object.entries(propsWithFunctions)
           .filter(([key, value]) => typeof value === 'function')

@@ -41,6 +41,22 @@ export default function PlaygroundPage() {
     }
   };
 
+  const rendererButtons = (): React.ReactNode => {
+    return playgroundState.selectedComponent ?(
+      <>
+        <ViewportControls
+          viewMode={playgroundState.viewMode}
+          onViewModeChange={setViewMode}
+        />
+        <CodeButtons
+          component={playgroundState.selectedComponent}
+          showCode={playgroundState.showCode}
+          onToggleCode={() => togglePanel('code')}
+        />
+      </>
+    ) : null;
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -148,15 +164,7 @@ export default function PlaygroundPage() {
                 >
                   <div className="w-full flex items-center justify-between p-4 pb-0">
                     {/* Component Information Section */}
-                    <ViewportControls
-                      viewMode={playgroundState.viewMode}
-                      onViewModeChange={setViewMode}
-                    />
-                    <CodeButtons
-                      component={playgroundState.selectedComponent}
-                      showCode={playgroundState.showCode}
-                      onToggleCode={() => togglePanel('code')}
-                    />
+                    {rendererButtons()}
                   </div>
                   <div className="flex-1 p-6" data-testid="component-preview">
                     {playgroundState.selectedComponent ? (
@@ -208,13 +216,9 @@ export default function PlaygroundPage() {
             ) : (
               /* Component Preview - Full Height when Code Editor is hidden */
               <div className="h-full bg-gray-50 flex flex-col">
-                <div className="w-full flex justify-end pt-4 pr-4">
+                <div className="w-full flex items-center justify-between p-4 pb-0">
                   {/* Component Information Section */}
-                  <CodeButtons
-                    component={playgroundState.selectedComponent}
-                    showCode={playgroundState.showCode}
-                    onToggleCode={() => togglePanel('code')}
-                  />
+                  {rendererButtons()}
                 </div>
                 <div className="flex-1 p-6">
                   {playgroundState.selectedComponent ? (

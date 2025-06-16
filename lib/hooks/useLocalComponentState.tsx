@@ -62,20 +62,20 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
 
   // Add effect to track state changes
   useEffect(() => {
-    debugLog('COMPONENT_STATE', '📊 State changed - selectedExampleIndex:', selectedExampleIndex);
+    debugLog('state', '📊 State changed - selectedExampleIndex:', selectedExampleIndex);
   }, [selectedExampleIndex]);
 
 
 
   useEffect(() => {
-    debugLog('COMPONENT_STATE', '📊 State changed - playgroundState.selectedComponent:', playgroundState.selectedComponent?.name);
+    debugLog('state', '📊 State changed - playgroundState.selectedComponent:', playgroundState.selectedComponent?.name);
   }, [playgroundState.selectedComponent]);
 
   /**
    * Generate component code with current props, including validation warnings
    */
   const generateCodeWithProps = (component: LocalComponent, props: Record<string, any>) => {
-    debugLog('COMPONENT_PROPS', '🏗️ generateCodeWithProps called for:', component.name);
+    debugLog('props', '🏗️ generateCodeWithProps called for:', component.name);
     
     // Convert FunctionPropValues to actual functions for code generation
     const propsWithFunctions = convertFunctionPropValuesToFunctions(props, component.props);
@@ -132,7 +132,7 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
         const funcName = key; // Use the prop name as the function name
         const propDef = component.props.find(p => p.name === key);
 
-        debugLog('COMPONENT_PROPS', '🔍 Generating function declarations for:', key);
+        debugLog('props', '🔍 Generating function declarations for:', key);
         
         // Get the function source from the original FunctionPropValue
         const originalPropValue = props[key];
@@ -140,9 +140,9 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
         
         if (isFunctionPropValue(originalPropValue)) {
           functionBody = originalPropValue.source;
-          debugLog('COMPONENT_PROPS', `🔍 Using FunctionPropValue source for ${key}:`, functionBody);
+          debugLog('props', `🔍 Using FunctionPropValue source for ${key}:`, functionBody);
         } else {
-          debugLog('COMPONENT_PROPS', `⚠️ No FunctionPropValue found for ${key}, using fallback`);
+          debugLog('props', `⚠️ No FunctionPropValue found for ${key}, using fallback`);
         }
 
         // If we have user-defined function body, use it
@@ -230,16 +230,16 @@ export default function Example() {${functionDeclarationsCode}
    * Load all local components
    */
   const loadComponents = useCallback(async () => {
-    debugLog('COMPONENT_STATE', '🚀 Hook: Starting loadComponents...');
+    debugLog('state', '🚀 Hook: Starting loadComponents...');
     
     try {
       setLoading(true);
       setError(null);
       
-      debugLog('COMPONENT_STATE', '🚀 Hook: Calling discoverLocalComponents...');
+      debugLog('state', '🚀 Hook: Calling discoverLocalComponents...');
       const result = await discoverLocalComponents();
       
-      debugLog('COMPONENT_STATE', '🚀 Hook: Got result:', {
+      debugLog('state', '🚀 Hook: Got result:', {
         components: result.components.length,
         errors: result.errors.length
       });
@@ -251,12 +251,12 @@ export default function Example() {${functionDeclarationsCode}
         setError(`Found ${result.errors.length} component errors. Check console for details.`);
       }
       
-      debugLog('COMPONENT_STATE', '✅ Hook: Components loaded successfully');
+      debugLog('state', '✅ Hook: Components loaded successfully');
     } catch (err) {
       console.error('❌ Hook: Failed to load components:', err);
       setError(err instanceof Error ? err.message : 'Failed to load components');
     } finally {
-      debugLog('COMPONENT_STATE', '🏁 Hook: Setting loading to false');
+      debugLog('state', '🏁 Hook: Setting loading to false');
       setLoading(false);
     }
   }, []);
@@ -276,7 +276,7 @@ export default function Example() {${functionDeclarationsCode}
       return;
     }
 
-    debugLog('COMPONENT_STATE', '🎯 selectComponent called:', {
+    debugLog('state', '🎯 selectComponent called:', {
       componentName: component.name,
       exampleIndex,
     });
@@ -293,7 +293,7 @@ export default function Example() {${functionDeclarationsCode}
 
     if (component.examples?.length > 0 && exampleIndex >= 0 && component.examples[exampleIndex]) {
       const example = component.examples[exampleIndex];
-      debugLog('COMPONENT_PROPS', `🔍 Found example "${example.name}" to apply.`, { props: example.props });
+      debugLog('props', `🔍 Found example "${example.name}" to apply.`, { props: example.props });
       
       const exampleProps = example.props;
       if (exampleProps) {
@@ -303,22 +303,22 @@ export default function Example() {${functionDeclarationsCode}
             const value = exampleProps[key];
 
             if (propDef?.type === 'function' && typeof value === 'string') {
-              debugLog('COMPONENT_PROPS', `  🔄 Converting string to FunctionPropValue for: ${key}`);
+              debugLog('props', `  🔄 Converting string to FunctionPropValue for: ${key}`);
               initialProps[key] = setFunctionSource(value, propDef.functionSignature);
             } else {
               initialProps[key] = value;
             }
-            debugLog('COMPONENT_PROPS', `  ➡️ Copying prop: ${key}`, { value: initialProps[key] });
+            debugLog('props', `  ➡️ Copying prop: ${key}`, { value: initialProps[key] });
           }
         }
       }
       selectedExampleIdx = exampleIndex;
     }
     
-    debugLog('COMPONENT_PROPS', `🎯 Using initial props for ${component.name}:`, { ...initialProps });
+    debugLog('props', `🎯 Using initial props for ${component.name}:`, { ...initialProps });
 
     const childrenProp = initialProps.children;
-    debugLog('COMPONENT_PROPS', '🔍 Children Prop Details:', {
+    debugLog('props', '🔍 Children Prop Details:', {
       children: childrenProp,
       isFunctionPropValue: isFunctionPropValue(childrenProp),
       type: typeof childrenProp,
@@ -346,7 +346,7 @@ export default function Example() {${functionDeclarationsCode}
    */
   const selectExample = useCallback((exampleIndex: number) => {
     if (playgroundState.selectedComponent) {
-      debugLog('COMPONENT_STATE', '🎛️ selectExample called with index:', exampleIndex);
+      debugLog('state', '🎛️ selectExample called with index:', exampleIndex);
       // Directly call selectComponent, which now safely handles this
       selectComponent(playgroundState.selectedComponent, exampleIndex);
     }
@@ -395,11 +395,11 @@ export default function Example() {${functionDeclarationsCode}
     })();
     
     if (!propsChanged) {
-      debugLog('COMPONENT_STATE', '🔄 updateProps: Props unchanged, skipping update to prevent infinite loop');
+      debugLog('state', '🔄 updateProps: Props unchanged, skipping update to prevent infinite loop');
       return;
     }
     
-    debugLog('COMPONENT_STATE', '🔄 updateProps: Props actually changed, proceeding with update');
+    debugLog('state', '🔄 updateProps: Props actually changed, proceeding with update');
     
     // Log function prop changes specifically
     const currentFunctionProps = Object.entries(playgroundState.currentProps).filter(([k, v]) => isFunctionPropValue(v));
@@ -411,7 +411,7 @@ export default function Example() {${functionDeclarationsCode}
           const newSource = isFunctionPropValue(newProps[key]) ? newProps[key].source : '';
           return currentSource !== newSource;
         })) {
-      debugLog('COMPONENT_PROPS', '🔄 updateProps: Function props changed!', {
+      debugLog('props', '🔄 updateProps: Function props changed!', {
         before: currentFunctionProps.map(([k, v]) => `${k}: ${isFunctionPropValue(v) ? v.source.substring(0, 50) + '...' : 'unknown'}`),
         after: newFunctionProps.map(([k, v]) => `${k}: ${isFunctionPropValue(v) ? v.source.substring(0, 50) + '...' : 'unknown'}`)
       });
@@ -432,9 +432,9 @@ export default function Example() {${functionDeclarationsCode}
     })();
 
     if (shouldKeepExampleSelection) {
-      debugLog('COMPONENT_STATE', '🔄 updateProps: Keeping selectedExampleIndex (example-based editing)');
+      debugLog('state', '🔄 updateProps: Keeping selectedExampleIndex (example-based editing)');
     } else {
-      debugLog('COMPONENT_STATE', '🔄 updateProps: No example to preserve');
+      debugLog('state', '🔄 updateProps: No example to preserve');
     }
 
     setPlaygroundState(prev => ({
@@ -452,33 +452,33 @@ export default function Example() {${functionDeclarationsCode}
    * Reset to default props (currently selected example if available)
    */
   const resetToDefaults = useCallback(() => {
-    debugLog('COMPONENT_STATE', '🔄 resetToDefaults called:', {
+    debugLog('state', '🔄 resetToDefaults called:', {
       componentName: playgroundState.selectedComponent?.name,
       currentSelectedExampleIndex: selectedExampleIndex,
       hasExamples: playgroundState.selectedComponent?.examples?.length || 0
     });
     
     if (!playgroundState.selectedComponent) {
-      debugLog('COMPONENT_STATE', '🔄 resetToDefaults: No selected component, returning');
+      debugLog('state', '🔄 resetToDefaults: No selected component, returning');
       return;
     }
 
     // If an example is selected, reset to that example's props
     if (selectedExampleIndex >= 0 && playgroundState.selectedComponent.examples && playgroundState.selectedComponent.examples[selectedExampleIndex]) {
-      debugLog('COMPONENT_STATE', '🔄 resetToDefaults: Resetting to currently selected example:', selectedExampleIndex);
+      debugLog('state', '🔄 resetToDefaults: Resetting to currently selected example:', selectedExampleIndex);
       selectExample(selectedExampleIndex);
       return;
     }
 
     // Otherwise, reset to first example if available
     if (playgroundState.selectedComponent.examples && playgroundState.selectedComponent.examples.length > 0) {
-      debugLog('COMPONENT_STATE', '🔄 resetToDefaults: No example selected, resetting to first example (index 0)');
+      debugLog('state', '🔄 resetToDefaults: No example selected, resetting to first example (index 0)');
       selectExample(0);
       return;
     }
 
     // Fall back to metadata defaults
-    debugLog('COMPONENT_STATE', '🔄 resetToDefaults: No examples available, using metadata defaults');
+    debugLog('state', '🔄 resetToDefaults: No examples available, using metadata defaults');
     const defaultProps = playgroundState.selectedComponent.props.reduce((acc, prop) => {
       if (prop.defaultValue !== undefined) {
         acc[prop.name] = prop.defaultValue;
@@ -486,7 +486,7 @@ export default function Example() {${functionDeclarationsCode}
       return acc;
     }, {} as Record<string, any>);
 
-    debugLog('COMPONENT_STATE', '🔄 resetToDefaults: Calling updateProps with defaults');
+    debugLog('state', '🔄 resetToDefaults: Calling updateProps with defaults');
     updateProps(defaultProps);
   }, [playgroundState.selectedComponent, selectedExampleIndex, selectExample, updateProps]);
 
