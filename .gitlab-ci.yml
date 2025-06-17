@@ -39,15 +39,23 @@ build:
       - out/
     expire_in: 1 hour
 
-# Test stage - runs unit tests and e2e tests
+# Test stage - runs e2e tests against built static files
 test:
   stage: test
   before_script:
     - npm install -g pnpm
     - pnpm install --frozen-lockfile
+    - npm install -g serve
   script:
-    - echo "Running e2e tests..."
-    - pnpm run test:e2e || exit 1
+    - echo "Running e2e tests against built static files..."
+    - echo "Starting static file server on port 3000..."
+    - serve -s out -l 3000 &
+    - sleep 5  # Give the server time to start
+    - echo "Running Playwright tests..."
+    - pnpm exec playwright test --config=playwright.ci.config.ts || exit 1
+  after_script:
+    - echo "Cleaning up background processes..."
+    - pkill -f "serve" || true  # Kill the serve process, ignore if already dead
   dependencies:
     - build
 
