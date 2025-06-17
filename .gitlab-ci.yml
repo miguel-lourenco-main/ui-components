@@ -16,6 +16,7 @@ cache:
 # Define stages
 stages:
   - build
+  - test
   - deploy
 
 # Build stage for all branches
@@ -38,6 +39,20 @@ build:
       - out/
     expire_in: 1 hour
 
+# Test stage - runs unit tests and e2e tests
+test:
+  stage: test
+  before_script:
+    - npm install -g pnpm
+    - pnpm install --frozen-lockfile
+  script:
+    - echo "Running unit tests..."
+    - pnpm run test || exit 1
+    - echo "Running e2e tests..."
+    - pnpm run test:e2e || exit 1
+  dependencies:
+    - build
+
 # Deploy to GitLab Pages - Production (main branch)
 pages:
   stage: deploy
@@ -55,6 +70,7 @@ pages:
     expire_in: never
   dependencies:
     - build
+    - test
   environment:
     name: production
     url: $CI_PAGES_URL
@@ -81,6 +97,7 @@ pages-review:
     expire_in: 1 week  # Auto-cleanup after 1 week
   dependencies:
     - build
+    - test
   environment:
     name: review/$CI_COMMIT_REF_SLUG
     url: $CI_PAGES_URL/$CI_COMMIT_REF_SLUG/
