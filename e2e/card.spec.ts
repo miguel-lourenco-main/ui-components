@@ -17,15 +17,15 @@ test.describe('Component: Card', () => {
     const propsPanel = page.getByTestId('props-panel');
 
     // 2. Test 'padding' prop
-    await propsPanel.getByTestId('prop-control-padding').selectOption('lg');
+    await propsPanel.getByTestId('prop-control-padding').locator('select').selectOption('lg');
     await expect(componentPreview).toHaveScreenshot('card-padding-lg.png');
 
     // 3. Test 'shadow' prop
-    await propsPanel.getByTestId('prop-control-shadow').selectOption('lg');
+    await propsPanel.getByTestId('prop-control-shadow').locator('select').selectOption('lg');
     await expect(componentPreview).toHaveScreenshot('card-shadow-lg.png');
 
     // 4. Test 'rounded' prop
-    await propsPanel.getByTestId('prop-control-rounded').selectOption('sm');
+    await propsPanel.getByTestId('prop-control-rounded').locator('select').selectOption('sm');
     await expect(componentPreview).toHaveScreenshot('card-rounded-sm.png');
 
     // 5. Test 'border' prop

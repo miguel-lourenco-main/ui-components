@@ -30,7 +30,7 @@ test.describe('Component: Button', () => {
     await expect(componentPreview).toHaveScreenshot('button-default.png');
     
     // 4. Change props
-    const variantSelect = page.getByTestId('prop-control-variant');
+    const variantSelect = page.getByTestId('prop-control-variant').locator('select');
     await expect(variantSelect).toBeEnabled();
     await variantSelect.selectOption('secondary');
 

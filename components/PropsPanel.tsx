@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Component, LocalComponent, PropDefinition } from '@/types';
 import { RefreshCwIcon, InfoIcon, EyeIcon, EyeOffIcon } from 'lucide-react';
 import { debugLog } from '@/lib/constants';
@@ -66,8 +66,19 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
     setExpandedProps(newExpanded);
   };
 
-  const requiredProps = component.props.filter(prop => prop.required);
-  const optionalProps = component.props.filter(prop => !prop.required);
+  // Filter out specific props for DataTable component
+  const shouldHideProp = (prop: PropDefinition) => {
+    if (component.name === 'DataTable') {
+      // Hide filters, initialSorting, and all function props for DataTable
+      return prop.name === 'filters' || 
+             prop.name === 'initialSorting' || 
+             prop.type === 'function';
+    }
+    return false;
+  };
+
+  const requiredProps = component.props.filter(prop => prop.required && !shouldHideProp(prop));
+  const optionalProps = component.props.filter(prop => !prop.required && !shouldHideProp(prop));
 
   const hasExamples = component.examples && component.examples.length > 0;
 
@@ -316,6 +327,17 @@ interface PropControlProps {
 }
 
 function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: PropControlProps) {
+  const [jsonValidationError, setJsonValidationError] = useState<string | null>(null);
+  const [jsonTextValue, setJsonTextValue] = useState<string>('');
+
+  // Initialize JSON text value when component mounts or value changes
+  useEffect(() => {
+    if (prop.type === 'array' || prop.type === 'object') {
+      setJsonTextValue(value ? JSON.stringify(value, null, 2) : '');
+      setJsonValidationError(null);
+    }
+  }, [value, prop.type]);
+
   const renderControl = () => {
     switch (prop.type) {
       case 'boolean':
@@ -424,19 +446,58 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
                 <textarea
                   id={`prop-${prop.name}`}
                   name={`prop-${prop.name}`}
-                  value={value ? JSON.stringify(value, null, 2) : ''}
+                  value={jsonTextValue}
                   onChange={(e) => {
+                    const newValue = e.target.value;
+                    setJsonTextValue(newValue);
+                    
+                    // Clear previous validation error
+                    setJsonValidationError(null);
+                    
+                    // If empty, set to undefined and return
+                    if (!newValue.trim()) {
+                      onChange(undefined);
+                      return;
+                    }
+                    
+                    // Validate JSON
                     try {
-                      const parsed = e.target.value ? JSON.parse(e.target.value) : undefined;
+                      const parsed = JSON.parse(newValue);
+                      
+                      // Type-specific validation
+                      if (prop.type === 'array' && !Array.isArray(parsed)) {
+                        setJsonValidationError('Expected an array, but got ' + typeof parsed);
+                        return;
+                      }
+                      
+                      if (prop.type === 'object' && (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed))) {
+                        setJsonValidationError('Expected an object, but got ' + (Array.isArray(parsed) ? 'array' : typeof parsed));
+                        return;
+                      }
+                      
+                      // Valid JSON and correct type
                       onChange(parsed);
-                    } catch {
-                      // Invalid JSON, don't update
+                    } catch (error) {
+                      const errorMessage = error instanceof Error ? error.message : 'Invalid JSON format';
+                      setJsonValidationError(errorMessage);
                     }
                   }}
                   rows={6}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono text-sm ${
+                    jsonValidationError 
+                      ? 'border-red-300 focus:ring-red-500 bg-red-50' 
+                      : 'border-gray-300 focus:ring-blue-500'
+                  }`}
                   placeholder={prop.type === 'array' ? '[]' : '{}'}
                 />
+                {jsonValidationError && (
+                  <div 
+                    className="mt-1 text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1"
+                    data-testid={`prop-control-${prop.name}-error`}
+                  >
+                    <span className="font-medium">Validation Error:</span> {jsonValidationError}
+                  </div>
+                )}
               </div>
             )}
           </div>
