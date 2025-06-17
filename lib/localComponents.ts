@@ -1,6 +1,54 @@
 import { ComponentDiscoveryResult, LocalComponent } from '@/types';
 import { debugLog } from '@/lib/constants';
-import expandedRegistry from '@/lib/generated-registry.json';
+
+// Cache for the loaded registry
+let registryCache: any = null;
+
+/**
+ * Load the component registry from the generated JSON file
+ * This works in both development and static export environments
+ */
+async function loadRegistry(): Promise<any> {
+  if (registryCache) {
+    debugLog('general', '📋 Using cached registry');
+    return registryCache;
+  }
+
+  debugLog('general', '🔄 Loading registry...');
+
+  try {
+    // First, try to fetch the registry as a static asset
+    const registryPath = '/generated-registry.json';
+    debugLog('general', `🌐 Fetching registry from: ${registryPath}`);
+    
+    const response = await fetch(registryPath);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch registry: ${response.status} ${response.statusText}`);
+    }
+    
+    const registry = await response.json();
+    debugLog('general', '✅ Registry loaded via fetch');
+    
+    registryCache = registry;
+    return registry;
+  } catch (fetchError) {
+    debugLog('general', '⚠️ Failed to fetch registry via HTTP:', fetchError);
+    
+    try {
+      // Fallback: try dynamic import (works in development)
+      debugLog('general', '🔄 Trying dynamic import fallback...');
+      const module = await import('@/lib/generated-registry.json');
+      const registry = module.default || module;
+      debugLog('general', '✅ Registry loaded via dynamic import');
+      
+      registryCache = registry;
+      return registry;
+    } catch (importError) {
+      debugLog('general', '❌ Failed to load registry via dynamic import:', importError);
+      throw new Error(`Failed to load component registry. Fetch error: ${fetchError}. Import error: ${importError}`);
+    }
+  }
+}
 
 /**
  * Discover all local components from the registry
@@ -9,6 +57,9 @@ export async function discoverLocalComponents(): Promise<ComponentDiscoveryResul
   debugLog('general', '🔍 Starting component discovery from registry...');
   
   try {
+    // Load the registry asynchronously
+    const expandedRegistry = await loadRegistry();
+    
     // Add debugging for registry loading
     debugLog('general', '📋 Registry loaded:', {
       hasRegistry: !!expandedRegistry,
@@ -129,6 +180,7 @@ export async function discoverLocalComponents(): Promise<ComponentDiscoveryResul
  * Load detailed component data (code, props, examples) for a specific component
  */
 export async function loadComponentDetails(componentId: string): Promise<Partial<LocalComponent>> {
+  const expandedRegistry = await loadRegistry();
   const registryComponent = expandedRegistry.components.find((comp: any) => comp.id === componentId);
   if (!registryComponent) {
     throw new Error(`Component ${componentId} not found in registry`);
