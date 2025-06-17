@@ -56,9 +56,9 @@ test:
     - echo "Testing server response..."
     - curl -f http://localhost:3000/ || echo "Server not responding properly"
     - echo "Verifying website content..."
-    - curl -s http://localhost:3000/ | grep -q "<html" || (echo "ERROR: No HTML content found" && exit 1)
-    - curl -s http://localhost:3000/ | grep -q "<title" || (echo "ERROR: No title tag found" && exit 1)
-    - curl -s http://localhost:3000/ | grep -q "next" || (echo "ERROR: Next.js content not found" && exit 1)
+    - curl -s http://localhost:3000/ | grep -q "<html" || (echo "ERROR - No HTML content found" && exit 1)
+    - curl -s http://localhost:3000/ | grep -q "<title" || (echo "ERROR - No title tag found" && exit 1)
+    - curl -s http://localhost:3000/ | grep -q "next" || (echo "ERROR - Next.js content not found" && exit 1)
     - echo "✅ Website is serving properly"
     - echo "Running Playwright tests..."
     - pnpm exec playwright test --config=playwright.ci.config.ts || exit 1
@@ -67,6 +67,11 @@ test:
     - pkill -f "serve" || true  # Kill the serve process, ignore if already dead
   dependencies:
     - build
+  artifacts:
+    when: always
+    paths:
+      - playwright-report
+    expire_in: 2 days
 
 # Deploy to GitLab Pages - Production (main branch)
 pages:
