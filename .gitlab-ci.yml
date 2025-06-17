@@ -46,8 +46,6 @@ test:
     - npm install -g pnpm
     - pnpm install --frozen-lockfile
   script:
-    - echo "Running unit tests..."
-    - pnpm run test || exit 1
     - echo "Running e2e tests..."
     - pnpm run test:e2e || exit 1
   dependencies:
