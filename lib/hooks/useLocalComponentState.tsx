@@ -237,7 +237,18 @@ export default function Example() {${functionDeclarationsCode}
       setError(null);
       
       debugLog('state', '🚀 Hook: Calling discoverLocalComponents...');
-      const result = await discoverLocalComponents();
+      
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('Component loading timed out after 10 seconds'));
+        }, 10000);
+      });
+      
+      const result = await Promise.race([
+        discoverLocalComponents(),
+        timeoutPromise
+      ]);
       
       debugLog('state', '🚀 Hook: Got result:', {
         components: result.components.length,
@@ -254,7 +265,16 @@ export default function Example() {${functionDeclarationsCode}
       debugLog('state', '✅ Hook: Components loaded successfully');
     } catch (err) {
       console.error('❌ Hook: Failed to load components:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load components');
+      
+      // If it's a timeout, provide more helpful error
+      if (err instanceof Error && err.message.includes('timed out')) {
+        setError('Component loading timed out. This might be a static export configuration issue. Check browser console for details.');
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to load components');
+      }
+      
+      // Even on error, set an empty array so the UI can render
+      setComponents([]);
     } finally {
       debugLog('state', '🏁 Hook: Setting loading to false');
       setLoading(false);

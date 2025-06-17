@@ -6,11 +6,29 @@ import expandedRegistry from '@/lib/generated-registry.json';
  * Discover all local components from the registry
  */
 export async function discoverLocalComponents(): Promise<ComponentDiscoveryResult> {
-  debugLog('general', '🔍 Starting component discovery fro registry...');
+  debugLog('general', '🔍 Starting component discovery from registry...');
   
   try {
+    // Add debugging for registry loading
+    debugLog('general', '📋 Registry loaded:', {
+      hasRegistry: !!expandedRegistry,
+      hasComponents: !!expandedRegistry?.components,
+      componentCount: expandedRegistry?.components?.length || 0,
+      registryKeys: Object.keys(expandedRegistry || {})
+    });
+    
+    if (!expandedRegistry) {
+      throw new Error('Registry not loaded - expandedRegistry is null/undefined');
+    }
+    
+    if (!expandedRegistry.components) {
+      throw new Error('Registry loaded but no components array found');
+    }
+    
     const components: LocalComponent[] = [];
     const errors: any[] = expandedRegistry.buildErrors || [];
+    
+    debugLog('general', `🔄 Processing ${expandedRegistry.components.length} components from registry...`);
     
     for (const registryComponent of expandedRegistry.components) {
       try {
@@ -51,8 +69,51 @@ export async function discoverLocalComponents(): Promise<ComponentDiscoveryResul
     return { components, errors };
   } catch (error) {
     console.error('❌ Failed to load components from registry:', error);
+    
+    // Provide fallback components if registry fails to load
+    const fallbackComponents: LocalComponent[] = [
+      {
+        id: 'button-fallback',
+        name: 'Button',
+        category: 'form' as any,
+        description: 'Basic button component (fallback)',
+        props: [
+          {
+            name: 'children',
+            type: 'function',
+            required: true,
+            description: 'Button content',
+            defaultValue: { type: 'function', source: 'return "Click me";' },
+            functionSignature: { params: '', returnType: 'React.ReactNode' }
+          },
+          {
+            name: 'onClick',
+            type: 'function',
+            required: false,
+            description: 'Click handler',
+            functionSignature: { params: 'event: React.MouseEvent', returnType: 'void' }
+          }
+        ],
+        code: 'export default function Button(props) { return <button onClick={props.onClick}>{typeof props.children === "function" ? props.children() : props.children}</button>; }',
+        examples: [],
+        tags: ['fallback'],
+        version: '1.0.0',
+        author: 'Fallback',
+        filePath: 'fallback',
+        metaPath: 'fallback',
+        examplesPath: 'fallback',
+        lastModified: new Date(),
+        isLocal: true,
+        dependencies: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    ];
+    
+    debugLog('general', '🆘 Using fallback components due to registry load failure');
+    
     return {
-      components: [],
+      components: fallbackComponents,
       errors: [{
         filePath: 'Registry',
         error: error instanceof Error ? error.message : 'Failed to load registry',
