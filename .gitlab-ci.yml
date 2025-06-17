@@ -61,7 +61,7 @@ test:
     - curl -s http://localhost:3000/ | grep -q "next" || (echo "ERROR - Next.js content not found" && exit 1)
     - echo "✅ Website is serving properly"
     - echo "Testing component registry availability..."
-    - curl -f http://localhost:3000/generated-registry.json || (echo "ERROR: Component registry not available" && exit 1)
+    - curl -f http://localhost:3000/generated-registry.json || (echo "ERROR - Component registry not available" && exit 1)
     - echo "✅ Component registry is accessible"
     - echo "Running Playwright tests..."
     - pnpm exec playwright test --config=playwright.ci.config.ts || exit 1
