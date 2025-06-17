@@ -201,7 +201,20 @@ export default function LocalComponentRenderer({
           .filter(([key, value]) => typeof value === 'function')
           .map(([key, value]) => `${key}: ${value.name || 'function'}`)
       });
-      return <ComponentToRender {...propsWithFunctions} />;
+
+      console.log("propsWithFunctions", propsWithFunctions);
+
+      const propsWithFunctionsArray = Object.entries(propsWithFunctions).reduce((acc, [key, value]) => {
+        acc[key] = typeof value === 'string' && value.startsWith('[') && value.endsWith(']') ? [] : value;
+        return acc;
+      }, {} as Record<string, any>);
+
+      
+
+      console.log("propsWithFunctionsArray", propsWithFunctionsArray);
+      
+
+      return <ComponentToRender {...propsWithFunctionsArray} />;
     } catch (renderError) {
       console.error('Component render error:', renderError);
       return (

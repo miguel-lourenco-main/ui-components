@@ -100,6 +100,14 @@ export function DataTable<TData, TValue>({
   const isDataChangingRef = useRef(false)
   const firstTryRef = useRef(true)
 
+  console.log("filters", filters);
+  console.log("sorting", sorting);
+  console.log("columnFilters", columnFilters);
+  console.log("columnVisibility", columnVisibility);
+  console.log("columns", columns);
+  console.log("data", data);
+  
+
   /**
    * Handles pagination state changes
    * Manages edge cases when data changes and pagination needs to be reset

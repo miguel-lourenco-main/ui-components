@@ -101,107 +101,16 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
             {/* Props List Panel */}
             <ResizablePanel defaultSize={70} minSize={30}>
               <div className="h-full overflow-y-auto">
-                <div className="p-4 space-y-6">
-                  {/* Required Props */}
-                  {requiredProps.length > 0 && (
-                    <div>
-                      <div className="bg-red-50 border-l-4 border-red-400 p-3 mb-4 rounded-r-lg">
-                        <h4 className="text-lg font-bold text-red-800 flex items-center">
-                          <span className="mr-2">🔴</span>
-                          Required Props
-                          <span className="ml-3 text-sm bg-red-100 text-red-700 px-3 py-1 rounded-full font-medium">
-                            {requiredProps.length}
-                          </span>
-                        </h4>
-                        <p className="text-sm text-red-600 mt-1">These props must be provided</p>
-                      </div>
-                      <div className="space-y-4 ml-2">
-                        {requiredProps.map(prop => (
-                          prop.type === 'function' ? (
-                            <FunctionPropEditor
-                              key={prop.name}
-                              prop={prop}
-                              value={values[prop.name]}
-                              onChange={(value) => handlePropChange(prop.name, value)}
-                              isExpanded={expandedProps.has(prop.name)}
-                              onToggleExpansion={() => togglePropExpansion(prop.name)}
-                            />
-                          ) : (
-                            <PropControl
-                              key={prop.name}
-                              prop={prop}
-                              value={values[prop.name]}
-                              onChange={(value) => handlePropChange(prop.name, value)}
-                              isExpanded={expandedProps.has(prop.name)}
-                              onToggleExpansion={() => togglePropExpansion(prop.name)}
-                            />
-                          )
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {optionalProps.length > 0 && (
-                    <div>
-                      <div className="bg-blue-50 border-l-4 border-blue-400 p-3 mb-4 rounded-r-lg">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="text-lg font-bold text-blue-800 flex items-center">
-                              <span className="mr-2">🔵</span>
-                              Optional Props
-                              <span className="ml-3 text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">
-                                {optionalProps.length}
-                              </span>
-                            </h4>
-                            <p className="text-sm text-blue-600 mt-1">Customize these props as needed</p>
-                          </div>
-                          <button
-                            onClick={() => setShowOptionalProps(!showOptionalProps)}
-                            className="flex items-center text-sm text-blue-700 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-3 py-1 rounded-lg transition-colors"
-                            title={showOptionalProps ? "Hide optional props" : "Show optional props"}
-                          >
-                            {showOptionalProps ? (
-                              <>
-                                <EyeOffIcon className="w-4 h-4 mr-1" />
-                                Hide
-                              </>
-                            ) : (
-                              <>
-                                <EyeIcon className="w-4 h-4 mr-1" />
-                                Show
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                      {showOptionalProps && (
-                        <div className="space-y-4 ml-2">
-                          {optionalProps.map(prop => (
-                            prop.type === 'function' ? (
-                              <FunctionPropEditor
-                                key={prop.name}
-                                prop={prop}
-                                value={values[prop.name]}
-                                onChange={(value) => handlePropChange(prop.name, value)}
-                                isExpanded={expandedProps.has(prop.name)}
-                                onToggleExpansion={() => togglePropExpansion(prop.name)}
-                              />
-                            ) : (
-                              <PropControl
-                                key={prop.name}
-                                prop={prop}
-                                value={values[prop.name]}
-                                onChange={(value) => handlePropChange(prop.name, value)}
-                                isExpanded={expandedProps.has(prop.name)}
-                                onToggleExpansion={() => togglePropExpansion(prop.name)}
-                              />
-                            )
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                <PropsList
+                  requiredProps={requiredProps}
+                  optionalProps={optionalProps}
+                  values={values}
+                  expandedProps={expandedProps}
+                  showOptionalProps={showOptionalProps}
+                  onPropChange={handlePropChange}
+                  onToggleExpansion={togglePropExpansion}
+                  onToggleOptionalProps={() => setShowOptionalProps(!showOptionalProps)}
+                />
               </div>
             </ResizablePanel>
 
@@ -255,111 +164,145 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
         ) : (
           /* Props List - Full Height when no examples */
           <div className="h-full overflow-y-auto">
-            <div className="p-4 space-y-6">
-              {/* Required Props */}
-              {requiredProps.length > 0 && (
-                <div>
-                  <div className="bg-red-50 border-l-4 border-red-400 p-3 mb-4 rounded-r-lg">
-                    <h4 className="text-lg font-bold text-red-800 flex items-center">
-                      <span className="mr-2">🔴</span>
-                      Required Props
-                      <span className="ml-3 text-sm bg-red-100 text-red-700 px-3 py-1 rounded-full font-medium">
-                        {requiredProps.length}
-                      </span>
-                    </h4>
-                    <p className="text-sm text-red-600 mt-1">These props must be provided</p>
-                  </div>
-                  <div className="space-y-4 ml-2">
-                    {requiredProps.map(prop => (
-                      prop.type === 'function' ? (
-                        <FunctionPropEditor
-                          key={prop.name}
-                          prop={prop}
-                          value={values[prop.name]}
-                          onChange={(value) => handlePropChange(prop.name, value)}
-                          isExpanded={expandedProps.has(prop.name)}
-                          onToggleExpansion={() => togglePropExpansion(prop.name)}
-                        />
-                      ) : (
-                        <PropControl
-                          key={prop.name}
-                          prop={prop}
-                          value={values[prop.name]}
-                          onChange={(value) => handlePropChange(prop.name, value)}
-                          isExpanded={expandedProps.has(prop.name)}
-                          onToggleExpansion={() => togglePropExpansion(prop.name)}
-                        />
-                      )
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Optional Props */}
-              {optionalProps.length > 0 && (
-                <div>
-                  <div className="bg-blue-50 border-l-4 border-blue-400 p-3 mb-4 rounded-r-lg">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="text-lg font-bold text-blue-800 flex items-center">
-                          <span className="mr-2">🔵</span>
-                          Optional Props
-                          <span className="ml-3 text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">
-                            {optionalProps.length}
-                          </span>
-                        </h4>
-                        <p className="text-sm text-blue-600 mt-1">Customize these props as needed</p>
-                      </div>
-                      <button
-                        onClick={() => setShowOptionalProps(!showOptionalProps)}
-                        className="flex items-center text-sm text-blue-700 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-3 py-1 rounded-lg transition-colors"
-                        title={showOptionalProps ? "Hide optional props" : "Show optional props"}
-                      >
-                        {showOptionalProps ? (
-                          <>
-                            <EyeOffIcon className="w-4 h-4 mr-1" />
-                            Hide
-                          </>
-                        ) : (
-                          <>
-                            <EyeIcon className="w-4 h-4 mr-1" />
-                            Show
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                  {showOptionalProps && (
-                    <div className="space-y-4 ml-2">
-                      {optionalProps.map(prop => (
-                        prop.type === 'function' ? (
-                          <FunctionPropEditor
-                            key={prop.name}
-                            prop={prop}
-                            value={values[prop.name]}
-                            onChange={(value) => handlePropChange(prop.name, value)}
-                            isExpanded={expandedProps.has(prop.name)}
-                            onToggleExpansion={() => togglePropExpansion(prop.name)}
-                          />
-                        ) : (
-                          <PropControl
-                            key={prop.name}
-                            prop={prop}
-                            value={values[prop.name]}
-                            onChange={(value) => handlePropChange(prop.name, value)}
-                            isExpanded={expandedProps.has(prop.name)}
-                            onToggleExpansion={() => togglePropExpansion(prop.name)}
-                          />
-                        )
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+            <PropsList
+              requiredProps={requiredProps}
+              optionalProps={optionalProps}
+              values={values}
+              expandedProps={expandedProps}
+              showOptionalProps={showOptionalProps}
+              onPropChange={handlePropChange}
+              onToggleExpansion={togglePropExpansion}
+              onToggleOptionalProps={() => setShowOptionalProps(!showOptionalProps)}
+            />
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// New component for rendering props list
+interface PropsListProps {
+  requiredProps: PropDefinition[];
+  optionalProps: PropDefinition[];
+  values: Record<string, any>;
+  expandedProps: Set<string>;
+  showOptionalProps: boolean;
+  onPropChange: (propName: string, value: any) => void;
+  onToggleExpansion: (propName: string) => void;
+  onToggleOptionalProps: () => void;
+}
+
+function PropsList({ 
+  requiredProps, 
+  optionalProps, 
+  values, 
+  expandedProps, 
+  showOptionalProps, 
+  onPropChange, 
+  onToggleExpansion, 
+  onToggleOptionalProps 
+}: PropsListProps) {
+  return (
+    <div className="p-4 space-y-6">
+      {/* Required Props */}
+      {requiredProps.length > 0 && (
+        <div>
+          <div className="bg-red-50 border-l-4 border-red-400 p-3 mb-4 rounded-r-lg">
+            <h4 className="text-lg font-bold text-red-800 flex items-center">
+              <span className="mr-2">🔴</span>
+              Required Props
+              <span className="ml-3 text-sm bg-red-100 text-red-700 px-3 py-1 rounded-full font-medium">
+                {requiredProps.length}
+              </span>
+            </h4>
+          </div>
+          <div className="space-y-4 ml-2">
+            {requiredProps.map(prop => (
+              prop.type === 'function' ? (
+                <FunctionPropEditor
+                  key={prop.name}
+                  prop={prop}
+                  value={values[prop.name]}
+                  onChange={(value) => onPropChange(prop.name, value)}
+                  isExpanded={expandedProps.has(prop.name)}
+                  onToggleExpansion={() => onToggleExpansion(prop.name)}
+                />
+              ) : (
+                <PropControl
+                  key={prop.name}
+                  prop={prop}
+                  value={values[prop.name]}
+                  onChange={(value) => onPropChange(prop.name, value)}
+                  isExpanded={expandedProps.has(prop.name)}
+                  onToggleExpansion={() => onToggleExpansion(prop.name)}
+                />
+              )
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Optional Props */}
+      {optionalProps.length > 0 && (
+        <div>
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-3 mb-4 rounded-r-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-lg font-bold text-blue-800 flex items-center">
+                  <span className="mr-2">🔵</span>
+                  Optional Props
+                  <span className="ml-3 text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">
+                    {optionalProps.length}
+                  </span>
+                </h4>
+              </div>
+              <button
+                onClick={onToggleOptionalProps}
+                className="flex items-center text-sm text-blue-700 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-3 py-1 rounded-lg transition-colors"
+                title={showOptionalProps ? "Hide optional props" : "Show optional props"}
+              >
+                {showOptionalProps ? (
+                  <>
+                    <EyeOffIcon className="w-4 h-4 mr-1" />
+                    Hide
+                  </>
+                ) : (
+                  <>
+                    <EyeIcon className="w-4 h-4 mr-1" />
+                    Show
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+          {showOptionalProps && (
+            <div className="space-y-4 ml-2">
+              {optionalProps.map(prop => (
+                prop.type === 'function' ? (
+                  <FunctionPropEditor
+                    key={prop.name}
+                    prop={prop}
+                    value={values[prop.name]}
+                    onChange={(value) => onPropChange(prop.name, value)}
+                    isExpanded={expandedProps.has(prop.name)}
+                    onToggleExpansion={() => onToggleExpansion(prop.name)}
+                  />
+                ) : (
+                  <PropControl
+                    key={prop.name}
+                    prop={prop}
+                    value={values[prop.name]}
+                    onChange={(value) => onPropChange(prop.name, value)}
+                    isExpanded={expandedProps.has(prop.name)}
+                    onToggleExpansion={() => onToggleExpansion(prop.name)}
+                  />
+                )
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
