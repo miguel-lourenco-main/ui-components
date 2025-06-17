@@ -202,19 +202,7 @@ export default function LocalComponentRenderer({
           .map(([key, value]) => `${key}: ${value.name || 'function'}`)
       });
 
-      console.log("propsWithFunctions", propsWithFunctions);
-
-      const propsWithFunctionsArray = Object.entries(propsWithFunctions).reduce((acc, [key, value]) => {
-        acc[key] = typeof value === 'string' && value.startsWith('[') && value.endsWith(']') ? [] : value;
-        return acc;
-      }, {} as Record<string, any>);
-
-      
-
-      console.log("propsWithFunctionsArray", propsWithFunctionsArray);
-      
-
-      return <ComponentToRender {...propsWithFunctionsArray} />;
+      return <ComponentToRender {...propsWithFunctions} />;
     } catch (renderError) {
       console.error('Component render error:', renderError);
       return (

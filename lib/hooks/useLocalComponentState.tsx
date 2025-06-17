@@ -283,7 +283,7 @@ export default function Example() {${functionDeclarationsCode}
 
     const defaultProps = component.props.reduce((acc, prop) => {
       if (prop.defaultValue !== undefined) {
-        acc[prop.name] = prop.defaultValue;
+        acc[prop.name] = prop.defaultValue === "[]" ? [] : prop.defaultValue;
       }
       return acc;
     }, {} as Record<string, any>);
