@@ -48,10 +48,26 @@ test:
     - npm install -g serve
     - echo "Installing Playwright browsers..."
     - pnpm exec playwright install --with-deps chromium
-  script:
-    - echo "Running e2e tests against built static files..."
-    - echo "Starting static file server on port 3000..."
-    - pnpm exec playwright test --config=playwright.ci.config.ts || exit 1
+      script:
+      - echo "Running e2e tests against built static files..."
+      - echo "Creating directory structure to match expected paths..."
+      - mkdir -p public_test/$CI_COMMIT_REF_SLUG
+      - cp -r out/* public_test/$CI_COMMIT_REF_SLUG/
+      - echo "Starting static file server on port 3000..."
+      - serve -s public_test -l 3000 &
+      - sleep 5  # Give the server time to start
+      - echo "Testing server response..."
+      - curl -f http://localhost:3000/$CI_COMMIT_REF_SLUG/ || echo "Server not responding properly"
+      - echo "Verifying website content..."
+      - curl -s http://localhost:3000/$CI_COMMIT_REF_SLUG/ | grep -q "<html" || (echo "ERROR - No HTML content found" && exit 1)
+      - curl -s http://localhost:3000/$CI_COMMIT_REF_SLUG/ | grep -q "<title" || (echo "ERROR - No title tag found" && exit 1)
+      - curl -s http://localhost:3000/$CI_COMMIT_REF_SLUG/ | grep -q "next" || (echo "ERROR - Next.js content not found" && exit 1)
+      - echo "✅ Website is serving properly"
+      - echo "Testing component registry availability..."
+      - curl -f http://localhost:3000/$CI_COMMIT_REF_SLUG/generated-registry.json || (echo "ERROR - Component registry not available" && exit 1)
+      - echo "✅ Component registry is accessible"
+      - echo "Running Playwright tests..."
+      - pnpm exec playwright test --config=playwright.ci.config.ts --workers=1 || exit 1
   after_script:
     - echo "Cleaning up background processes..."
     - pkill -f "serve" || true  # Kill the serve process, ignore if already dead
