@@ -65,7 +65,7 @@ temp/
 
 # Generated files
 lib/generated-registry.json 
-
 test-results/
-
+tests-examples/
 playwright-report/
+playwright/.cache/

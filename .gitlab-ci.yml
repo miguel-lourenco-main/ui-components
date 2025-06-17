@@ -51,8 +51,15 @@ test:
   script:
     - echo "Running e2e tests against built static files..."
     - echo "Starting static file server on port 3000..."
-    - serve -s out -l 3000 &
+    - serve -s out -l 3000 --single &
     - sleep 5  # Give the server time to start
+    - echo "Testing server response..."
+    - curl -f http://localhost:3000/ || echo "Server not responding properly"
+    - echo "Verifying website content..."
+    - curl -s http://localhost:3000/ | grep -q "<html" || (echo "ERROR: No HTML content found" && exit 1)
+    - curl -s http://localhost:3000/ | grep -q "<title" || (echo "ERROR: No title tag found" && exit 1)
+    - curl -s http://localhost:3000/ | grep -q "next" || (echo "ERROR: Next.js content not found" && exit 1)
+    - echo "✅ Website is serving properly"
     - echo "Running Playwright tests..."
     - pnpm exec playwright test --config=playwright.ci.config.ts || exit 1
   after_script:
