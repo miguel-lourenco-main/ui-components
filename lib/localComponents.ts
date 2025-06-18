@@ -5,6 +5,38 @@ import { debugLog } from '@/lib/constants';
 let registryCache: any = null;
 
 /**
+ * Get the base path for the current deployment environment
+ * This matches the basePath logic from next.config.js
+ */
+function getBasePath(): string {
+  // Check if we're in a browser environment
+  if (typeof window === 'undefined') {
+    // Server-side: check environment variables (same logic as next.config.js)
+    if (process.env.NODE_ENV === 'production' && 
+        process.env.CI_COMMIT_REF_SLUG && 
+        process.env.CI_COMMIT_REF_SLUG !== 'main') {
+      return `/${process.env.CI_COMMIT_REF_SLUG}`;
+    }
+    return '';
+  }
+  
+  // Client-side: detect from current URL path
+  const currentPath = window.location.pathname;
+  
+  // If we're in a subdirectory (branch deployment), extract the base path
+  const pathSegments = currentPath.split('/').filter(Boolean);
+  if (pathSegments.length > 0 && pathSegments[0] !== '_next') {
+    // Check if first segment looks like a branch name (common GitLab branch patterns)
+    const firstSegment = pathSegments[0];
+    if (firstSegment.includes('-') || firstSegment.match(/^(feat|feature|fix|hotfix|develop|staging)/)) {
+      return `/${firstSegment}`;
+    }
+  }
+  
+  return '';
+}
+
+/**
  * Load the component registry from the generated JSON file
  * This works in both development and static export environments
  */
@@ -17,9 +49,12 @@ async function loadRegistry(): Promise<any> {
   debugLog('general', '🔄 Loading registry...');
 
   try {
-    // First, try to fetch the registry as a static asset
-    const registryPath = '/generated-registry.json';
+    // Get the correct base path for the current environment
+    const basePath = getBasePath();
+    const registryPath = `${basePath}/generated-registry.json`;
     debugLog('general', `🌐 Fetching registry from: ${registryPath}`);
+    debugLog('general', `🔍 Base path detected: "${basePath}"`);
+    debugLog('general', `🔍 Environment: NODE_ENV=${process.env.NODE_ENV}, CI_COMMIT_REF_SLUG=${process.env.CI_COMMIT_REF_SLUG}`);
     
     const response = await fetch(registryPath);
     if (!response.ok) {
@@ -173,8 +208,6 @@ export async function discoverLocalComponents(): Promise<ComponentDiscoveryResul
     };
   }
 }
-
-
 
 /**
  * Load detailed component data (code, props, examples) for a specific component
