@@ -3,8 +3,8 @@ import React from 'react';
 interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
-  children: React.ReactNode;
-  onClick?: () => void;
+  children: React.ReactNode | (() => React.ReactNode);
+  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   disabled?: boolean;
   className?: string;
 }
@@ -55,8 +55,9 @@ export default function Button({
       className={combinedClassName}
       onClick={onClick}
       disabled={disabled}
+      data-testid="rendered-component-button"
     >
-      {children}
+      {typeof children === 'function' ? children() : children}
     </button>
   );
 } 

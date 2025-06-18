@@ -100,6 +100,8 @@ export default function AudioRecorder({
             Name
           </label>
           <Input
+            id="audio-name"
+            name="audio-name"
             className="w-72"
             placeholder={placeholder}
             value={label}

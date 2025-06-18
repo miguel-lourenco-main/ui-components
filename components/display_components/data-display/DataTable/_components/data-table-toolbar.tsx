@@ -31,6 +31,8 @@ export function DataTableToolbar<TData>({
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2 pr-2">
         <Input
+          id={`filter-${tableLabel}`}
+          name={`filter-${tableLabel}`}
           placeholder={`Filter ${tableLabel}...`}
           value={(table.getColumn(identifier)?.getFilterValue() as string) ?? ""}
           onChange={(event) =>

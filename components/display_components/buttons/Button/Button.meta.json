@@ -22,9 +22,17 @@
     },
     {
       "name": "children",
-      "type": "string",
+      "type": "function",
       "required": true,
-      "description": "Button content/text"
+      "description": "Function that returns JSX for the button content.",
+      "defaultValue": {
+        "type": "function",
+        "source": "return \"Button\";"
+      },
+      "functionSignature": {
+        "params": "",
+        "returnType": "React.ReactNode"
+      }
     },
     {
       "name": "onClick",

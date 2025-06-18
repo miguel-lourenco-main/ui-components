@@ -59,6 +59,8 @@ export function FileInputButton({
       {content(handleFileUpload)}
       {/* Hidden file input */}
       <input
+        id="file-input-button"
+        name="file-input-button"
         type="file"
         multiple={true}
         ref={fileInputRef}

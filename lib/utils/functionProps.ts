@@ -2,12 +2,62 @@ import { FunctionPropValue } from '@/types';
 import { parse } from 'acorn';
 import { simple as walkSimple } from 'acorn-walk';
 import React from 'react';
+import type { PropDefinition } from '@/types';
+// @ts-ignore - Babel standalone doesn't have perfect types
+import * as Babel from '@babel/standalone';
+import { validateFunctionCode, determineLanguageFromReturnType, getValidationSummary } from './codeValidation';
 
 /**
  * Check if a value is a function prop value object
  */
 export function isFunctionPropValue(value: any): value is FunctionPropValue {
   return value && typeof value === 'object' && value.type === 'function' && typeof value.source === 'string';
+}
+
+/**
+ * Transform JSX to JavaScript using Babel
+ */
+function transformJSXWithBabel(jsxCode: string, params: string = ''): string {
+  try {
+    // If the code starts with "return", we need to wrap it in a function for Babel
+    let codeToTransform = jsxCode.trim();
+    let isReturnStatement = false;
+    
+    if (codeToTransform.startsWith('return ')) {
+      // Extract the JSX part after "return "
+      const jsxPart = codeToTransform.substring(7).trim();
+      // Wrap in a function for Babel to process
+      codeToTransform = `function temp(${params}) {\n  return ${jsxPart}\n}`;
+      isReturnStatement = true;
+    } else if (!codeToTransform.startsWith('function') && !codeToTransform.includes('=>')) {
+      // If it's just JSX without function wrapper, wrap it
+      codeToTransform = `function temp(${params}) {\n  ${jsxCode}\n}`;
+    }
+    
+    const result = Babel.transform(codeToTransform, {
+      presets: [['react', { runtime: 'classic' }]],
+      plugins: [
+        ['transform-react-jsx', { pragma: 'React.createElement' }]
+      ]
+    });
+    
+    let transformedCode = result.code || jsxCode;
+    
+    // If we wrapped it in a function, extract the body
+    if (isReturnStatement || (!jsxCode.startsWith('function') && !jsxCode.includes('=>'))) {
+      // Extract the function body
+      const match = transformedCode.match(/function temp\([^)]*\)\s*\{([\s\S]*)\}/);
+      if (match) {
+        transformedCode = match[1].trim();
+      }
+    }
+    
+    return transformedCode;
+  } catch (error) {
+    console.warn('Babel JSX transformation failed:', error);
+    // Fallback to original code if transformation fails
+    return jsxCode;
+  }
 }
 
 /**
@@ -75,83 +125,147 @@ export function functionToFunctionPropValue(func: Function, signature?: { params
 }
 
 /**
- * Convert JSX string to React.createElement calls
+ * Extract parameter names from TypeScript function signature metadata
  */
-function jsxToReactCreateElement(jsxString: string): string {
-  // Simple JSX to React.createElement conversion
-  // This is a basic implementation - for production, you'd want a proper JSX parser
+function extractParamNamesFromMetadata(functionSignature?: { params: string; returnType: string }): string[] {
+  if (!functionSignature || !functionSignature.params) {
+    return [];
+  }
+
+  const paramsString = functionSignature.params;
   
-  // Handle the specific case of our toolbar buttons
-  if (jsxString.includes('<div className="flex gap-2">')) {
-    return `
-      return React.createElement('div', { className: 'flex gap-2' },
-        React.createElement('button', {
-          key: 'add',
-          className: 'px-3 py-1 text-sm border rounded hover:bg-gray-50'
-        }, 'Add User'),
-        hasSelected && React.createElement('button', {
-          key: 'delete',
-          className: 'px-3 py-1 text-sm border rounded bg-red-600 text-white hover:bg-red-700'
-        }, 'Delete Selected')
-      );
-    `;
+  // Split on commas but handle nested types
+  const params: string[] = [];
+  let currentParam = '';
+  let depth = 0;
+  let inString = false;
+  let stringChar = '';
+
+  for (let i = 0; i < paramsString.length; i++) {
+    const char = paramsString[i];
+    
+    if (!inString) {
+      if (char === '"' || char === "'") {
+        inString = true;
+        stringChar = char;
+      } else if (char === '<' || char === '(' || char === '{' || char === '[') {
+        depth++;
+      } else if (char === '>' || char === ')' || char === '}' || char === ']') {
+        depth--;
+      } else if (char === ',' && depth === 0) {
+        if (currentParam.trim()) {
+          params.push(currentParam.trim());
+        }
+        currentParam = '';
+        continue;
+      }
+    } else if (char === stringChar && paramsString[i - 1] !== '\\') {
+      inString = false;
+      stringChar = '';
+    }
+    
+    currentParam += char;
   }
   
-  // Fallback for other JSX
-  return `
-    console.log('JSX function called with args:', arguments);
-    return React.createElement('div', { 
-      className: 'bg-yellow-100 p-2 rounded text-sm' 
-    }, 'JSX Function Result');
-  `;
+  // Add the last parameter
+  if (currentParam.trim()) {
+    params.push(currentParam.trim());
+  }
+
+  // Extract just the parameter names (remove type annotations)
+  return params.map(param => {
+    const colonIndex = param.indexOf(':');
+    if (colonIndex > -1) {
+      return param.substring(0, colonIndex).trim();
+    }
+    return param.trim();
+  }).filter(Boolean);
 }
 
 /**
- * Convert a FunctionPropValue to an actual function
+ * Convert a FunctionPropValue to an actual function using metadata for parameters
  */
-export function functionPropValueToFunction(propValue: FunctionPropValue, propName: string): Function {
+export function functionPropValueToFunction(
+  propValue: FunctionPropValue, 
+  propName: string, 
+  propDefinition?: PropDefinition
+): Function {
   if (!propValue.source.trim()) {
     // Return a no-op function for empty source
     return () => {};
   }
 
   try {
-    const signature = propValue.signature || { params: '...args', returnType: 'any' };
+    // Use metadata from PropDefinition first, then fall back to signature in propValue
+    const functionSignature = propDefinition?.functionSignature || propValue.signature;
     
-    // Strip TypeScript type annotations from parameters for JavaScript execution
-    const jsParams = signature.params.split(',').map(param => {
-      const trimmed = param.trim();
-      const colonIndex = trimmed.indexOf(':');
-      // Extract just the parameter name, removing type annotations
-      return colonIndex > -1 ? trimmed.substring(0, colonIndex).trim() : trimmed;
-    }).join(', ');
+    console.log(`🔍 Processing function ${propName}:`, {
+      hasMetadata: !!propDefinition?.functionSignature,
+      originalParams: functionSignature?.params,
+      source: propValue.source.substring(0, 100) + '...'
+    });
+    
+  // Extract parameter names from metadata
+  const paramNames = extractParamNamesFromMetadata(functionSignature);
+  const jsParams = paramNames.join(', ');
+    
+    console.log(`🔍 Extracted parameters for ${propName}:`, {
+      originalParams: functionSignature?.params,
+      extractedParamNames: paramNames,
+      finalJsParams: jsParams
+    });
     
     // Check if the source contains JSX
     const containsJSX = propValue.source.includes('<') && propValue.source.includes('>');
     
     if (containsJSX) {
-      // Convert JSX to React.createElement calls
-      const reactCode = jsxToReactCreateElement(propValue.source);
-      const fullFunction = `(${jsParams}) => {\n${reactCode}\n}`;
-      
-      // Create the actual function with React in scope
-      const actualFunction = new Function('React', 'return ' + fullFunction)(React);
-      
-      // Add debugging wrapper
-      const wrappedFunction = (...args: any[]) => {
+      // For JSX functions, use Babel to transform JSX to React.createElement
+      const jsxFunction = (...args: any[]) => {
         console.log(`🚀 JSX FUNCTION CALLED: ${propName} with args:`, args);
-        return actualFunction(...args);
+        
+        try {
+          // Transform JSX using Babel, passing parameter info for proper context
+          const transformedSource = transformJSXWithBabel(propValue.source, jsParams);
+          
+          const functionCode = `(${jsParams}) => {
+            ${transformedSource}
+          }`;
+          
+          console.log(`🔍 Creating JSX function for ${propName} with Babel transformation`);
+          console.log(`🔍 Transformed source:`, transformedSource);
+          
+          const createdFunction = new Function('React', ...paramNames, `return (${functionCode})(...arguments)`);
+          return createdFunction(React, ...args);
+        } catch (error) {
+          console.error(`❌ Error in JSX function ${propName}:`, error);
+          
+          // Return compact error display for the UI
+          return React.createElement('div', {
+            className: 'inline-flex items-center gap-1 px-2 py-1 bg-red-100 border border-red-300 rounded text-xs text-red-700',
+            title: `Function Error: ${error instanceof Error ? error.message : String(error)}`
+          }, [
+            React.createElement('span', { key: 'icon' }, '❌'),
+            React.createElement('span', { key: 'name' }, propName),
+            React.createElement('span', { key: 'error' }, 'Error')
+          ]);
+        }
       };
       
       // Copy properties to maintain function identity
-      Object.defineProperty(wrappedFunction, 'name', { value: propName });
-      (wrappedFunction as any).__originalSource = propValue.source;
-      (wrappedFunction as any).__propName = propName;
+      Object.defineProperty(jsxFunction, 'name', { value: propName });
+      (jsxFunction as any).__originalSource = propValue.source;
+      (jsxFunction as any).__propName = propName;
+      (jsxFunction as any).__isJSX = true;
       
-      return wrappedFunction;
+      return jsxFunction;
     } else {
-      // For non-JSX content, use the original approach with JavaScript-compatible parameters
+      // For non-JSX content, create the function normally
       const fullFunction = `(${jsParams}) => {\n${propValue.source}\n}`;
+      
+      console.log(`🔍 Creating non-JSX function for ${propName}:`, {
+        jsParams,
+        fullFunction: fullFunction.substring(0, 200) + '...'
+      });
             
       // Create the actual function
       const actualFunction = new Function('return ' + fullFunction)();
@@ -172,7 +286,18 @@ export function functionPropValueToFunction(propValue: FunctionPropValue, propNa
   } catch (error) {
     console.warn(`Failed to create function for ${propName}:`, error);
     console.log(`Full function that failed:`, propValue);
-    return () => {};
+    
+    // Return a function that shows a compact error instead of completely failing
+    return (...args: any[]) => {
+      return React.createElement('div', {
+        className: 'inline-flex items-center gap-1 px-2 py-1 bg-red-100 border border-red-300 rounded text-xs text-red-700',
+        title: `Function Creation Error: ${error instanceof Error ? error.message : String(error)}`
+      }, [
+        React.createElement('span', { key: 'icon' }, '❌'),
+        React.createElement('span', { key: 'name' }, propName),
+        React.createElement('span', { key: 'error' }, 'Failed')
+      ]);
+    };
   }
 }
 
@@ -196,12 +321,17 @@ export function convertFunctionsToFunctionPropValues(props: Record<string, any>)
 /**
  * Convert props object, converting FunctionPropValues to actual functions
  */
-export function convertFunctionPropValuesToFunctions(props: Record<string, any>): Record<string, any> {
+export function convertFunctionPropValuesToFunctions(
+  props: Record<string, any>, 
+  propDefinitions?: PropDefinition[]
+): Record<string, any> {
   const converted: Record<string, any> = {};
   
   for (const [key, value] of Object.entries(props)) {
     if (isFunctionPropValue(value)) {
-      converted[key] = functionPropValueToFunction(value, key);
+      // Find the corresponding prop definition for metadata
+      const propDefinition = propDefinitions?.find(p => p.name === key);
+      converted[key] = functionPropValueToFunction(value, key, propDefinition);
     } else {
       converted[key] = value;
     }
@@ -231,4 +361,4 @@ export function setFunctionSource(source: string, signature?: { params: string; 
     source,
     signature
   };
-} 
+}

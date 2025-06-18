@@ -27,12 +27,12 @@ export const COMPONENT_REGISTRY: Record<string, React.ComponentType<any>> = {
 };
 
 // Debug: Log registry contents
-debugLog('COMPONENT_REGISTRY', '🏛️ Component Registry initialized with:', Object.keys(COMPONENT_REGISTRY));
-debugLog('COMPONENT_REGISTRY', '🧩 All components loaded:');
-debugLog('COMPONENT_REGISTRY', '  - DataTable:', DataTable);
-debugLog('COMPONENT_REGISTRY', '  - Button:', Button);
-debugLog('COMPONENT_REGISTRY', '  - Card:', Card);
-debugLog('COMPONENT_REGISTRY', '  - Input:', Input);
+debugLog('general', '🏛️ Component Registry initialized with:', Object.keys(COMPONENT_REGISTRY));
+debugLog('general', '🧩 All components loaded:');
+debugLog('general', '  - DataTable:', DataTable);
+debugLog('general', '  - Button:', Button);
+debugLog('general', '  - Card:', Card);
+debugLog('general', '  - Input:', Input);
 
 // Make registry available globally for debugging
 if (typeof window !== 'undefined') {
@@ -41,16 +41,16 @@ if (typeof window !== 'undefined') {
   window.Button = Button;
   window.Card = Card;
   window.Input = Input;
-  debugLog('COMPONENT_REGISTRY', '🌍 All components exposed globally for debugging');
+  debugLog('general', '🌍 All components exposed globally for debugging');
 }
 
 /**
  * Get a component by name from the static registry
  */
 export function getComponentByName(name: string): React.ComponentType<any> | null {
-  debugLog('COMPONENT_REGISTRY', `🔍 Looking for component: ${name} in registry with keys:`, Object.keys(COMPONENT_REGISTRY));
+  debugLog('general', `🔍 Looking for component: ${name} in registry with keys:`, Object.keys(COMPONENT_REGISTRY));
   const component = COMPONENT_REGISTRY[name] || null;
-  debugLog('COMPONENT_REGISTRY', `${component ? '✅' : '❌'} Component ${name} ${component ? 'found' : 'not found'}`);
+  debugLog('general', `${component ? '✅' : '❌'} Component ${name} ${component ? 'found' : 'not found'}`);
   return component;
 }
 

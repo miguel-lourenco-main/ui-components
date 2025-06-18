@@ -2,6 +2,7 @@ import React from 'react';
 
 interface InputProps {
   type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url';
+  name?: string;
   placeholder?: string;
   value?: string;
   defaultValue?: string;
@@ -20,6 +21,7 @@ interface InputProps {
 
 export default function Input({
   type = 'text',
+  name,
   placeholder,
   value,
   defaultValue,
@@ -64,6 +66,7 @@ export default function Input({
       
       <input
         id={inputId}
+        name={name}
         type={type}
         placeholder={placeholder}
         value={value}

@@ -5,15 +5,12 @@ import { Component, LocalComponent } from '@/types';
 import Image from 'next/image';
 
 interface CodeButtonsProps {
-  component: Component | LocalComponent | null;
+  component: Component | LocalComponent;
   showCode: boolean;
   onToggleCode: () => void;
 }
 
 export default function CodeButtons({ component, showCode, onToggleCode }: CodeButtonsProps) {
-  if (!component) {
-    return null;
-  }
 
   const getGitLabUrl = (component: Component | LocalComponent) => {
     // Base GitLab repository URL - you can make this configurable

@@ -4,26 +4,24 @@ export const MAX_FILE_SIZE_MB = 256 * 1024 * 1024;
 // Human-readable string representation of the maximum file size
 export const MAX_FILE_SIZE_STRING = `${MAX_FILE_SIZE_MB / 1024 / 1024}MB`;
 
-// Debug configuration - control console.log statements throughout the app
-export const DEBUG_CONFIG = {
-  // Component system debugging
-  COMPONENT_REGISTRY: false, // Component loading/discovery
-  COMPONENT_STATE: false, // Hook state changes (very verbose)
-  COMPONENT_PROPS: false, // Props updates and function generation
-  
-  // Editor debugging
-  FUNCTION_EDITOR: false, // Function prop editor debugging
-  
-  // Build and scripts
-  BUILD_SCRIPTS: false, // Keep build script logs as they're helpful
-  
-  // Debug utilities
-  DEBUG_SCRIPTS: false, // Keep debug script logs as they're meant for debugging
-} as const;
+// Toggle detailed logging for different parts of the app
+export const DEBUG_ENABLED = {
+  general: true,
+  state: true,
+  props: true,
+  effects: true,
+  validation: true,
+  FUNCTION_EDITOR: true,
+};
 
-// Helper function to conditionally log
-export function debugLog(category: keyof typeof DEBUG_CONFIG, ...args: any[]) {
-  if (DEBUG_CONFIG[category]) {
+type DebugCategory = keyof typeof DEBUG_ENABLED;
+
+/**
+ * A wrapper for console.log that can be toggled by category.
+ * Helps to avoid having to comment/uncomment log statements everywhere.
+ */
+export function debugLog(category: DebugCategory, ...args: any[]) {
+  if (DEBUG_ENABLED[category]) {
     console.log(...args);
   }
 }

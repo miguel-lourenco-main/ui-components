@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Component, LocalComponent, PropDefinition } from '@/types';
 import { RefreshCwIcon, InfoIcon, EyeIcon, EyeOffIcon } from 'lucide-react';
 import { debugLog } from '@/lib/constants';
@@ -21,8 +21,10 @@ interface PropsPanelProps {
 }
 
 export default function PropsPanel({ component, values, onChange, onSelectExample, selectedExampleIndex = -1 }: PropsPanelProps) {
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const [expandedProps, setExpandedProps] = useState<Set<string>>(new Set());
+  const [showOptionalProps, setShowOptionalProps] = useState<boolean>(true);
+
+  debugLog('props', `PropsPanel receiving props for ${component.name}`, { values });
 
   const handlePropChange = (propName: string, value: any) => {
     onChange({
@@ -31,20 +33,22 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
     });
   };
 
+  console.log("values", values);
+
   const resetToDefaults = () => {
-    debugLog('COMPONENT_STATE', '🎛️ PropsPanel resetToDefaults called');
+    debugLog('state', '🎛️ PropsPanel resetToDefaults called');
     
     // If there's a selected example, reset to that example using selectExample
     // This ensures we use the same safe prop copying logic as the example selection
     if (selectedExampleIndex >= 0 && component.examples && component.examples[selectedExampleIndex] && onSelectExample) {
       const currentExample = component.examples[selectedExampleIndex];
-      debugLog('COMPONENT_STATE', '🎛️ Resetting to current example props via selectExample:', currentExample.name);
+      debugLog('state', '🎛️ Resetting to current example props via selectExample:', currentExample.name);
       onSelectExample(selectedExampleIndex);
       return;
     }
     
     // Otherwise, fall back to metadata defaults
-    debugLog('COMPONENT_STATE', '🎛️ Resetting to metadata defaults (no example selected)');
+    debugLog('state', '🎛️ Resetting to metadata defaults (no example selected)');
     const defaultValues = component.props.reduce((acc, prop) => {
       acc[prop.name] = prop.defaultValue;
       return acc;
@@ -62,9 +66,19 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
     setExpandedProps(newExpanded);
   };
 
-  const requiredProps = component.props.filter(prop => prop.required && prop.type !== 'function');
-  const advancedProps = component.props.filter(prop => !prop.required && prop.type !== 'function');
-  const functionProps = component.props.filter(prop => prop.type === 'function');
+  // Filter out specific props for DataTable component
+  const shouldHideProp = (prop: PropDefinition) => {
+    if (component.name === 'DataTable') {
+      // Hide filters, initialSorting, and all function props for DataTable
+      return prop.name === 'filters' || 
+             prop.name === 'initialSorting' || 
+             prop.type === 'function';
+    }
+    return false;
+  };
+
+  const requiredProps = component.props.filter(prop => prop.required && !shouldHideProp(prop));
+  const optionalProps = component.props.filter(prop => !prop.required && !shouldHideProp(prop));
 
   const hasExamples = component.examples && component.examples.length > 0;
 
@@ -84,17 +98,10 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
           </button>
         </div>
         
-        <div className="flex items-center justify-between text-sm text-gray-600">
+        <div className="flex items-center justify-start text-sm text-gray-600">
           <span>
             {component.props.length} props total
           </span>
-          <button
-            onClick={() => setShowAdvanced(!showAdvanced)}
-            className="flex items-center hover:text-gray-900"
-          >
-            {showAdvanced ? <EyeOffIcon className="w-4 h-4 mr-1" /> : <EyeIcon className="w-4 h-4 mr-1" />}
-            {showAdvanced ? 'Hide' : 'Show'} advanced
-          </button>
         </div>
       </div>
 
@@ -105,79 +112,16 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
             {/* Props List Panel */}
             <ResizablePanel defaultSize={70} minSize={30}>
               <div className="h-full overflow-y-auto">
-                <div className="p-4 space-y-6">
-                  {/* Required Props */}
-                  {requiredProps.length > 0 && (
-                    <div>
-                      <h4 className="font-medium text-gray-900 mb-3 flex items-center">
-                        Required Props
-                        <span className="ml-2 text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
-                          {requiredProps.length}
-                        </span>
-                      </h4>
-                      <div className="space-y-4">
-                        {requiredProps.map(prop => (
-                          <PropControl
-                            key={prop.name}
-                            prop={prop}
-                            value={values[prop.name]}
-                            onChange={(value) => handlePropChange(prop.name, value)}
-                            isExpanded={expandedProps.has(prop.name)}
-                            onToggleExpansion={() => togglePropExpansion(prop.name)}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Advanced Props */}
-                  {advancedProps.length > 0 && showAdvanced && (
-                    <div>
-                      <h4 className="font-medium text-gray-900 mb-3 flex items-center">
-                        Advanced Props
-                        <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                          {advancedProps.length}
-                        </span>
-                      </h4>
-                      <div className="space-y-4">
-                        {advancedProps.map(prop => (
-                          <PropControl
-                            key={prop.name}
-                            prop={prop}
-                            value={values[prop.name]}
-                            onChange={(value) => handlePropChange(prop.name, value)}
-                            isExpanded={expandedProps.has(prop.name)}
-                            onToggleExpansion={() => togglePropExpansion(prop.name)}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Function Props (Advanced) */}
-                  {functionProps.length > 0 && showAdvanced && (
-                    <div>
-                      <h4 className="font-medium text-gray-900 mb-3 flex items-center">
-                        Function Props
-                        <span className="ml-2 text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
-                          {functionProps.length}
-                        </span>
-                      </h4>
-                      <div className="space-y-6">
-                        {functionProps.map(prop => (
-                          <FunctionPropEditor
-                            key={prop.name}
-                            prop={prop}
-                            value={values[prop.name]}
-                            onChange={(value) => handlePropChange(prop.name, value)}
-                            isExpanded={expandedProps.has(prop.name)}
-                            onToggleExpansion={() => togglePropExpansion(prop.name)}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <PropsList
+                  requiredProps={requiredProps}
+                  optionalProps={optionalProps}
+                  values={values}
+                  expandedProps={expandedProps}
+                  showOptionalProps={showOptionalProps}
+                  onPropChange={handlePropChange}
+                  onToggleExpansion={togglePropExpansion}
+                  onToggleOptionalProps={() => setShowOptionalProps(!showOptionalProps)}
+                />
               </div>
             </ResizablePanel>
 
@@ -195,7 +139,7 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
                         <button
                           key={index}
                           onClick={() => {
-                            debugLog('COMPONENT_STATE', '🎛️ PropsPanel example button clicked:', {
+                            debugLog('state', '🎛️ PropsPanel example button clicked:', {
                               exampleIndex: index,
                               exampleName: example.name,
                               hasOnSelectExample: !!onSelectExample,
@@ -231,82 +175,145 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
         ) : (
           /* Props List - Full Height when no examples */
           <div className="h-full overflow-y-auto">
-            <div className="p-4 space-y-6">
-              {/* Required Props */}
-              {requiredProps.length > 0 && (
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-3 flex items-center">
-                    Required Props
-                    <span className="ml-2 text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
-                      {requiredProps.length}
-                    </span>
-                  </h4>
-                  <div className="space-y-4">
-                    {requiredProps.map(prop => (
-                      <PropControl
-                        key={prop.name}
-                        prop={prop}
-                        value={values[prop.name]}
-                        onChange={(value) => handlePropChange(prop.name, value)}
-                        isExpanded={expandedProps.has(prop.name)}
-                        onToggleExpansion={() => togglePropExpansion(prop.name)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Advanced Props */}
-              {advancedProps.length > 0 && showAdvanced && (
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-3 flex items-center">
-                    Advanced Props
-                    <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                      {advancedProps.length}
-                    </span>
-                  </h4>
-                  <div className="space-y-4">
-                    {advancedProps.map(prop => (
-                      <PropControl
-                        key={prop.name}
-                        prop={prop}
-                        value={values[prop.name]}
-                        onChange={(value) => handlePropChange(prop.name, value)}
-                        isExpanded={expandedProps.has(prop.name)}
-                        onToggleExpansion={() => togglePropExpansion(prop.name)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Function Props (Advanced) */}
-              {functionProps.length > 0 && showAdvanced && (
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-3 flex items-center">
-                    Function Props
-                    <span className="ml-2 text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
-                      {functionProps.length}
-                    </span>
-                  </h4>
-                  <div className="space-y-6">
-                    {functionProps.map(prop => (
-                      <FunctionPropEditor
-                        key={prop.name}
-                        prop={prop}
-                        value={values[prop.name]}
-                        onChange={(value) => handlePropChange(prop.name, value)}
-                        isExpanded={expandedProps.has(prop.name)}
-                        onToggleExpansion={() => togglePropExpansion(prop.name)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+            <PropsList
+              requiredProps={requiredProps}
+              optionalProps={optionalProps}
+              values={values}
+              expandedProps={expandedProps}
+              showOptionalProps={showOptionalProps}
+              onPropChange={handlePropChange}
+              onToggleExpansion={togglePropExpansion}
+              onToggleOptionalProps={() => setShowOptionalProps(!showOptionalProps)}
+            />
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// New component for rendering props list
+interface PropsListProps {
+  requiredProps: PropDefinition[];
+  optionalProps: PropDefinition[];
+  values: Record<string, any>;
+  expandedProps: Set<string>;
+  showOptionalProps: boolean;
+  onPropChange: (propName: string, value: any) => void;
+  onToggleExpansion: (propName: string) => void;
+  onToggleOptionalProps: () => void;
+}
+
+function PropsList({ 
+  requiredProps, 
+  optionalProps, 
+  values, 
+  expandedProps, 
+  showOptionalProps, 
+  onPropChange, 
+  onToggleExpansion, 
+  onToggleOptionalProps 
+}: PropsListProps) {
+  return (
+    <div className="p-4 space-y-6">
+      {/* Required Props */}
+      {requiredProps.length > 0 && (
+        <div>
+          <div className="bg-red-50 border-l-4 border-red-400 p-3 mb-4 rounded-r-lg">
+            <h4 className="text-lg font-bold text-red-800 flex items-center">
+              <span className="mr-2">🔴</span>
+              Required Props
+              <span className="ml-3 text-sm bg-red-100 text-red-700 px-3 py-1 rounded-full font-medium">
+                {requiredProps.length}
+              </span>
+            </h4>
+          </div>
+          <div className="space-y-4 ml-2">
+            {requiredProps.map(prop => (
+              prop.type === 'function' ? (
+                <FunctionPropEditor
+                  key={prop.name}
+                  prop={prop}
+                  value={values[prop.name]}
+                  onChange={(value) => onPropChange(prop.name, value)}
+                  isExpanded={expandedProps.has(prop.name)}
+                  onToggleExpansion={() => onToggleExpansion(prop.name)}
+                />
+              ) : (
+                <PropControl
+                  key={prop.name}
+                  prop={prop}
+                  value={values[prop.name]}
+                  onChange={(value) => onPropChange(prop.name, value)}
+                  isExpanded={expandedProps.has(prop.name)}
+                  onToggleExpansion={() => onToggleExpansion(prop.name)}
+                />
+              )
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Optional Props */}
+      {optionalProps.length > 0 && (
+        <div>
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-3 mb-4 rounded-r-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-lg font-bold text-blue-800 flex items-center">
+                  <span className="mr-2">🔵</span>
+                  Optional Props
+                  <span className="ml-3 text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">
+                    {optionalProps.length}
+                  </span>
+                </h4>
+              </div>
+              <button
+                onClick={onToggleOptionalProps}
+                className="flex items-center text-sm text-blue-700 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-3 py-1 rounded-lg transition-colors"
+                title={showOptionalProps ? "Hide optional props" : "Show optional props"}
+              >
+                {showOptionalProps ? (
+                  <>
+                    <EyeOffIcon className="w-4 h-4 mr-1" />
+                    Hide
+                  </>
+                ) : (
+                  <>
+                    <EyeIcon className="w-4 h-4 mr-1" />
+                    Show
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+          {showOptionalProps && (
+            <div className="space-y-4 ml-2">
+              {optionalProps.map(prop => (
+                prop.type === 'function' ? (
+                  <FunctionPropEditor
+                    key={prop.name}
+                    prop={prop}
+                    value={values[prop.name]}
+                    onChange={(value) => onPropChange(prop.name, value)}
+                    isExpanded={expandedProps.has(prop.name)}
+                    onToggleExpansion={() => onToggleExpansion(prop.name)}
+                  />
+                ) : (
+                  <PropControl
+                    key={prop.name}
+                    prop={prop}
+                    value={values[prop.name]}
+                    onChange={(value) => onPropChange(prop.name, value)}
+                    isExpanded={expandedProps.has(prop.name)}
+                    onToggleExpansion={() => onToggleExpansion(prop.name)}
+                  />
+                )
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -320,13 +327,28 @@ interface PropControlProps {
 }
 
 function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: PropControlProps) {
+  const [jsonValidationError, setJsonValidationError] = useState<string | null>(null);
+  const [jsonTextValue, setJsonTextValue] = useState<string>('');
+
+  // Initialize JSON text value when component mounts or value changes
+  useEffect(() => {
+    if (prop.type === 'array' || prop.type === 'object') {
+      setJsonTextValue(value ? JSON.stringify(value, null, 2) : '');
+      setJsonValidationError(null);
+    }
+  }, [value, prop.type]);
+
   const renderControl = () => {
     switch (prop.type) {
       case 'boolean':
         return (
-          <label className="flex items-center">
+          <label 
+            className="flex items-center"
+          >
             <input
               type="checkbox"
+              id={`prop-${prop.name}`}
+              name={`prop-${prop.name}`}
               checked={value || false}
               onChange={(e) => onChange(e.target.checked)}
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -339,6 +361,8 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
         return (
           <input
             type="number"
+            id={`prop-${prop.name}`}
+            name={`prop-${prop.name}`}
             value={value || ''}
             onChange={(e) => onChange(e.target.value ? Number(e.target.value) : undefined)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -367,12 +391,18 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
           <div className="flex items-center space-x-2">
             <input
               type="color"
+              id={`prop-${prop.name}-color`}
+              name={`prop-${prop.name}-color`}
+              data-testid={`prop-control-${prop.name}-color`}
               value={value || '#000000'}
               onChange={(e) => onChange(e.target.value)}
               className="w-12 h-8 border border-gray-300 rounded"
             />
             <input
               type="text"
+              id={`prop-${prop.name}-text`}
+              name={`prop-${prop.name}-text`}
+              data-testid={`prop-control-${prop.name}-text`}
               value={value || ''}
               onChange={(e) => onChange(e.target.value || undefined)}
               placeholder="#000000"
@@ -414,19 +444,60 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
               <div className="mt-2">
                 <div className="text-xs text-gray-500 mb-1">JSON Editor:</div>
                 <textarea
-                  value={value ? JSON.stringify(value, null, 2) : ''}
+                  id={`prop-${prop.name}`}
+                  name={`prop-${prop.name}`}
+                  value={jsonTextValue}
                   onChange={(e) => {
+                    const newValue = e.target.value;
+                    setJsonTextValue(newValue);
+                    
+                    // Clear previous validation error
+                    setJsonValidationError(null);
+                    
+                    // If empty, set to undefined and return
+                    if (!newValue.trim()) {
+                      onChange(undefined);
+                      return;
+                    }
+                    
+                    // Validate JSON
                     try {
-                      const parsed = e.target.value ? JSON.parse(e.target.value) : undefined;
+                      const parsed = JSON.parse(newValue);
+                      
+                      // Type-specific validation
+                      if (prop.type === 'array' && !Array.isArray(parsed)) {
+                        setJsonValidationError('Expected an array, but got ' + typeof parsed);
+                        return;
+                      }
+                      
+                      if (prop.type === 'object' && (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed))) {
+                        setJsonValidationError('Expected an object, but got ' + (Array.isArray(parsed) ? 'array' : typeof parsed));
+                        return;
+                      }
+                      
+                      // Valid JSON and correct type
                       onChange(parsed);
-                    } catch {
-                      // Invalid JSON, don't update
+                    } catch (error) {
+                      const errorMessage = error instanceof Error ? error.message : 'Invalid JSON format';
+                      setJsonValidationError(errorMessage);
                     }
                   }}
                   rows={6}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono text-sm ${
+                    jsonValidationError 
+                      ? 'border-red-300 focus:ring-red-500 bg-red-50' 
+                      : 'border-gray-300 focus:ring-blue-500'
+                  }`}
                   placeholder={prop.type === 'array' ? '[]' : '{}'}
                 />
+                {jsonValidationError && (
+                  <div 
+                    className="mt-1 text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1"
+                    data-testid={`prop-control-${prop.name}-error`}
+                  >
+                    <span className="font-medium">Validation Error:</span> {jsonValidationError}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -436,10 +507,12 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
         return (
           <input
             type="text"
+            id={`prop-${prop.name}`}
+            name={`prop-${prop.name}`}
             value={value || ''}
             onChange={(e) => onChange(e.target.value || undefined)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder={prop.name === 'className' ? 'e.g. bg-blue-500 text-white p-4' : undefined}
+            placeholder={prop.name === 'className' ? 'e.g. bg-blue-500 text-white p-4' : 'Enter value'}
           />
         );
     }
@@ -449,7 +522,7 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
   const isClassNameProp = prop.name === 'className';
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" data-testid={`prop-control-${prop.name}`}>
       <div className="flex items-center justify-between">
         <label className="block text-sm font-medium text-gray-700">
           {prop.name}

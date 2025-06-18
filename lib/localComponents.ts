@@ -1,16 +1,85 @@
 import { ComponentDiscoveryResult, LocalComponent } from '@/types';
 import { debugLog } from '@/lib/constants';
-import expandedRegistry from '@/lib/generated-registry.json';
+
+// Cache for the loaded registry
+let registryCache: any = null;
+
+/**
+ * Load the component registry from the generated JSON file
+ * This works in both development and static export environments
+ */
+async function loadRegistry(): Promise<any> {
+  if (registryCache) {
+    debugLog('general', '📋 Using cached registry');
+    return registryCache;
+  }
+
+  debugLog('general', '🔄 Loading registry...');
+
+  try {
+    // First, try to fetch the registry as a static asset
+    const registryPath = '/generated-registry.json';
+    debugLog('general', `🌐 Fetching registry from: ${registryPath}`);
+    
+    const response = await fetch(registryPath);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch registry: ${response.status} ${response.statusText}`);
+    }
+    
+    const registry = await response.json();
+    debugLog('general', '✅ Registry loaded via fetch');
+    
+    registryCache = registry;
+    return registry;
+  } catch (fetchError) {
+    debugLog('general', '⚠️ Failed to fetch registry via HTTP:', fetchError);
+    
+    try {
+      // Fallback: try dynamic import (works in development)
+      debugLog('general', '🔄 Trying dynamic import fallback...');
+      const module = await import('@/lib/generated-registry.json');
+      const registry = module.default || module;
+      debugLog('general', '✅ Registry loaded via dynamic import');
+      
+      registryCache = registry;
+      return registry;
+    } catch (importError) {
+      debugLog('general', '❌ Failed to load registry via dynamic import:', importError);
+      throw new Error(`Failed to load component registry. Fetch error: ${fetchError}. Import error: ${importError}`);
+    }
+  }
+}
 
 /**
  * Discover all local components from the registry
  */
 export async function discoverLocalComponents(): Promise<ComponentDiscoveryResult> {
-  debugLog('COMPONENT_REGISTRY', '🔍 Starting component discovery fro registry...');
+  debugLog('general', '🔍 Starting component discovery from registry...');
   
   try {
+    // Load the registry asynchronously
+    const expandedRegistry = await loadRegistry();
+    
+    // Add debugging for registry loading
+    debugLog('general', '📋 Registry loaded:', {
+      hasRegistry: !!expandedRegistry,
+      hasComponents: !!expandedRegistry?.components,
+      componentCount: expandedRegistry?.components?.length || 0,
+      registryKeys: Object.keys(expandedRegistry || {})
+    });
+    
+    if (!expandedRegistry) {
+      throw new Error('Registry not loaded - expandedRegistry is null/undefined');
+    }
+    
+    if (!expandedRegistry.components) {
+      throw new Error('Registry loaded but no components array found');
+    }
+    
     const components: LocalComponent[] = [];
     const errors: any[] = expandedRegistry.buildErrors || [];
+    
+    debugLog('general', `🔄 Processing ${expandedRegistry.components.length} components from registry...`);
     
     for (const registryComponent of expandedRegistry.components) {
       try {
@@ -45,14 +114,57 @@ export async function discoverLocalComponents(): Promise<ComponentDiscoveryResul
       }
     }
     
-    debugLog('COMPONENT_REGISTRY', `✅ ${components.length} components loaded from registry`);
-    debugLog('COMPONENT_REGISTRY', `⚠️ ${errors.length} errors found`);
+    debugLog('general', `✅ ${components.length} components loaded from registry`);
+    debugLog('general', `⚠️ ${errors.length} errors found`);
     
     return { components, errors };
   } catch (error) {
     console.error('❌ Failed to load components from registry:', error);
+    
+    // Provide fallback components if registry fails to load
+    const fallbackComponents: LocalComponent[] = [
+      {
+        id: 'button-fallback',
+        name: 'Button',
+        category: 'form' as any,
+        description: 'Basic button component (fallback)',
+        props: [
+          {
+            name: 'children',
+            type: 'function',
+            required: true,
+            description: 'Button content',
+            defaultValue: { type: 'function', source: 'return "Click me";' },
+            functionSignature: { params: '', returnType: 'React.ReactNode' }
+          },
+          {
+            name: 'onClick',
+            type: 'function',
+            required: false,
+            description: 'Click handler',
+            functionSignature: { params: 'event: React.MouseEvent', returnType: 'void' }
+          }
+        ],
+        code: 'export default function Button(props) { return <button onClick={props.onClick}>{typeof props.children === "function" ? props.children() : props.children}</button>; }',
+        examples: [],
+        tags: ['fallback'],
+        version: '1.0.0',
+        author: 'Fallback',
+        filePath: 'fallback',
+        metaPath: 'fallback',
+        examplesPath: 'fallback',
+        lastModified: new Date(),
+        isLocal: true,
+        dependencies: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    ];
+    
+    debugLog('general', '🆘 Using fallback components due to registry load failure');
+    
     return {
-      components: [],
+      components: fallbackComponents,
       errors: [{
         filePath: 'Registry',
         error: error instanceof Error ? error.message : 'Failed to load registry',
@@ -68,13 +180,14 @@ export async function discoverLocalComponents(): Promise<ComponentDiscoveryResul
  * Load detailed component data (code, props, examples) for a specific component
  */
 export async function loadComponentDetails(componentId: string): Promise<Partial<LocalComponent>> {
+  const expandedRegistry = await loadRegistry();
   const registryComponent = expandedRegistry.components.find((comp: any) => comp.id === componentId);
   if (!registryComponent) {
     throw new Error(`Component ${componentId} not found in registry`);
   }
 
   try {
-    debugLog('COMPONENT_REGISTRY', `📄 Loading details for component: ${componentId}`);
+    debugLog('general', `📄 Loading details for component: ${componentId}`);
     
     // All data is already available in the expanded registry
     const details: Partial<LocalComponent> = {
@@ -85,7 +198,7 @@ export async function loadComponentDetails(componentId: string): Promise<Partial
       dependencies: registryComponent.dependencies || []
     };
     
-    debugLog('COMPONENT_REGISTRY', `✅ Component details loaded for: ${componentId}`);
+    debugLog('general', `✅ Component details loaded for: ${componentId}`);
     return details;
   } catch (error) {
     console.error(`❌ Failed to load component details for ${componentId}:`, error);

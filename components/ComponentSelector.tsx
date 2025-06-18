@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Component, LocalComponent } from '@/types';
+import { LocalComponent } from '@/types';
 import { SearchIcon, FilterIcon, TagIcon } from 'lucide-react';
 
 interface ComponentSelectorProps {
-  components: (Component | LocalComponent)[];
-  selectedComponent: (Component | LocalComponent) | null;
-  onSelect: (component: Component | LocalComponent) => void;
+  components: LocalComponent[];
+  selectedComponent: LocalComponent | null;
+  onSelect: (component: LocalComponent) => void;
   searchQuery: string;
   selectedCategory: string | null;
   onSearchChange: (query: string) => void;
@@ -42,7 +42,7 @@ export default function ComponentSelector({
   const groupedComponents = categories.reduce((acc, category) => {
     acc[category.id] = filteredComponents.filter(c => c.category === category.id);
     return acc;
-  }, {} as Record<string, Component[]>);
+  }, {} as Record<string, LocalComponent[]>);
 
   return (
     <div className="flex flex-col h-full">
@@ -51,6 +51,8 @@ export default function ComponentSelector({
         <div className="relative">
           <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <input
+            id="component-search"
+            name="component-search"
             type="text"
             placeholder="Search components..."
             value={searchQuery}
@@ -79,7 +81,7 @@ export default function ComponentSelector({
         
         {/* Category Filters */}
         {showFilters && (
-          <div className="mt-3 space-y-1">
+          <div className="mt-3 space-y-1" data-testid="filter-list">
             {categories.map(category => (
               <button
                 key={category.id}
@@ -168,9 +170,9 @@ export default function ComponentSelector({
 }
 
 interface ComponentItemProps {
-  component: Component;
+  component: LocalComponent;
   isSelected: boolean;
-  onSelect: (component: Component) => void;
+  onSelect: (component: LocalComponent) => void;
 }
 
 function ComponentItem({ component, isSelected, onSelect }: ComponentItemProps) {

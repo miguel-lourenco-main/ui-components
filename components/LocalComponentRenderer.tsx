@@ -93,14 +93,14 @@ export default function LocalComponentRenderer({
         setLoading(true);
         setError(null);
         
-        debugLog('COMPONENT_REGISTRY', `🔄 Loading component: ${component.name}`);
+        debugLog('general', `🔄 Loading component: ${component.name}`);
         
         // Get component from static registry
         const loadedComponent = getComponentByName(component.name);
         
         if (loadedComponent) {
           setComponentToRender(() => loadedComponent);
-          debugLog('COMPONENT_REGISTRY', `✅ Component ${component.name} loaded successfully`);
+          debugLog('general', `✅ Component ${component.name} loaded successfully`);
         } else {
           throw new Error(`Component ${component.name} not found in registry`);
         }
@@ -193,14 +193,15 @@ export default function LocalComponentRenderer({
     // Render the actual component
     try {
       // Convert FunctionPropValues to actual functions before passing to component
-      const propsWithFunctions = convertFunctionPropValuesToFunctions(props);
+      const propsWithFunctions = convertFunctionPropValuesToFunctions(props, component.props);
       
-      debugLog('COMPONENT_STATE', `🎬 Rendering ${component.name} with props:`, {
+      debugLog('state', `🎬 Rendering ${component.name} with props:`, {
         propKeys: Object.keys(propsWithFunctions),
         functionProps: Object.entries(propsWithFunctions)
           .filter(([key, value]) => typeof value === 'function')
           .map(([key, value]) => `${key}: ${value.name || 'function'}`)
       });
+
       return <ComponentToRender {...propsWithFunctions} />;
     } catch (renderError) {
       console.error('Component render error:', renderError);
@@ -228,18 +229,16 @@ export default function LocalComponentRenderer({
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col items-center justify-center">
       {/* Viewport Frame */}
-      <div className="flex-1 bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div 
-          style={getViewportStyles()}
-          className="size-full flex items-center justify-center p-6 transition-all duration-300"
-        >
-          <ComponentErrorBoundary onRetry={onRetry}>
+      <div 
+        style={getViewportStyles()}
+        className="size-full flex items-center justify-center p-6 bg-white rounded-lg border transition-all duration-300 border-gray-200 overflow-hidden"
+      >
+        <ComponentErrorBoundary onRetry={onRetry}>
             {renderContent()}
           </ComponentErrorBoundary>
         </div>
-      </div>
     </div>
   );
 } 

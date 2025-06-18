@@ -1,6 +1,6 @@
 # GitLab CI/CD configuration for Next.js static export to GitLab Pages
 # Uses GitLab Pages Parallel Deployments for branch-specific preview URLs
-image: node:18-alpine
+image: node:18
 
 # Define variables
 variables:
@@ -16,6 +16,7 @@ cache:
 # Define stages
 stages:
   - build
+  - test
   - deploy
 
 # Build stage for all branches
@@ -37,6 +38,61 @@ build:
     paths:
       - out/
     expire_in: 1 hour
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+    - when: always
+
+# Test stage - runs e2e tests against built static files
+test:
+  stage: test
+  before_script:
+    - npm install -g pnpm
+    - pnpm install --frozen-lockfile
+    - npm install -g serve
+    - echo "Installing Playwright browsers..."
+    - pnpm exec playwright install --with-deps chromium
+  script:
+    - echo "Creating directory structure to match expected paths..."
+    - if [ "$CI_COMMIT_REF_SLUG" != "main" ]; then
+        mkdir -p public/$CI_COMMIT_REF_SLUG;
+        cp -r out/* public/$CI_COMMIT_REF_SLUG/;
+        cp -r out/index.html public/index.html;
+      else
+        mkdir -p public;
+        cp -r out/* public/;
+      fi
+    # Remove the redundant lines that always execute
+    - ls -la public/
+    - echo "Starting static file server on port 3000..."
+    - serve -s public -l 3000 &
+    - sleep 5  # Give the server time to start
+    - echo "Testing server response..."
+    - curl -f http://localhost:3000/$CI_COMMIT_REF_SLUG/ || echo "Server not responding properly"
+    - echo "Verifying website content..."
+    - curl -s http://localhost:3000/$CI_COMMIT_REF_SLUG/ | grep -q "<html" || (echo "ERROR - No HTML content found" && exit 1)
+    - curl -s http://localhost:3000/$CI_COMMIT_REF_SLUG/ | grep -q "<title" || (echo "ERROR - No title tag found" && exit 1)
+    - curl -s http://localhost:3000/$CI_COMMIT_REF_SLUG/ | grep -q "next" || (echo "ERROR - Next.js content not found" && exit 1)
+    - echo "✅ Website is serving properly"
+    - echo "Testing component registry availability..."
+    - curl -f http://localhost:3000/$CI_COMMIT_REF_SLUG/generated-registry.json || (echo "ERROR - Component registry not available" && exit 1)
+    - echo "✅ Component registry is accessible"
+    - echo "Running Playwright tests..."
+    - pnpm exec playwright test --config=playwright.ci.config.ts --workers=1 || exit 1
+  after_script:
+    - echo "Cleaning up background processes..."
+    - pkill -f "serve" || true  # Kill the serve process, ignore if already dead
+  dependencies:
+    - build
+  artifacts:
+    when: always
+    paths:
+      - playwright-report
+    expire_in: 2 days
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+    - when: always
 
 # Deploy to GitLab Pages - Production (main branch)
 pages:
@@ -55,10 +111,13 @@ pages:
     expire_in: never
   dependencies:
     - build
+    - test
   environment:
     name: production
     url: $CI_PAGES_URL
   rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 # Deploy to GitLab Pages - Feature Branches (parallel deployments)
@@ -81,11 +140,14 @@ pages-review:
     expire_in: 1 week  # Auto-cleanup after 1 week
   dependencies:
     - build
+    - test
   environment:
     name: review/$CI_COMMIT_REF_SLUG
     url: $CI_PAGES_URL/$CI_COMMIT_REF_SLUG/
     on_stop: stop_review
   rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
     
 # Stop review environment (automatic cleanup when branch is deleted)
@@ -97,5 +159,7 @@ stop_review:
     name: review/$CI_COMMIT_REF_SLUG
     action: stop
   rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       when: manual
