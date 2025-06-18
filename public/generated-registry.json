@@ -179,9 +179,9 @@
           }
         }
       ],
-      "lastModified": "2025-06-16T22:49:37.738Z",
-      "createdAt": "2025-06-16T22:49:37.738Z",
-      "updatedAt": "2025-06-16T22:49:37.738Z",
+      "lastModified": "2025-06-18T12:41:49.197Z",
+      "createdAt": "2025-06-18T12:41:49.197Z",
+      "updatedAt": "2025-06-18T12:41:49.197Z",
       "isLocal": true,
       "dependencies": [
         "react"
@@ -435,9 +435,9 @@
           }
         }
       ],
-      "lastModified": "2025-06-16T22:49:37.737Z",
-      "createdAt": "2025-06-16T22:49:37.737Z",
-      "updatedAt": "2025-06-16T22:49:37.737Z",
+      "lastModified": "2025-06-18T12:41:49.197Z",
+      "createdAt": "2025-06-18T12:41:49.197Z",
+      "updatedAt": "2025-06-18T12:41:49.197Z",
       "isLocal": true,
       "dependencies": [
         "react"
@@ -671,9 +671,9 @@
           }
         }
       ],
-      "lastModified": "2025-06-16T22:49:37.738Z",
-      "createdAt": "2025-06-16T22:49:37.738Z",
-      "updatedAt": "2025-06-16T22:49:37.738Z",
+      "lastModified": "2025-06-18T12:41:49.198Z",
+      "createdAt": "2025-06-18T12:41:49.198Z",
+      "updatedAt": "2025-06-18T12:41:49.198Z",
       "isLocal": true,
       "dependencies": [
         "react"
@@ -973,17 +973,815 @@
           }
         }
       ],
-      "lastModified": "2025-06-17T10:23:33.476Z",
-      "createdAt": "2025-06-16T22:49:37.737Z",
-      "updatedAt": "2025-06-17T10:23:33.476Z",
+      "lastModified": "2025-06-18T12:41:49.197Z",
+      "createdAt": "2025-06-18T12:41:49.197Z",
+      "updatedAt": "2025-06-18T12:41:49.197Z",
       "isLocal": true,
       "dependencies": [
         "@/lib/interfaces",
         "@/components/ui/i18n-component",
         "react"
       ]
+    },
+    {
+      "id": "progress",
+      "name": "Progress",
+      "category": "data-display",
+      "description": "Displays an indicator showing the completion progress of a task, typically displayed as a progress bar",
+      "filePath": "components/display_components/data-display/Progress/Progress.tsx",
+      "metaPath": "components/display_components/data-display/Progress/Progress.meta.json",
+      "examplesPath": "components/display_components/data-display/Progress/Progress.examples.tsx",
+      "tags": [
+        "progress",
+        "loading",
+        "indicator",
+        "data-display"
+      ],
+      "version": "1.0.0",
+      "author": "UI Components Team",
+      "code": "import React from 'react';\nimport { Progress } from '@/components/ui/progress';\n\nexport interface ProgressComponentProps {\n  value?: number;\n  className?: string;\n}\n\nconst ProgressComponent: React.FC<ProgressComponentProps> = ({ \n  value = 50, \n  className \n}) => {\n  return (\n    <Progress \n      value={value} \n      className={className}\n    />\n  );\n};\n\nexport default ProgressComponent; ",
+      "props": [
+        {
+          "name": "value",
+          "type": "number",
+          "required": false,
+          "defaultValue": 50,
+          "description": "The progress value from 0 to 100"
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "defaultValue": "",
+          "description": "Additional CSS classes for styling"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Basic Progress",
+          "description": "Simple progress bar at 33%",
+          "props": {
+            "value": 33,
+            "className": "w-full"
+          }
+        },
+        {
+          "name": "Animated Progress",
+          "description": "Progress bar that animates from 13% to 66%",
+          "props": {
+            "value": 66,
+            "className": "w-full"
+          }
+        },
+        {
+          "name": "Progress with Percentage",
+          "description": "Progress bar at 75% with percentage display",
+          "props": {
+            "value": 75,
+            "className": "w-full"
+          }
+        },
+        {
+          "name": "Complete Progress",
+          "description": "Completed progress bar",
+          "props": {
+            "value": 100,
+            "className": "w-full"
+          }
+        }
+      ],
+      "lastModified": "2025-06-18T12:59:47.837Z",
+      "createdAt": "2025-06-18T12:47:46.400Z",
+      "updatedAt": "2025-06-18T12:59:47.837Z",
+      "isLocal": true,
+      "dependencies": [
+        "react",
+        "@/components/ui/progress"
+      ]
+    },
+    {
+      "id": "skeleton",
+      "name": "Skeleton",
+      "category": "data-display",
+      "description": "Use to show a placeholder while content is loading. Provides a visual indication that content is being loaded",
+      "filePath": "components/display_components/data-display/Skeleton/Skeleton.tsx",
+      "metaPath": "components/display_components/data-display/Skeleton/Skeleton.meta.json",
+      "examplesPath": "components/display_components/data-display/Skeleton/Skeleton.examples.tsx",
+      "tags": [
+        "skeleton",
+        "loading",
+        "placeholder",
+        "data-display"
+      ],
+      "version": "1.0.0",
+      "author": "UI Components Team",
+      "code": "import React from 'react';\nimport { Skeleton } from '@/components/ui/skeleton';\n\nexport interface SkeletonComponentProps {\n  className?: string;\n}\n\nconst SkeletonComponent: React.FC<SkeletonComponentProps> = ({ \n  className,\n}) => {\n  return (\n    <Skeleton className={className}/>\n  );\n};\n\nexport default SkeletonComponent; ",
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "defaultValue": "",
+          "description": "Additional CSS classes for styling the skeleton shape and size"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Basic Skeleton",
+          "description": "Simple loading skeleton",
+          "props": {
+            "className": "h-4 w-[250px]"
+          }
+        },
+        {
+          "name": "Card Skeleton",
+          "description": "Skeleton for card layout",
+          "props": {
+            "className": "h-[125px] w-[250px] rounded-xl"
+          }
+        },
+        {
+          "name": "Profile Skeleton",
+          "description": "Skeleton for profile section",
+          "props": {
+            "className": "w-20 h-20 rounded-full"
+          }
+        },
+        {
+          "name": "List Skeleton",
+          "description": "Skeleton for list items",
+          "props": {
+            "className": "h-12 w-12 rounded-full"
+          }
+        },
+        {
+          "name": "Text Block Skeleton",
+          "description": "Skeleton for text content",
+          "props": {
+            "className": "h-4 w-full"
+          }
+        }
+      ],
+      "lastModified": "2025-06-18T13:07:50.562Z",
+      "createdAt": "2025-06-18T12:48:04.513Z",
+      "updatedAt": "2025-06-18T13:07:50.562Z",
+      "isLocal": true,
+      "dependencies": [
+        "react",
+        "@/components/ui/skeleton"
+      ]
+    },
+    {
+      "id": "sonner",
+      "name": "Sonner",
+      "category": "data-display",
+      "description": "An opinionated toast component for React. Provides elegant notifications with various types and customization options",
+      "filePath": "components/display_components/data-display/Sonner/Sonner.tsx",
+      "metaPath": "components/display_components/data-display/Sonner/Sonner.meta.json",
+      "examplesPath": "components/display_components/data-display/Sonner/Sonner.examples.tsx",
+      "tags": [
+        "toast",
+        "notification",
+        "feedback",
+        "sonner",
+        "data-display"
+      ],
+      "version": "1.0.0",
+      "author": "UI Components Team",
+      "code": "import React from 'react';\nimport { toast } from 'sonner';\n\nexport interface SonnerComponentProps {\n  message?: string;\n  description?: string;\n  action?: {\n    label: string;\n    onClick: () => void;\n  };\n  variant?: 'default' | 'success' | 'error' | 'warning' | 'info';\n}\n\nconst SonnerComponent: React.FC<SonnerComponentProps> = ({ \n  message = \"Event has been created\",\n  description,\n  action,\n  variant = 'default'\n}) => {\n  const showToast = () => {\n    const options: any = {};\n    \n    if (description) {\n      options.description = description;\n    }\n    \n    if (action) {\n      options.action = action;\n    }\n\n    switch (variant) {\n      case 'success':\n        toast.success(message, options);\n        break;\n      case 'error':\n        toast.error(message, options);\n        break;\n      case 'warning':\n        toast.warning(message, options);\n        break;\n      case 'info':\n        toast.info(message, options);\n        break;\n      default:\n        toast(message, options);\n    }\n  };\n\n  return (\n    <button\n      onClick={showToast}\n      className=\"px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors\"\n    >\n      Show Toast\n    </button>\n  );\n};\n\nexport default SonnerComponent; ",
+      "props": [
+        {
+          "name": "message",
+          "type": "string",
+          "required": false,
+          "defaultValue": "Event has been created",
+          "description": "The main message to display in the toast"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "description": "Additional description text for the toast"
+        },
+        {
+          "name": "action",
+          "type": "object",
+          "required": false,
+          "description": "Action button with label and onClick handler",
+          "properties": {
+            "label": "string",
+            "onClick": "() => void"
+          }
+        },
+        {
+          "name": "variant",
+          "type": "enum",
+          "required": false,
+          "defaultValue": "default",
+          "options": [
+            "default",
+            "success",
+            "error",
+            "warning",
+            "info"
+          ],
+          "description": "The type/variant of the toast"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Basic Toast",
+          "description": "Simple toast notification",
+          "props": {
+            "message": "Hello World!",
+            "position": "bottom-right"
+          }
+        },
+        {
+          "name": "Toast with Description",
+          "description": "Toast with additional description",
+          "props": {
+            "message": "Event has been created",
+            "description": "Sunday, December 03, 2023 at 9:00 AM",
+            "position": "bottom-right"
+          }
+        },
+        {
+          "name": "Success Toast",
+          "description": "Success variant toast",
+          "props": {
+            "variant": "success",
+            "message": "Success toast",
+            "position": "bottom-right"
+          }
+        },
+        {
+          "name": "Error Toast",
+          "description": "Error variant toast",
+          "props": {
+            "variant": "error",
+            "message": "Error toast",
+            "position": "bottom-right"
+          }
+        },
+        {
+          "name": "Top Position",
+          "description": "Toast positioned at top",
+          "props": {
+            "message": "Positioned toast!",
+            "position": "top-center"
+          }
+        },
+        {
+          "name": "With Action",
+          "description": "Toast with action button",
+          "props": {
+            "message": "File deleted successfully",
+            "description": "Your file has been moved to trash",
+            "position": "bottom-right"
+          }
+        }
+      ],
+      "lastModified": "2025-06-18T12:50:40.890Z",
+      "createdAt": "2025-06-18T12:50:39.227Z",
+      "updatedAt": "2025-06-18T12:50:40.890Z",
+      "isLocal": true,
+      "dependencies": [
+        "react",
+        "sonner"
+      ]
+    },
+    {
+      "id": "slider",
+      "name": "Slider",
+      "category": "form",
+      "description": "An input where the user selects a value from within a given range. Supports single values and ranges",
+      "filePath": "components/display_components/forms/Slider/Slider.tsx",
+      "metaPath": "components/display_components/forms/Slider/Slider.meta.json",
+      "examplesPath": "components/display_components/forms/Slider/Slider.examples.tsx",
+      "tags": [
+        "slider",
+        "range",
+        "input",
+        "form",
+        "control"
+      ],
+      "version": "1.0.0",
+      "author": "UI Components Team",
+      "code": "import React from 'react';\nimport { Slider } from '@/components/ui/slider';\n\nexport interface SliderComponentProps {\n  defaultValue?: number[];\n  max?: number;\n  min?: number;\n  step?: number;\n  value?: number[];\n  onValueChange?: (value: number[]) => void;\n  className?: string;\n  disabled?: boolean;\n}\n\nconst SliderComponent: React.FC<SliderComponentProps> = ({ \n  defaultValue = [50],\n  max = 100,\n  min = 0,\n  step = 1,\n  value,\n  onValueChange,\n  className,\n  disabled = false\n}) => {\n  return (\n    <Slider\n      defaultValue={defaultValue}\n      max={max}\n      min={min}\n      step={step}\n      value={value}\n      onValueChange={onValueChange}\n      className={className}\n      disabled={disabled}\n    />\n  );\n};\n\nexport default SliderComponent; ",
+      "props": [
+        {
+          "name": "defaultValue",
+          "type": "number[]",
+          "required": false,
+          "defaultValue": [
+            50
+          ],
+          "description": "The default value(s) for the slider"
+        },
+        {
+          "name": "value",
+          "type": "number[]",
+          "required": false,
+          "description": "The controlled value(s) for the slider"
+        },
+        {
+          "name": "onValueChange",
+          "type": "function",
+          "required": false,
+          "description": "Callback fired when the slider value changes",
+          "functionSignature": {
+            "params": "value: number[]",
+            "returnType": "void"
+          }
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "required": false,
+          "defaultValue": 100,
+          "description": "The maximum value for the slider"
+        },
+        {
+          "name": "min",
+          "type": "number",
+          "required": false,
+          "defaultValue": 0,
+          "description": "The minimum value for the slider"
+        },
+        {
+          "name": "step",
+          "type": "number",
+          "required": false,
+          "defaultValue": 1,
+          "description": "The step value for the slider"
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "defaultValue": false,
+          "description": "Whether the slider is disabled"
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "defaultValue": "",
+          "description": "Additional CSS classes for styling"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Basic Slider",
+          "description": "Simple slider with default value",
+          "props": {
+            "defaultValue": [
+              50
+            ],
+            "max": 100,
+            "step": 1,
+            "className": "w-full"
+          }
+        },
+        {
+          "name": "Range Slider",
+          "description": "Dual handle range slider",
+          "props": {
+            "defaultValue": [
+              25,
+              75
+            ],
+            "max": 100,
+            "step": 1,
+            "className": "w-full"
+          }
+        },
+        {
+          "name": "Price Range",
+          "description": "Price range from $0 to $1000",
+          "props": {
+            "defaultValue": [
+              200,
+              800
+            ],
+            "max": 1000,
+            "min": 0,
+            "step": 10,
+            "className": "w-full"
+          }
+        },
+        {
+          "name": "Stepped Slider",
+          "description": "Slider with 10-unit steps",
+          "props": {
+            "defaultValue": [
+              50
+            ],
+            "max": 100,
+            "min": 0,
+            "step": 10,
+            "className": "w-full"
+          }
+        }
+      ],
+      "lastModified": "2025-06-18T12:48:28.640Z",
+      "createdAt": "2025-06-18T12:48:27.270Z",
+      "updatedAt": "2025-06-18T12:48:28.640Z",
+      "isLocal": true,
+      "dependencies": [
+        "react",
+        "@/components/ui/slider"
+      ]
+    },
+    {
+      "id": "switch",
+      "name": "Switch",
+      "category": "form",
+      "description": "A control that allows the user to toggle between checked and not checked. Used for binary settings and preferences",
+      "filePath": "components/display_components/forms/Switch/Switch.tsx",
+      "metaPath": "components/display_components/forms/Switch/Switch.meta.json",
+      "examplesPath": "components/display_components/forms/Switch/Switch.examples.tsx",
+      "tags": [
+        "switch",
+        "toggle",
+        "boolean",
+        "form",
+        "control"
+      ],
+      "version": "1.0.0",
+      "author": "UI Components Team",
+      "code": "import React from 'react';\nimport { Switch } from '@/components/ui/switch';\n\nexport interface SwitchComponentProps {\n  checked?: boolean;\n  onCheckedChange?: (checked: boolean) => void;\n  disabled?: boolean;\n  id?: string;\n  className?: string;\n  label?: string;\n}\n\nconst SwitchComponent: React.FC<SwitchComponentProps> = ({ \n  checked,\n  onCheckedChange,\n  disabled = false,\n  id,\n  className,\n  label\n}) => {\n  return (\n    <div className=\"flex items-center space-x-2\">\n      <Switch\n        id={id}\n        checked={checked}\n        onCheckedChange={onCheckedChange}\n        disabled={disabled}\n        className={className}\n      />\n      {label && (\n        <label \n          htmlFor={id}\n          className=\"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70\"\n        >\n          {label}\n        </label>\n      )}\n    </div>\n  );\n};\n\nexport default SwitchComponent; ",
+      "props": [
+        {
+          "name": "checked",
+          "type": "boolean",
+          "required": false,
+          "description": "The controlled checked state of the switch"
+        },
+        {
+          "name": "onCheckedChange",
+          "type": "function",
+          "required": false,
+          "description": "Event handler called when the checked state changes",
+          "functionSignature": {
+            "params": "checked: boolean",
+            "returnType": "void"
+          }
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "defaultValue": false,
+          "description": "Whether the switch is disabled"
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "required": false,
+          "description": "The id attribute for the switch element"
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "description": "Optional label text to display next to the switch"
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "defaultValue": "",
+          "description": "Additional CSS classes for styling"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Basic Switch",
+          "description": "Simple toggle switch",
+          "props": {
+            "id": "basic-switch"
+          }
+        },
+        {
+          "name": "Switch with Label",
+          "description": "Switch with descriptive label",
+          "props": {
+            "id": "labeled-switch",
+            "label": "Enable notifications"
+          }
+        },
+        {
+          "name": "Checked Switch",
+          "description": "Switch that starts enabled",
+          "props": {
+            "id": "checked-switch",
+            "checked": true,
+            "label": "Dark mode"
+          }
+        },
+        {
+          "name": "Disabled Switch",
+          "description": "Switch in disabled state",
+          "props": {
+            "id": "disabled-switch",
+            "disabled": true,
+            "label": "Maintenance mode"
+          }
+        }
+      ],
+      "lastModified": "2025-06-18T12:48:54.000Z",
+      "createdAt": "2025-06-18T12:48:52.637Z",
+      "updatedAt": "2025-06-18T12:48:54.000Z",
+      "isLocal": true,
+      "dependencies": [
+        "react",
+        "@/components/ui/switch"
+      ]
+    },
+    {
+      "id": "textarea",
+      "name": "Textarea",
+      "category": "form",
+      "description": "Displays a form textarea or a component that looks like a textarea. Used for multi-line text input",
+      "filePath": "components/display_components/forms/Textarea/Textarea.tsx",
+      "metaPath": "components/display_components/forms/Textarea/Textarea.meta.json",
+      "examplesPath": "components/display_components/forms/Textarea/Textarea.examples.tsx",
+      "tags": [
+        "textarea",
+        "input",
+        "form",
+        "multiline",
+        "text"
+      ],
+      "version": "1.0.0",
+      "author": "UI Components Team",
+      "code": "import React from 'react';\nimport { Textarea } from '@/components/ui/textarea';\n\nexport interface TextareaComponentProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {\n  label?: string;\n  helperText?: string;\n  error?: string;\n}\n\nconst TextareaComponent: React.FC<TextareaComponentProps> = ({ \n  label,\n  helperText,\n  error,\n  id,\n  className,\n  ...props\n}) => {\n  const textareaId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`;\n\n  return (\n    <div className=\"space-y-2\">\n      {label && (\n        <label htmlFor={textareaId} className=\"text-sm font-medium leading-none\">\n          {label}\n        </label>\n      )}\n      <Textarea\n        id={textareaId}\n        className={className}\n        {...props}\n      />\n      {helperText && !error && (\n        <p className=\"text-sm text-muted-foreground\">\n          {helperText}\n        </p>\n      )}\n      {error && (\n        <p className=\"text-sm text-destructive\">\n          {error}\n        </p>\n      )}\n    </div>\n  );\n};\n\nexport default TextareaComponent; ",
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "description": "The label text for the textarea"
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "description": "Placeholder text shown when textarea is empty"
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": false,
+          "description": "The controlled value of the textarea"
+        },
+        {
+          "name": "onChange",
+          "type": "function",
+          "required": false,
+          "description": "Called when the textarea value changes",
+          "functionSignature": {
+            "params": "event: React.ChangeEvent<HTMLTextAreaElement>",
+            "returnType": "void"
+          }
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "defaultValue": false,
+          "description": "Whether the textarea is disabled"
+        },
+        {
+          "name": "rows",
+          "type": "number",
+          "required": false,
+          "description": "The number of visible text lines"
+        },
+        {
+          "name": "helperText",
+          "type": "string",
+          "required": false,
+          "description": "Helper text displayed below the textarea"
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "description": "Error message to display"
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "defaultValue": "",
+          "description": "Additional CSS classes for styling"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Basic Textarea",
+          "description": "Simple multi-line text input",
+          "props": {
+            "placeholder": "Type your message here..."
+          }
+        },
+        {
+          "name": "Textarea with Label",
+          "description": "Textarea with descriptive label",
+          "props": {
+            "label": "Your message",
+            "placeholder": "Type your message here..."
+          }
+        },
+        {
+          "name": "Textarea with Helper Text",
+          "description": "Textarea with helpful guidance",
+          "props": {
+            "label": "Bio",
+            "placeholder": "Tell us about yourself...",
+            "helperText": "Your bio will be displayed on your public profile."
+          }
+        },
+        {
+          "name": "Textarea with Value",
+          "description": "Textarea with pre-filled content",
+          "props": {
+            "label": "Description",
+            "value": "This is a sample description that demonstrates the textarea with existing content.",
+            "placeholder": "Enter description..."
+          }
+        },
+        {
+          "name": "Large Textarea",
+          "description": "Taller textarea for longer content",
+          "props": {
+            "label": "Comments",
+            "placeholder": "Write your detailed comments here...",
+            "rows": 6
+          }
+        }
+      ],
+      "lastModified": "2025-06-18T12:49:28.626Z",
+      "createdAt": "2025-06-18T12:49:27.003Z",
+      "updatedAt": "2025-06-18T12:49:28.626Z",
+      "isLocal": true,
+      "dependencies": [
+        "react",
+        "@/components/ui/textarea"
+      ]
+    },
+    {
+      "id": "toggle",
+      "name": "Toggle",
+      "category": "form",
+      "description": "A two-state button that can be either on or off. Commonly used for formatting controls and settings",
+      "filePath": "components/display_components/forms/Toggle/Toggle.tsx",
+      "metaPath": "components/display_components/forms/Toggle/Toggle.meta.json",
+      "examplesPath": "components/display_components/forms/Toggle/Toggle.examples.tsx",
+      "tags": [
+        "toggle",
+        "button",
+        "state",
+        "form",
+        "control"
+      ],
+      "version": "1.0.0",
+      "author": "UI Components Team",
+      "code": "import React from 'react';\nimport { Toggle } from '@/components/ui/toggle';\n\nexport interface ToggleComponentProps {\n  pressed?: boolean;\n  onPressedChange?: (pressed: boolean) => void;\n  disabled?: boolean;\n  variant?: 'default' | 'outline';\n  size?: 'default' | 'sm' | 'lg';\n  className?: string;\n  children?: React.ReactNode;\n  'aria-label'?: string;\n}\n\nconst ToggleComponent: React.FC<ToggleComponentProps> = ({ \n  pressed,\n  onPressedChange,\n  disabled = false,\n  variant = 'default',\n  size = 'default',\n  className,\n  children,\n  'aria-label': ariaLabel,\n}) => {\n  return (\n    <Toggle\n      pressed={pressed}\n      onPressedChange={onPressedChange}\n      disabled={disabled}\n      variant={variant}\n      size={size}\n      className={className}\n      aria-label={ariaLabel}\n    >\n      {children}\n    </Toggle>\n  );\n};\n\nexport default ToggleComponent; ",
+      "props": [
+        {
+          "name": "pressed",
+          "type": "boolean",
+          "required": false,
+          "description": "The controlled pressed state of the toggle"
+        },
+        {
+          "name": "onPressedChange",
+          "type": "function",
+          "required": false,
+          "description": "Event handler called when the pressed state changes",
+          "functionSignature": {
+            "params": "pressed: boolean",
+            "returnType": "void"
+          }
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "defaultValue": false,
+          "description": "Whether the toggle is disabled"
+        },
+        {
+          "name": "variant",
+          "type": "enum",
+          "required": false,
+          "defaultValue": "default",
+          "options": [
+            "default",
+            "outline"
+          ],
+          "description": "The visual variant of the toggle"
+        },
+        {
+          "name": "size",
+          "type": "enum",
+          "required": false,
+          "defaultValue": "default",
+          "options": [
+            "sm",
+            "default",
+            "lg"
+          ],
+          "description": "The size of the toggle"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "The content to display inside the toggle"
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "description": "Accessible label for the toggle"
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "defaultValue": "",
+          "description": "Additional CSS classes for styling"
+        }
+      ],
+      "examples": [
+        {
+          "name": "Basic Toggle",
+          "description": "Simple two-state button",
+          "props": {
+            "children": "Toggle me",
+            "aria-label": "Toggle button"
+          }
+        },
+        {
+          "name": "Bold Toggle",
+          "description": "Text formatting toggle",
+          "props": {
+            "children": "Bold",
+            "aria-label": "Toggle bold formatting"
+          }
+        },
+        {
+          "name": "Pressed Toggle",
+          "description": "Toggle in pressed state",
+          "props": {
+            "children": "Italic",
+            "pressed": true,
+            "aria-label": "Toggle italic formatting"
+          }
+        },
+        {
+          "name": "Outline Toggle",
+          "description": "Toggle with outline variant",
+          "props": {
+            "children": "Outline",
+            "variant": "outline",
+            "aria-label": "Toggle with outline style"
+          }
+        },
+        {
+          "name": "Large Toggle",
+          "description": "Larger sized toggle button",
+          "props": {
+            "children": "Large",
+            "size": "lg",
+            "aria-label": "Large toggle button"
+          }
+        },
+        {
+          "name": "Disabled Toggle",
+          "description": "Toggle in disabled state",
+          "props": {
+            "children": "Disabled",
+            "disabled": true,
+            "aria-label": "Disabled toggle button"
+          }
+        }
+      ],
+      "lastModified": "2025-06-18T12:49:57.052Z",
+      "createdAt": "2025-06-18T12:49:55.673Z",
+      "updatedAt": "2025-06-18T12:49:57.052Z",
+      "isLocal": true,
+      "dependencies": [
+        "react",
+        "@/components/ui/toggle"
+      ]
     }
   ],
   "buildErrors": [],
-  "buildTime": "2025-06-18T11:36:17.716Z"
+  "buildTime": "2025-06-18T13:32:09.234Z"
 }

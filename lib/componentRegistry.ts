@@ -6,6 +6,13 @@ import { DataTable } from '@/components/display_components/data-display/DataTabl
 import Button from '@/components/display_components/buttons/Button/Button';
 import Card from '@/components/display_components/layout/Card/Card';
 import Input from '@/components/display_components/forms/Input/Input';
+import Progress from '@/components/display_components/data-display/Progress/Progress';
+import Skeleton from '@/components/display_components/data-display/Skeleton/Skeleton';
+import Sonner from '@/components/display_components/data-display/Sonner/Sonner';
+import Slider from '@/components/display_components/forms/Slider/Slider';
+import Switch from '@/components/display_components/forms/Switch/Switch';
+import Textarea from '@/components/display_components/forms/Textarea/Textarea';
+import Toggle from '@/components/display_components/forms/Toggle/Toggle';
 
 // Global types for debugging
 declare global {
@@ -15,6 +22,13 @@ declare global {
     Button?: React.ComponentType<any>;
     Card?: React.ComponentType<any>;
     Input?: React.ComponentType<any>;
+    Progress?: React.ComponentType<any>;
+    Skeleton?: React.ComponentType<any>;
+    Sonner?: React.ComponentType<any>;
+    Slider?: React.ComponentType<any>;
+    Switch?: React.ComponentType<any>;
+    Textarea?: React.ComponentType<any>;
+    Toggle?: React.ComponentType<any>;
   }
 }
 
@@ -24,6 +38,13 @@ export const COMPONENT_REGISTRY: Record<string, React.ComponentType<any>> = {
   Button,
   Card,
   Input,
+  Progress,
+  Skeleton,
+  Sonner,
+  Slider,
+  Switch,
+  Textarea,
+  Toggle,
 };
 
 // Debug: Log registry contents
@@ -33,6 +54,13 @@ debugLog('general', '  - DataTable:', DataTable);
 debugLog('general', '  - Button:', Button);
 debugLog('general', '  - Card:', Card);
 debugLog('general', '  - Input:', Input);
+debugLog('general', '  - Progress:', Progress);
+debugLog('general', '  - Skeleton:', Skeleton);
+debugLog('general', '  - Sonner:', Sonner);
+debugLog('general', '  - Slider:', Slider);
+debugLog('general', '  - Switch:', Switch);
+debugLog('general', '  - Textarea:', Textarea);
+debugLog('general', '  - Toggle:', Toggle);
 
 // Make registry available globally for debugging
 if (typeof window !== 'undefined') {
@@ -41,6 +69,13 @@ if (typeof window !== 'undefined') {
   window.Button = Button;
   window.Card = Card;
   window.Input = Input;
+  window.Progress = Progress;
+  window.Skeleton = Skeleton;
+  window.Sonner = Sonner;
+  window.Slider = Slider;
+  window.Switch = Switch;
+  window.Textarea = Textarea;
+  window.Toggle = Toggle;
   debugLog('general', '🌍 All components exposed globally for debugging');
 }
 

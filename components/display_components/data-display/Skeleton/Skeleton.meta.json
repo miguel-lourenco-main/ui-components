@@ -1,0 +1,18 @@
+{
+  "id": "skeleton",
+  "name": "Skeleton",
+  "category": "data-display",
+  "description": "Use to show a placeholder while content is loading. Provides a visual indication that content is being loaded",
+  "props": [
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "defaultValue": "",
+      "description": "Additional CSS classes for styling the skeleton shape and size"
+    }
+  ],
+  "tags": ["skeleton", "loading", "placeholder", "data-display"],
+  "version": "1.0.0",
+  "author": "UI Components Team"
+} 

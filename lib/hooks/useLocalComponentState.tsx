@@ -36,6 +36,9 @@ interface UseLocalComponentStateReturn {
   toggleCodePanel: () => void;
   setSearchQuery: (query: string) => void;
   setSelectedCategory: (category: string | null) => void;
+  
+  // New handlePropChange action
+  handlePropChange: (propName: string, value: any) => void;
 }
 
 export function useLocalComponentState(): UseLocalComponentStateReturn {
@@ -545,6 +548,37 @@ export default function Example() {${functionDeclarationsCode}
     setPlaygroundState(prev => ({ ...prev, selectedCategory: category }));
   }, []);
 
+  /**
+   * Handle prop changes from interactive components
+   */
+  const handlePropChange = useCallback((propName: string, value: any) => {
+    if (!playgroundState.selectedComponent) {
+      debugLog('state', '⚠️ handlePropChange: No selected component');
+      return;
+    }
+
+    debugLog('state', '🔄 handlePropChange called:', {
+      component: playgroundState.selectedComponent.name,
+      propName,
+      value,
+      currentProps: Object.keys(playgroundState.currentProps)
+    });
+
+    const newProps = {
+      ...playgroundState.currentProps,
+      [propName]: value
+    };
+
+    // Clear example selection when user interacts with component
+    // This indicates they're now in "custom" mode
+    if (selectedExampleIndex >= 0) {
+      debugLog('state', '🔄 handlePropChange: Clearing example selection (user interaction detected)');
+      setSelectedExampleIndex(-1);
+    }
+
+    updateProps(newProps);
+  }, [playgroundState.selectedComponent, playgroundState.currentProps, selectedExampleIndex, updateProps]);
+
   // Load components on mount
   useEffect(() => {
     loadComponents();
@@ -565,6 +599,7 @@ export default function Example() {${functionDeclarationsCode}
     togglePropsPanel,
     toggleCodePanel,
     setSearchQuery,
-    setSelectedCategory
+    setSelectedCategory,
+    handlePropChange,
   };
 } 
