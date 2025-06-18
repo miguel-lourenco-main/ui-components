@@ -38,6 +38,10 @@ build:
     paths:
       - out/
     expire_in: 1 hour
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+    - when: always
 
 # Test stage - runs e2e tests against built static files
 test:
@@ -85,6 +89,10 @@ test:
     paths:
       - playwright-report
     expire_in: 2 days
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+    - when: always
 
 # Deploy to GitLab Pages - Production (main branch)
 pages:
@@ -108,6 +116,8 @@ pages:
     name: production
     url: $CI_PAGES_URL
   rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 # Deploy to GitLab Pages - Feature Branches (parallel deployments)
@@ -136,6 +146,8 @@ pages-review:
     url: $CI_PAGES_URL/$CI_COMMIT_REF_SLUG/
     on_stop: stop_review
   rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
     
 # Stop review environment (automatic cleanup when branch is deleted)
@@ -147,5 +159,7 @@ stop_review:
     name: review/$CI_COMMIT_REF_SLUG
     action: stop
   rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       when: manual
