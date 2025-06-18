@@ -51,10 +51,12 @@ test:
   script:
     - echo "Running e2e tests against built static files..."
     - echo "Creating directory structure to match expected paths..."
-    - mkdir -p public_test/$CI_COMMIT_REF_SLUG
-    - cp -r out/* public_test/$CI_COMMIT_REF_SLUG/
+    - mkdir -p public/$CI_COMMIT_REF_SLUG
+    - cp -r out/* public/$CI_COMMIT_REF_SLUG/
+    - cp -r out/index.html public/index.html
+    - ls -la public/
     - echo "Starting static file server on port 3000..."
-    - serve -s public_test -l 3000 &
+    - serve -s public -l 3000 &
     - sleep 5  # Give the server time to start
     - echo "Testing server response..."
     - curl -f http://localhost:3000/$CI_COMMIT_REF_SLUG/ || echo "Server not responding properly"
