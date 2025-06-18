@@ -31,7 +31,7 @@ export default defineConfig({
   expect: {
     // Allow up to 2% pixel difference for visual comparisons
     toHaveScreenshot: { 
-      threshold: 0.02
+      maxDiffPixelRatio: 0.02
     },
     // Global matcher timeout
     timeout: 10000,
