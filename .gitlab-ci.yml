@@ -49,11 +49,16 @@ test:
     - echo "Installing Playwright browsers..."
     - pnpm exec playwright install --with-deps chromium
   script:
-    - echo "Running e2e tests against built static files..."
     - echo "Creating directory structure to match expected paths..."
-    - mkdir -p public/$CI_COMMIT_REF_SLUG
-    - cp -r out/* public/$CI_COMMIT_REF_SLUG/
-    - cp -r out/index.html public/index.html
+    - if [ "$CI_COMMIT_REF_SLUG" != "main" ]; then
+        mkdir -p public/$CI_COMMIT_REF_SLUG;
+        cp -r out/* public/$CI_COMMIT_REF_SLUG/;
+        cp -r out/index.html public/index.html;
+      else
+        mkdir -p public;
+        cp -r out/* public/;
+      fi
+    # Remove the redundant lines that always execute
     - ls -la public/
     - echo "Starting static file server on port 3000..."
     - serve -s public -l 3000 &
