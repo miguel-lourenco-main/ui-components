@@ -18,7 +18,7 @@ test.describe('Component: Button', () => {
 
   test('should render and change visually when props are updated', async ({ page }) => {
     // 1. Select the Button component from the list
-    const componentLink = page.getByRole('button', { name: 'Button' });
+    const componentLink = page.getByRole('button', { name: /^Button v/ });
     await componentLink.click();
 
     // 2. Wait for the component preview to be ready and locate the rendered component
@@ -41,7 +41,7 @@ test.describe('Component: Button', () => {
 
   test('should handle functional props like onClick', async ({ page }) => {
     // 1. Select the Button component
-    await page.getByRole('button', { name: 'Button' }).click();
+    await page.getByRole('button', { name: /^Button v/ }).click();
     
     // 2. Set up console listener EARLY and capture ALL console messages for debugging
     const consoleMessages: string[] = [];

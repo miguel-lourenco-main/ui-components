@@ -9,7 +9,7 @@ test.describe('Component: Input', () => {
     await expect(loadingIndicator).not.toBeVisible({ timeout: 20000 });
     await expect(page.getByRole('heading', { name: 'Components', level: 2 })).toBeVisible();
     // Select the Input component before each test
-    await page.getByRole('button', { name: 'Input' }).click();
+    await page.getByRole('button', { name: /^Input v/ }).click();
   });
 
   test('should render and handle visual props correctly', async ({ page }) => {

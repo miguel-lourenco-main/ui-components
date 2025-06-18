@@ -9,7 +9,7 @@ test.describe('Component: Card', () => {
     await expect(loadingIndicator).not.toBeVisible({ timeout: 20000 });
     await expect(page.getByRole('heading', { name: 'Components', level: 2 })).toBeVisible();
     // Select the Card component before each test
-    await page.getByRole('button', { name: 'Card' }).click();
+    await page.getByRole('button', { name: /^Card v/ }).click();
   });
 
   test('should render and handle all visual props', async ({ page }) => {
@@ -30,7 +30,7 @@ test.describe('Component: Card', () => {
 
     // 5. Test 'border' prop
     await propsPanel.getByTestId('prop-control-border').locator('input').uncheck();
-    await expect(componentPreview).toHaveScreenshot('card-no-border.png');
+    await expect(componentPreview).toHaveScreenshot('card-no-border.png', { threshold: 0.1 });
   });
 
   test('should correctly render header and footer slots', async ({ page }) => {

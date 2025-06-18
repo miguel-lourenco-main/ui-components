@@ -9,7 +9,7 @@ test.describe('Component: DataTable', () => {
     await expect(loadingIndicator).not.toBeVisible({ timeout: 20000 });
     await expect(page.getByRole('heading', { name: 'Components', level: 2 })).toBeVisible();
     // Select the DataTable component before each test
-    await page.getByRole('button', { name: 'DataTable' }).click();
+    await page.getByRole('button', { name: /^DataTable v/ }).click();
   });
 
   test('should render and handle visual props correctly', async ({ page }) => {
