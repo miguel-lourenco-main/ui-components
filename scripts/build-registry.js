@@ -3,7 +3,6 @@ const path = require('path');
 
 const REGISTRY_PATH = path.join(process.cwd(), 'components/display_components/_registry/components.json');
 const OUTPUT_PATH = path.join(process.cwd(), 'lib/generated-registry.json');
-const PUBLIC_OUTPUT_PATH = path.join(process.cwd(), 'public/generated-registry.json');
 
 async function buildExpandedRegistry() {
   try {
@@ -40,16 +39,14 @@ async function buildExpandedRegistry() {
       buildTime: new Date().toISOString()
     };
     
-    // Write the expanded registry to both locations
+    // Write the expanded registry
     const registryJson = JSON.stringify(expandedRegistry, null, 2);
     await fs.writeFile(OUTPUT_PATH, registryJson);
-    await fs.writeFile(PUBLIC_OUTPUT_PATH, registryJson);
     
     console.log(`🎉 Expanded registry built successfully!`);
     console.log(`   - ${expandedComponents.length} components processed`);
     console.log(`   - ${errors.length} errors encountered`);
     console.log(`   - Output: ${OUTPUT_PATH}`);
-    console.log(`   - Public output: ${PUBLIC_OUTPUT_PATH}`);
     
   } catch (error) {
     console.error('💥 Failed to build registry:', error);

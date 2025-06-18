@@ -69,3 +69,5 @@ test-results/
 tests-examples/
 playwright-report/
 playwright/.cache/
+
+public/generated-registry.json

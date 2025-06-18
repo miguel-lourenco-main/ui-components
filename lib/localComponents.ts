@@ -5,40 +5,8 @@ import { debugLog } from '@/lib/constants';
 let registryCache: any = null;
 
 /**
- * Get the base path for the current deployment environment
- * This matches the basePath logic from next.config.js
- */
-function getBasePath(): string {
-  // Check if we're in a browser environment
-  if (typeof window === 'undefined') {
-    // Server-side: check environment variables (same logic as next.config.js)
-    if (process.env.NODE_ENV === 'production' && 
-        process.env.CI_COMMIT_REF_SLUG && 
-        process.env.CI_COMMIT_REF_SLUG !== 'main') {
-      return `/${process.env.CI_COMMIT_REF_SLUG}`;
-    }
-    return '';
-  }
-  
-  // Client-side: detect from current URL path
-  const currentPath = window.location.pathname;
-  
-  // If we're in a subdirectory (branch deployment), extract the base path
-  const pathSegments = currentPath.split('/').filter(Boolean);
-  if (pathSegments.length > 0 && pathSegments[0] !== '_next') {
-    // Check if first segment looks like a branch name (common GitLab branch patterns)
-    const firstSegment = pathSegments[0];
-    if (firstSegment.includes('-') || firstSegment.match(/^(feat|feature|fix|hotfix|develop|staging)/)) {
-      return `/${firstSegment}`;
-    }
-  }
-  
-  return '';
-}
-
-/**
  * Load the component registry from the generated JSON file
- * This works in both development and static export environments
+ * The registry is built at build time and imported directly
  */
 async function loadRegistry(): Promise<any> {
   if (registryCache) {
@@ -49,39 +17,17 @@ async function loadRegistry(): Promise<any> {
   debugLog('general', '🔄 Loading registry...');
 
   try {
-    // Get the correct base path for the current environment
-    const basePath = getBasePath();
-    const registryPath = `${basePath}/generated-registry.json`;
-    debugLog('general', `🌐 Fetching registry from: ${registryPath}`);
-    debugLog('general', `🔍 Base path detected: "${basePath}"`);
-    debugLog('general', `🔍 Environment: NODE_ENV=${process.env.NODE_ENV}, CI_COMMIT_REF_SLUG=${process.env.CI_COMMIT_REF_SLUG}`);
-    
-    const response = await fetch(registryPath);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch registry: ${response.status} ${response.statusText}`);
-    }
-    
-    const registry = await response.json();
-    debugLog('general', '✅ Registry loaded via fetch');
+    // Import the registry directly - it's built at build time
+    debugLog('general', '📦 Loading registry via dynamic import...');
+    const module = await import('@/lib/generated-registry.json');
+    const registry = module.default || module;
+    debugLog('general', '✅ Registry loaded successfully');
     
     registryCache = registry;
     return registry;
-  } catch (fetchError) {
-    debugLog('general', '⚠️ Failed to fetch registry via HTTP:', fetchError);
-    
-    try {
-      // Fallback: try dynamic import (works in development)
-      debugLog('general', '🔄 Trying dynamic import fallback...');
-      const module = await import('@/lib/generated-registry.json');
-      const registry = module.default || module;
-      debugLog('general', '✅ Registry loaded via dynamic import');
-      
-      registryCache = registry;
-      return registry;
-    } catch (importError) {
-      debugLog('general', '❌ Failed to load registry via dynamic import:', importError);
-      throw new Error(`Failed to load component registry. Fetch error: ${fetchError}. Import error: ${importError}`);
-    }
+  } catch (importError) {
+    debugLog('general', '❌ Failed to load registry:', importError);
+    throw new Error(`Failed to load component registry: ${importError instanceof Error ? importError.message : 'Unknown error'}`);
   }
 }
 
