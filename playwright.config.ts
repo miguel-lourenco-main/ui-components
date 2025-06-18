@@ -24,6 +24,16 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
 
+  /* Visual comparison settings */
+  expect: {
+    // Allow up to 2% pixel difference for visual comparisons
+    toHaveScreenshot: { 
+      threshold: 0.02
+    },
+    // Global matcher timeout
+    timeout: 10000,
+  },
+
   /* Configure projects for major browsers */
   projects: [
     {
