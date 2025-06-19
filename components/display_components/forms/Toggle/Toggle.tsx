@@ -31,6 +31,7 @@ const ToggleComponent: React.FC<ToggleComponentProps> = ({
       size={size}
       className={className}
       aria-label={ariaLabel}
+      data-testid="rendered-component-toggle"
     >
       {children}
     </Toggle>

@@ -50,6 +50,7 @@ const SonnerComponent: React.FC<SonnerComponentProps> = ({
     <button
       onClick={showToast}
       className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+      data-testid="rendered-component-sonner"
     >
       Show Toast
     </button>

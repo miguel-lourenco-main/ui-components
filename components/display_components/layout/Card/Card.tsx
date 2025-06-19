@@ -53,7 +53,7 @@ export default function Card({
   const bodyPadding = paddingStyles[contentPadding];
   
   return (
-    <div className={cardClassName}>
+    <div className={cardClassName} data-testid="rendered-component-card">
       {header && (
         <div className={`border-b border-gray-200 ${headerFooterPadding}`}>
           {typeof header === 'function' ? header() : header}

@@ -18,7 +18,7 @@ const TextareaComponent: React.FC<TextareaComponentProps> = ({
   const textareaId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" data-testid="rendered-component-textarea">
       {label && (
         <label htmlFor={textareaId} className="text-sm font-medium leading-none">
           {label}

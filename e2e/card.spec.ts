@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { testChildrenProp } from '@/lib/test-utils';
 
 test.describe('Component: Card', () => {
   test.describe.configure({ mode: 'serial' });
@@ -11,6 +12,92 @@ test.describe('Component: Card', () => {
     // Select the Card component before each test
     await page.getByRole('button', { name: /^Card v/ }).click();
   });
+
+  const setupCardTestConsts = async (page: any) => {
+    // Select the Button component from the list
+    await page.getByRole('button', { name: /^Card v/ }).click();
+  
+    // Wait for examples to be visible and get their count
+    const examples = page.getByTestId('examples-panel').getByRole('button', { name: /Currently selected|^(?!.*Currently selected).*$/ });
+    const exampleCount = await examples.count();
+  
+    // Verify we have at least 3 examples to test with
+    expect(exampleCount).toBeGreaterThanOrEqual(3);
+  
+    // Get the second and third examples (first is already selected by default)
+    const secondExample = examples.nth(1);
+    const thirdExample = examples.nth(2);
+
+    const componentPreview = page.getByTestId('component-preview');
+    const renderedCard = componentPreview.getByTestId('rendered-component-card');
+
+    return {
+      componentPreview,
+      renderedCard,
+      secondExample,
+      thirdExample
+    };
+  };
+
+  test('children prop', async ({ page }) => {
+    const { componentPreview, renderedCard } = await setupCardTestConsts(page);
+
+    await testChildrenProp(componentPreview, renderedCard, page);
+  });
+
+  test('className prop', async ({ page }) => {
+    const { componentPreview } = await setupCardTestConsts(page);
+
+    const classNameInput = page.getByTestId('prop-control-className').locator('input');
+    await expect(classNameInput).toBeEnabled();
+    await classNameInput.click();
+  });
+
+  test('padding prop', async ({ page }) => {
+    const { componentPreview } = await setupCardTestConsts(page);
+
+    const paddingSelect = page.getByTestId('prop-control-padding').locator('select');
+    await expect(paddingSelect).toBeEnabled();
+    await paddingSelect.click();
+    await paddingSelect.selectOption('lg');
+    await expect(componentPreview).toHaveScreenshot('card-padding-lg.png');
+  });
+
+  test('shadow prop', async ({ page }) => {
+    const { componentPreview } = await setupCardTestConsts(page);
+
+    const shadowSelect = page.getByTestId('prop-control-shadow').locator('select');
+    await expect(shadowSelect).toBeEnabled();
+    await shadowSelect.click();
+    await shadowSelect.selectOption('lg');
+    await expect(componentPreview).toHaveScreenshot('card-shadow-lg.png');
+  });
+
+  test('border prop', async ({ page }) => {
+    const { componentPreview } = await setupCardTestConsts(page);
+
+    const borderCheckbox = page.getByTestId('prop-control-border').locator('input');
+    await expect(borderCheckbox).toBeEnabled();
+    await borderCheckbox.click();
+    await expect(componentPreview).toHaveScreenshot('card-no-border.png', { threshold: 0.1 });
+  });
+
+  test('rounded prop', async ({ page }) => {
+    const componentPreview = page.getByTestId('component-preview');
+    const propsPanel = page.getByTestId('props-panel');
+  });
+
+  test('header prop', async ({ page }) => {
+    const componentPreview = page.getByTestId('component-preview');
+    const propsPanel = page.getByTestId('props-panel');
+  });
+
+  test('footer prop', async ({ page }) => {
+    const componentPreview = page.getByTestId('component-preview');
+    const propsPanel = page.getByTestId('props-panel');
+  });
+
+
 
   test('should render and handle all visual props', async ({ page }) => {
     const componentPreview = page.getByTestId('component-preview');

@@ -26,6 +26,7 @@ const SwitchComponent: React.FC<SwitchComponentProps> = ({
         onCheckedChange={onCheckedChange}
         disabled={disabled}
         className={className}
+        data-testid="rendered-component-switch"
       />
       {label && (
         <label 

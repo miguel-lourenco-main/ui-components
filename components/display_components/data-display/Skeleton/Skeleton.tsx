@@ -9,7 +9,7 @@ const SkeletonComponent: React.FC<SkeletonComponentProps> = ({
   className,
 }) => {
   return (
-    <Skeleton className={className}/>
+    <Skeleton className={className} data-testid="rendered-component-skeleton"/>
   );
 };
 

@@ -569,15 +569,12 @@ export default function Example() {${functionDeclarationsCode}
       [propName]: value
     };
 
-    // Clear example selection when user interacts with component
-    // This indicates they're now in "custom" mode
-    if (selectedExampleIndex >= 0) {
-      debugLog('state', '🔄 handlePropChange: Clearing example selection (user interaction detected)');
-      setSelectedExampleIndex(-1);
-    }
+    // Preserve example selection when user interacts with component
+    // This ensures the selected example remains active even when component state changes
+    debugLog('state', '🔄 handlePropChange: Maintaining example selection (preserving user context)');
 
     updateProps(newProps);
-  }, [playgroundState.selectedComponent, playgroundState.currentProps, selectedExampleIndex, updateProps]);
+  }, [playgroundState.selectedComponent, playgroundState.currentProps, updateProps]);
 
   // Load components on mount
   useEffect(() => {

@@ -32,6 +32,7 @@ const SliderComponent: React.FC<SliderComponentProps> = ({
       onValueChange={onValueChange}
       className={className}
       disabled={disabled}
+      data-testid="rendered-component-slider"
     />
   );
 };

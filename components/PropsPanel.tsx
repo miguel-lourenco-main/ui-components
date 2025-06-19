@@ -129,7 +129,7 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
 
             {/* Examples Panel */}
             <ResizablePanel defaultSize={30} minSize={20}>
-              <div className="h-full overflow-y-auto border-t border-gray-200">
+              <div className="h-full overflow-y-auto border-t border-gray-200" data-testid="examples-panel">
                 <div className="p-4">
                   <h4 className="font-medium text-gray-900 mb-3">Examples</h4>
                   <div className="space-y-2">

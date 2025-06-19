@@ -14,6 +14,7 @@ const ProgressComponent: React.FC<ProgressComponentProps> = ({
     <Progress 
       value={value} 
       className={className}
+      data-testid="rendered-component-progress"
     />
   );
 };

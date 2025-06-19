@@ -45,6 +45,13 @@
       }
     },
     {
+      "name": "title",
+      "type": "string",
+      "required": false,
+      "defaultValue": "",
+      "description": "Button title"
+    },
+    {
       "name": "disabled",
       "type": "boolean",
       "required": false,
