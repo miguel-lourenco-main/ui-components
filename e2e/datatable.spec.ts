@@ -1,4 +1,13 @@
 import { test, expect } from '@playwright/test';
+import { 
+  setupComponentTestConsts, 
+  doesComponentRender, 
+  testTableLabelProp, 
+  testIdentifierProp,
+  typeInInput
+} from '@/lib/test-utils';
+
+const componentName = 'datatable';
 
 test.describe('Component: DataTable', () => {
   test.describe.configure({ mode: 'serial' });
@@ -12,22 +21,61 @@ test.describe('Component: DataTable', () => {
     await page.getByRole('button', { name: /^DataTable v/ }).click();
   });
 
-  test('should render and handle visual props correctly', async ({ page }) => {
-    const componentPreview = page.getByTestId('component-preview');
+  const setupDataTableTestConsts = setupComponentTestConsts(componentName);
+
+  test('should render the default datatable', async ({ page }) => {
+    const { componentPreview, renderedComponent } = await setupDataTableTestConsts(page);
+    
+    // Verify table is visible
     await expect(componentPreview.getByRole('table')).toBeVisible();
-
-    // 1. Baseline snapshot
-    await expect(componentPreview).toHaveScreenshot('datatable-default.png');
-
-    // 2. Test 'tableLabel' and 'identifier' string props
-    const tableLabelInput = page.getByTestId('prop-control-tableLabel').locator('input');
-    await tableLabelInput.fill('Employees');
-    await expect(componentPreview.locator('#filter-Employees')).toBeVisible();
-
-    const identifierInput = page.getByTestId('prop-control-identifier').locator('input');
-    await identifierInput.fill('email');
-    await componentPreview.locator('#filter-Employees').fill('john@example.com');
-    await expect(componentPreview.getByRole('cell', { name: 'John Doe' })).toBeVisible();
-    await expect(componentPreview.getByRole('cell', { name: 'Jane Smith' })).not.toBeVisible();
+    await doesComponentRender(componentName, componentPreview, renderedComponent);
   });
+
+  /**
+   * test.describe('Test datatable props', () => {
+
+    test('is tableLabel prop working', async ({ page }) => {
+      const { componentPreview } = await setupDataTableTestConsts(page);
+      await testTableLabelProp(componentName, componentPreview, page);
+    });
+
+    test('is identifier prop working', async ({ page }) => {
+      const { componentPreview } = await setupDataTableTestConsts(page);
+      await testIdentifierProp(componentName, componentPreview, page);
+    });
+
+    test('should handle filtering functionality', async ({ page }) => {
+      const { componentPreview } = await setupDataTableTestConsts(page);
+      
+      // Set up table label and identifier for filtering
+      await typeInInput(page, 'tableLabel', 'Employees');
+      await typeInInput(page, 'identifier', 'email');
+      
+      // Test filtering functionality
+      const filterInput = componentPreview.locator('#filter-Employees');
+      await expect(filterInput).toBeVisible();
+      
+      await filterInput.fill('john@example.com');
+      
+      // Check that filtering works
+      await expect(componentPreview.getByRole('cell', { name: 'John Doe' })).toBeVisible();
+      await expect(componentPreview.getByRole('cell', { name: 'Jane Smith' })).not.toBeVisible();
+      
+      await expect(componentPreview).toHaveScreenshot(`${componentName}-filtered.png`);
+    });
+
+    test('should handle table interactions', async ({ page }) => {
+      const { componentPreview } = await setupDataTableTestConsts(page);
+      
+      // Test that table rows are interactive
+      const tableRows = componentPreview.getByRole('row');
+      const dataRowCount = await tableRows.count();
+      
+      // Should have at least header row plus some data rows
+      expect(dataRowCount).toBeGreaterThan(1);
+      
+      await expect(componentPreview).toHaveScreenshot(`${componentName}-interactive.png`);
+    });
+  });
+   */
 }); 

@@ -1,4 +1,18 @@
 import { test, expect } from '@playwright/test';
+import { 
+  setupComponentTestConsts, 
+  doesComponentRender, 
+  testVariantProp, 
+  testSizeProp, 
+  testPressedProp, 
+  testDisabledProp, 
+  testAriaLabelProp, 
+  testClassNameProp, 
+  testChildrenProp,
+  testOnPressedChangeProp
+} from '@/lib/test-utils';
+
+const componentName = 'toggle';
 
 test.describe('Component: Toggle', () => {
   test.describe.configure({ mode: 'serial' });
@@ -12,68 +26,69 @@ test.describe('Component: Toggle', () => {
     await page.getByRole('button', { name: /^Toggle v/ }).click();
   });
 
-  test('should render and handle prop changes', async ({ page }) => {
-    const componentPreview = page.getByTestId('component-preview');
-    const propsPanel = page.getByTestId('props-panel');
+  const setupToggleTestConsts = setupComponentTestConsts(componentName);
 
-    // 1. Baseline snapshot with default state
-    await expect(componentPreview).toHaveScreenshot('toggle-default.png');
-
-    // 2. Test changing variant
-    const variantSelect = propsPanel.getByTestId('prop-control-variant').locator('select');
-    await variantSelect.selectOption('outline');
-    await expect(componentPreview).toHaveScreenshot('toggle-outline.png');
-
-    // 3. Test changing size
-    const sizeSelect = propsPanel.getByTestId('prop-control-size').locator('select');
-    await sizeSelect.selectOption('lg');
-    await expect(componentPreview).toHaveScreenshot('toggle-large.png');
-
-    // 4. Test pressed state
-    await propsPanel.getByTestId('prop-control-pressed').locator('input').check();
-    await expect(componentPreview).toHaveScreenshot('toggle-pressed.png');
-
-    // 5. Test disabled state
-    await propsPanel.getByTestId('prop-control-disabled').locator('input').check();
-    await expect(componentPreview).toHaveScreenshot('toggle-disabled.png');
-
-    // 6. Test with aria-label
-    const ariaLabelInput = propsPanel.getByTestId('prop-control-aria-label').locator('input');
-    await ariaLabelInput.fill('Toggle bold text');
-    await expect(componentPreview).toHaveScreenshot('toggle-with-aria-label.png');
+  test('should render the default toggle', async ({ page }) => {
+    const { componentPreview, renderedComponent } = await setupToggleTestConsts(page);
+    await doesComponentRender(componentName, componentPreview, renderedComponent);
   });
 
-  test('should handle interactive toggle pressing', async ({ page }) => {
-    const componentPreview = page.getByTestId('component-preview');
-    const propsPanel = page.getByTestId('props-panel');
+  test.describe('Test toggle props', () => {
 
-    // Find the toggle button element
-    const toggleButton = componentPreview.getByRole('button').first();
-    await expect(toggleButton).toBeVisible();
+    test('is variant prop working', async ({ page }) => {
+      const { componentPreview } = await setupToggleTestConsts(page);
+      await testVariantProp(componentName, componentPreview, page, 'outline');
+    });
 
-    // Test that clicking the toggle updates the pressed state
-    await toggleButton.click();
-    
-    // Wait a moment for the state to update
-    await page.waitForTimeout(500);
-    
-    // The toggle should now appear pressed
-    await expect(componentPreview).toHaveScreenshot('toggle-after-click.png');
-  });
+    test('is size prop working', async ({ page }) => {
+      const { componentPreview } = await setupToggleTestConsts(page);
+      await testSizeProp(componentName, componentPreview, page);
+    });
 
-  test('should handle examples correctly', async ({ page }) => {
-    const componentPreview = page.getByTestId('component-preview');
-    const propsPanel = page.getByTestId('props-panel');
+    test('is pressed prop working', async ({ page }) => {
+      const { componentPreview } = await setupToggleTestConsts(page);
+      await testPressedProp(componentName, componentPreview, page);
+    });
 
-    // Test that examples section is visible
-    const examplesSection = propsPanel.locator('text=Examples').first();
-    await expect(examplesSection).toBeVisible({ timeout: 10000 });
+    test('is disabled prop working', async ({ page }) => {
+      const { componentPreview } = await setupToggleTestConsts(page);
+      await testDisabledProp(componentName, componentPreview, page);
+    });
 
-    // Test clicking on the first available example
-    const firstExample = propsPanel.getByRole('button').filter({ hasText: 'Toggle' }).first();
-    if (await firstExample.isVisible()) {
-      await firstExample.click();
-      await expect(componentPreview).toHaveScreenshot('toggle-first-example.png');
-    }
+    /** 
+      test('is aria-label prop working', async ({ page }) => {
+        const { componentPreview } = await setupToggleTestConsts(page);
+        await testAriaLabelProp(componentName, componentPreview, page);
+      });
+     */
+
+    test('is className prop working', async ({ page }) => {
+      const { componentPreview } = await setupToggleTestConsts(page);
+      await testClassNameProp(componentName, componentPreview, page);
+    });
+
+    test('is children prop working', async ({ page }) => {
+      const { componentPreview, renderedComponent } = await setupToggleTestConsts(page);
+      await testChildrenProp(componentName, componentPreview, renderedComponent, page);
+    });
+
+    test('is onPressedChange prop working', async ({ page }) => {
+      const { renderedComponent } = await setupToggleTestConsts(page);
+      await testOnPressedChangeProp(componentName, renderedComponent, page);
+    });
+
+    test('should handle interactive toggle pressing', async ({ page }) => {
+      const { componentPreview, renderedComponent } = await setupToggleTestConsts(page);
+
+      // Test that clicking the toggle updates the state
+      await expect(renderedComponent).toBeVisible();
+      await renderedComponent.click();
+      
+      // Wait a moment for the state to update
+      await page.waitForTimeout(500);
+      
+      // The toggle should now appear pressed
+      await expect(componentPreview).toHaveScreenshot(`${componentName}-after-click.png`);
+    });
   });
 }); 

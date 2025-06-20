@@ -1,4 +1,7 @@
 import { test, expect } from '@playwright/test';
+import { setupComponentTestConsts, doesComponentRender, typeInInput, testClassNameProp } from '@/lib/test-utils';
+
+const componentName = 'progress';
 
 test.describe('Component: Progress', () => {
   test.describe.configure({ mode: 'serial' });
@@ -12,46 +15,35 @@ test.describe('Component: Progress', () => {
     await page.getByRole('button', { name: /^Progress v/ }).click();
   });
 
-  test('should render and handle progress value changes', async ({ page }) => {
-    const componentPreview = page.getByTestId('component-preview');
-    const propsPanel = page.getByTestId('props-panel');
+  const setupProgressTestConsts = setupComponentTestConsts(componentName);
 
-    // 1. Baseline snapshot with default value
-    await expect(componentPreview).toHaveScreenshot('progress-default.png');
-
-    // 2. Test changing progress value to 25%
-    const valueInput = propsPanel.getByTestId('prop-control-value').locator('input');
-    await valueInput.clear();
-    await valueInput.fill('25');
-    await expect(componentPreview).toHaveScreenshot('progress-25-percent.png');
-
-    // 3. Test progress at 75%
-    await valueInput.clear();
-    await valueInput.fill('75');
-    await expect(componentPreview).toHaveScreenshot('progress-75-percent.png');
-
-    // 4. Test completed progress at 100%
-    await valueInput.clear();
-    await valueInput.fill('100');
-    await expect(componentPreview).toHaveScreenshot('progress-complete.png');
-
-    // 5. Test empty progress at 0%
-    await valueInput.clear();
-    await valueInput.fill('0');
-    await expect(componentPreview).toHaveScreenshot('progress-empty.png');
+  test('should render the default progress', async ({ page }) => {
+    const { componentPreview, renderedComponent } = await setupProgressTestConsts(page);
+    await doesComponentRender(componentName, componentPreview, renderedComponent);
   });
 
-  test('should handle examples correctly', async ({ page }) => {
-    const componentPreview = page.getByTestId('component-preview');
-    const propsPanel = page.getByTestId('props-panel');
+  test.describe('Test progress props', () => {
 
-    // Test clicking on different examples
-    const animatedExample = propsPanel.getByText('Animated Progress');
-    await animatedExample.click();
-    await expect(componentPreview).toHaveScreenshot('progress-animated-example.png');
+    test('is value prop working', async ({ page }) => {
+      const { componentPreview } = await setupProgressTestConsts(page);
+      
+      // Test different progress values
+      await typeInInput(page, 'value', '25');
+      await expect(componentPreview).toHaveScreenshot(`${componentName}-25-percent.png`);
 
-    const completeExample = propsPanel.getByText('Complete Progress');
-    await completeExample.click();
-    await expect(componentPreview).toHaveScreenshot('progress-complete-example.png');
+      await typeInInput(page, 'value', '75');
+      await expect(componentPreview).toHaveScreenshot(`${componentName}-75-percent.png`);
+
+      await typeInInput(page, 'value', '100');  
+      await expect(componentPreview).toHaveScreenshot(`${componentName}-complete.png`);
+
+      await typeInInput(page, 'value', '0');
+      await expect(componentPreview).toHaveScreenshot(`${componentName}-empty.png`);
+    });
+
+    test('is className prop working', async ({ page }) => {
+      const { componentPreview } = await setupProgressTestConsts(page);
+      await testClassNameProp(componentName, componentPreview, page);
+    });
   });
 }); 

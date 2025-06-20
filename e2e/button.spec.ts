@@ -1,5 +1,7 @@
-import { INVALID_FUNCTION_TEST, testChildrenProp, VALID_FUNCTION_TEST } from '@/lib/test-utils';
+import { testChildrenProp, testClassNameProp, testDisabledProp, testOnClickProp, testSizeProp, testVariantProp } from '@/lib/test-utils';
 import { test, expect } from '@playwright/test';
+
+const componentName = 'button';
 
 test.describe('Component: Button', () => {
   // Run tests in serial to prevent conflicts from the shared dev server.
@@ -61,7 +63,7 @@ test.describe('Component: Button', () => {
       const { componentPreview, renderedButton } = await setupButtonComponent(page);
 
       // --------- TEST children prop ---------
-      await testChildrenProp(componentPreview, renderedButton, page);
+      await testChildrenProp(componentName, componentPreview, renderedButton, page);
 
     });
 
@@ -71,111 +73,40 @@ test.describe('Component: Button', () => {
     
       // --------- TEST variant prop ---------
 
-      const variantSelect = page.getByTestId('prop-control-variant').locator('select');
-      await expect(variantSelect).toBeEnabled();
-      
-      // Scroll into view and click to ensure it's properly interactive
-      await variantSelect.scrollIntoViewIfNeeded();
-      await variantSelect.click();
-      await variantSelect.selectOption('secondary');
-
-      await expect(componentPreview).toHaveScreenshot('button-secondary.png');
+      await testVariantProp(componentName, componentPreview, page, 'secondary');
     });
 
     test('should update the size prop', async ({ page }) => {
       // Use helper function to set up component and get locators
       const { componentPreview } = await setupButtonComponent(page);
-      const sizeSelect = page.getByTestId('prop-control-size').locator('select');
 
       // --------- TEST size prop ---------
-      await expect(sizeSelect).toBeEnabled();
-      
-      // Scroll into view and click to ensure it's properly interactive
-      await sizeSelect.scrollIntoViewIfNeeded();
-      await expect(sizeSelect).toBeEnabled();
-      await sizeSelect.click();
-      await sizeSelect.selectOption('sm');
-      
-      await expect(componentPreview).toHaveScreenshot('button-small.png');
+
+      await testSizeProp(componentName, componentPreview, page);
     });
 
     test('should update the onClick prop', async ({ page }) => {
       // Use helper function to set up component and get locators
       const { renderedButton } = await setupButtonComponent(page);
 
-      const onClickEditor = page.getByTestId('prop-control-onClick');
-
-      // Set up console listener EARLY and capture ALL console messages for debugging
-      const consoleMessages: string[] = [];
-      const allConsoleMessages: string[] = [];
-
-      page.on('console', msg => {
-        const text = msg.text();
-        allConsoleMessages.push(text);
-        
-        // Capture our specific message
-        if (text === 'Button was clicked!') {
-          consoleMessages.push(text);
-        }
-      });
-      
-      await onClickEditor.locator('.monaco-editor').click();
-      await page.keyboard.press('Control+A');
-      await page.keyboard.press('Delete');
-      await page.keyboard.type('console.log("Button was clicked!")');
-      
-      // Wait for the app to validate the new function
-      const status = onClickEditor.getByTestId('function-prop-status');
-      await expect(status).toHaveText(VALID_FUNCTION_TEST, { timeout: 10000 });
-
-      // Wait a bit for the function to be properly set up
-      await page.waitForTimeout(1000);
-
-      // Click the button in the preview
-      await expect(renderedButton).toBeVisible();
-      await renderedButton.click();
-
-      // Wait a bit for console message to be processed
-      await page.waitForTimeout(500);
-      
-      // Verify that the console message was logged
-      await expect.poll(() => {
-        console.log('Console messages captured:', consoleMessages);
-        console.log('All console messages:', allConsoleMessages.slice(-10)); // Show last 10 for debugging
-        return consoleMessages.length > 0;
-      }, {
-        message: 'The onClick handler did not fire the expected console message',
-        timeout: 3000,
-        intervals: [500],
-      }).toBe(true);
-
+      // --------- TEST onClick prop ---------
+      await testOnClickProp(componentName, renderedButton, page);
     });
 
     test('should update the disabled prop', async ({ page }) => {
       // Use helper function to set up component and get locators
       const { componentPreview } = await setupButtonComponent(page);
 
-      const disabledCheckbox = page.getByTestId('prop-control-disabled').locator('input');
-
       // --------- TEST disabled prop ---------
-      await disabledCheckbox.scrollIntoViewIfNeeded();
-      await expect(disabledCheckbox).toBeEnabled();
-      await disabledCheckbox.click();
-      await expect(componentPreview).toHaveScreenshot('button-disabled.png');
+      await testDisabledProp(componentName, componentPreview, page);
     });
 
     test('should update the className prop', async ({ page }) => {
       // Use helper function to set up component and get locators
       const { componentPreview } = await setupButtonComponent(page);
-      const classNameInput = page.getByTestId('prop-control-className').locator('input');
 
       // --------- TEST className prop ---------
-      await expect(classNameInput).toBeEnabled();
-      await classNameInput.click();
-      await page.keyboard.press('Control+A');
-      await page.keyboard.press('Delete');
-      await page.keyboard.type('bg-red-900 text-lg');
-      await expect(componentPreview).toHaveScreenshot('button-custom-class.png');
+      await testClassNameProp(componentName, componentPreview, page);
     });
   });
 }); 

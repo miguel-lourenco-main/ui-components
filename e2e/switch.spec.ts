@@ -1,4 +1,16 @@
 import { test, expect } from '@playwright/test';
+import { 
+  setupComponentTestConsts, 
+  doesComponentRender, 
+  testLabelProp, 
+  testCheckedProp, 
+  testDisabledProp, 
+  testIdProp,
+  testClassNameProp,
+  testOnCheckedChangeProp
+} from '@/lib/test-utils';
+
+const componentName = 'switch';
 
 test.describe('Component: Switch', () => {
   test.describe.configure({ mode: 'serial' });
@@ -12,66 +24,57 @@ test.describe('Component: Switch', () => {
     await page.getByRole('button', { name: /^Switch v/ }).click();
   });
 
-  test('should render and handle prop changes', async ({ page }) => {
-    const componentPreview = page.getByTestId('component-preview');
-    const propsPanel = page.getByTestId('props-panel');
+  const setupSwitchTestConsts = setupComponentTestConsts(componentName);
 
-    // 1. Baseline snapshot with default state
-    await expect(componentPreview).toHaveScreenshot('switch-default.png');
-
-    // 2. Test adding a label
-    const labelInput = propsPanel.getByTestId('prop-control-label').locator('input');
-    await labelInput.fill('Enable notifications');
-    await expect(componentPreview.getByText('Enable notifications')).toBeVisible();
-    await expect(componentPreview).toHaveScreenshot('switch-with-label.png');
-
-    // 3. Test checked state
-    await propsPanel.getByTestId('prop-control-checked').locator('input').check();
-    await expect(componentPreview).toHaveScreenshot('switch-checked.png');
-
-    // 4. Test disabled state
-    await propsPanel.getByTestId('prop-control-disabled').locator('input').check();
-    await expect(componentPreview).toHaveScreenshot('switch-disabled.png');
-
-    // 5. Test with id prop
-    const idInput = propsPanel.getByTestId('prop-control-id').locator('input');
-    await idInput.fill('test-switch');
-    await expect(componentPreview).toHaveScreenshot('switch-with-id.png');
+  test('should render the default switch', async ({ page }) => {
+    const { componentPreview, renderedComponent } = await setupSwitchTestConsts(page);
+    await doesComponentRender(componentName, componentPreview, renderedComponent);
   });
 
-  test('should handle interactive switch toggling', async ({ page }) => {
-    const componentPreview = page.getByTestId('component-preview');
-    const propsPanel = page.getByTestId('props-panel');
+  test.describe('Test switch props', () => {
 
-    // Find the switch element
-    const switchElement = componentPreview.getByRole('switch');
-    await expect(switchElement).toBeVisible();
+    test('is label prop working', async ({ page }) => {
+      const { componentPreview, renderedComponent } = await setupSwitchTestConsts(page);
+      await testLabelProp(componentName, componentPreview, renderedComponent, page);
+    });
 
-    // Test that clicking the switch updates the checked state
-    await switchElement.click();
-    
-    // Wait a moment for the state to update
-    await page.waitForTimeout(500);
-    
-    // The switch should now appear checked
-    await expect(componentPreview).toHaveScreenshot('switch-after-click.png');
-  });
+    test('is checked prop working', async ({ page }) => {
+      const { componentPreview } = await setupSwitchTestConsts(page);
+      await testCheckedProp(componentName, componentPreview, page);
+    });
 
-  test('should handle examples correctly', async ({ page }) => {
-    const componentPreview = page.getByTestId('component-preview');
-    const propsPanel = page.getByTestId('props-panel');
+    test('is disabled prop working', async ({ page }) => {
+      const { componentPreview } = await setupSwitchTestConsts(page);
+      await testDisabledProp(componentName, componentPreview, page);
+    });
 
-    // Test clicking on different examples
-    const labelExample = propsPanel.getByText('Switch with Label');
-    await labelExample.click();
-    await expect(componentPreview).toHaveScreenshot('switch-label-example.png');
+    test('is id prop working', async ({ page }) => {
+      const { componentPreview } = await setupSwitchTestConsts(page);
+      await testIdProp(componentName, componentPreview, page);
+    });
 
-    const checkedExample = propsPanel.getByText('Checked Switch');
-    await checkedExample.click();
-    await expect(componentPreview).toHaveScreenshot('switch-checked-example.png');
+    test('is className prop working', async ({ page }) => {
+      const { componentPreview } = await setupSwitchTestConsts(page);
+      await testClassNameProp(componentName, componentPreview, page);
+    });
 
-    const disabledExample = propsPanel.getByText('Disabled Switch');
-    await disabledExample.click();
-    await expect(componentPreview).toHaveScreenshot('switch-disabled-example.png');
+    test('is onCheckedChange prop working', async ({ page }) => {
+      const { renderedComponent } = await setupSwitchTestConsts(page);
+      await testOnCheckedChangeProp(componentName, renderedComponent, page);
+    });
+
+    test('should handle interactive switch toggling', async ({ page }) => {
+      const { componentPreview, renderedComponent } = await setupSwitchTestConsts(page);
+
+      // Test that clicking the switch updates the state
+      await expect(renderedComponent).toBeVisible();
+      await renderedComponent.click();
+      
+      // Wait a moment for the state to update
+      await page.waitForTimeout(500);
+      
+      // The switch should now appear checked
+      await expect(componentPreview).toHaveScreenshot(`${componentName}-after-click.png`);
+    });
   });
 }); 

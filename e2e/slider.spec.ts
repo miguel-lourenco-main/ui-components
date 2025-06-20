@@ -1,4 +1,7 @@
 import { test, expect } from '@playwright/test';
+import { setupComponentTestConsts, doesComponentRender, typeInNumberInput, testClassNameProp, testDisabledProp, testValueProp, testDefaultValueProp } from '@/lib/test-utils';
+
+const componentName = 'slider';
 
 test.describe('Component: Slider', () => {
   test.describe.configure({ mode: 'serial' });
@@ -12,68 +15,68 @@ test.describe('Component: Slider', () => {
     await page.getByRole('button', { name: /^Slider v/ }).click();
   });
 
-  test('should render and handle prop changes', async ({ page }) => {
-    const componentPreview = page.getByTestId('component-preview');
-    const propsPanel = page.getByTestId('props-panel');
+  const setupSliderTestConsts = setupComponentTestConsts(componentName);
 
-    // 1. Baseline snapshot with default value
-    await expect(componentPreview).toHaveScreenshot('slider-default.png');
-
-    // 2. Test changing min value
-    const minInput = propsPanel.getByTestId('prop-control-min').locator('input');
-    await minInput.clear();
-    await minInput.fill('10');
-    await expect(componentPreview).toHaveScreenshot('slider-min-10.png');
-
-    // 3. Test changing max value
-    const maxInput = propsPanel.getByTestId('prop-control-max').locator('input');
-    await maxInput.clear();
-    await maxInput.fill('200');
-    await expect(componentPreview).toHaveScreenshot('slider-max-200.png');
-
-    // 4. Test changing step value
-    const stepInput = propsPanel.getByTestId('prop-control-step').locator('input');
-    await stepInput.clear();
-    await stepInput.fill('5');
-    await expect(componentPreview).toHaveScreenshot('slider-step-5.png');
-
-    // 5. Test disabled state
-    await propsPanel.getByTestId('prop-control-disabled').locator('input').check();
-    await expect(componentPreview).toHaveScreenshot('slider-disabled.png');
+  test('should render the default slider', async ({ page }) => {
+    const { componentPreview, renderedComponent } = await setupSliderTestConsts(page);
+    await doesComponentRender(componentName, componentPreview, renderedComponent);
   });
 
-  test('should handle interactive slider changes', async ({ page }) => {
-    const componentPreview = page.getByTestId('component-preview');
-    const propsPanel = page.getByTestId('props-panel');
+  test.describe('Test slider props', () => {
 
-    // Find the slider element
-    const slider = componentPreview.getByRole('slider');
-    await expect(slider).toBeVisible();
+    test('is min prop working', async ({ page }) => {
+      const { componentPreview } = await setupSliderTestConsts(page);
+      await typeInNumberInput(page, 'min', 10);
+      await expect(componentPreview).toHaveScreenshot(`${componentName}-min-10.png`);
+    });
 
-    // Test that moving the slider updates the value in the props panel
-    // Note: This tests the bidirectional state flow we implemented
-    await slider.click();
-    
-    // Wait a moment for the state to update
-    await page.waitForTimeout(500);
-    
-    // The value should be reflected in the props panel
-    await expect(componentPreview).toHaveScreenshot('slider-after-interaction.png');
-  });
+    test('is max prop working', async ({ page }) => {
+      const { componentPreview } = await setupSliderTestConsts(page);
+      await typeInNumberInput(page, 'max', 200);
+      await expect(componentPreview).toHaveScreenshot(`${componentName}-max-200.png`);
+    });
 
-  test('should handle examples correctly', async ({ page }) => {
-    const componentPreview = page.getByTestId('component-preview');
-    const propsPanel = page.getByTestId('props-panel');
+    test('is defaultValue prop working', async ({ page }) => {
+      const { componentPreview } = await setupSliderTestConsts(page);
+      await testDefaultValueProp(componentName, componentPreview, page);
+    });
 
-    // Test that examples section is visible and contains expected examples
-    const examplesSection = propsPanel.locator('text=Examples').first();
-    await expect(examplesSection).toBeVisible({ timeout: 10000 });
+    test('is value prop working', async ({ page }) => {
+      const { componentPreview } = await setupSliderTestConsts(page);
+      await testValueProp(componentName, componentPreview, page);
+    });
 
-    // Test clicking on the first available example
-    const firstExample = propsPanel.getByRole('button').filter({ hasText: 'Slider' }).first();
-    if (await firstExample.isVisible()) {
-      await firstExample.click();
-      await expect(componentPreview).toHaveScreenshot('slider-first-example.png');
-    }
+    test('is step prop working', async ({ page }) => {
+      const { componentPreview } = await setupSliderTestConsts(page);
+      await typeInNumberInput(page, 'step', 5);
+      await expect(componentPreview).toHaveScreenshot(`${componentName}-step-5.png`);
+    });
+
+    test('is disabled prop working', async ({ page }) => {
+      const { componentPreview } = await setupSliderTestConsts(page);
+      await testDisabledProp(componentName, componentPreview, page);
+    });
+
+    test('is className prop working', async ({ page }) => {
+      const { componentPreview } = await setupSliderTestConsts(page);
+      await testClassNameProp(componentName, componentPreview, page);
+    });
+
+    test('should handle interactive slider changes', async ({ page }) => {
+      const { componentPreview } = await setupSliderTestConsts(page);
+
+      // Find the slider element
+      const slider = componentPreview.getByRole('slider');
+      await expect(slider).toBeVisible();
+
+      // Test that moving the slider updates the value
+      await slider.click();
+      
+      // Wait a moment for the state to update
+      await page.waitForTimeout(500);
+      
+      // The value should be reflected in the component
+      await expect(componentPreview).toHaveScreenshot(`${componentName}-after-interaction.png`);
+    });
   });
 }); 

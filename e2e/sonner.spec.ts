@@ -1,4 +1,13 @@
 import { test, expect } from '@playwright/test';
+import { 
+  setupComponentTestConsts, 
+  doesComponentRender, 
+  testMessageProp, 
+  testDescriptionProp, 
+  selectOption
+} from '@/lib/test-utils';
+
+const componentName = 'sonner';
 
 test.describe('Component: Sonner', () => {
   test.describe.configure({ mode: 'serial' });
@@ -12,61 +21,61 @@ test.describe('Component: Sonner', () => {
     await page.getByRole('button', { name: /^Sonner v/ }).click();
   });
 
-  test('should render and handle prop changes', async ({ page }) => {
-    const componentPreview = page.getByTestId('component-preview');
-    const propsPanel = page.getByTestId('props-panel');
+  const setupSonnerTestConsts = setupComponentTestConsts(componentName);
 
-    // 1. Baseline snapshot with default state
-    await expect(componentPreview).toHaveScreenshot('sonner-default.png');
-
-    // 2. Test changing message
-    const messageInput = propsPanel.getByTestId('prop-control-message').locator('input');
-    await messageInput.clear();
-    await messageInput.fill('Custom toast message');
-    await expect(componentPreview).toHaveScreenshot('sonner-custom-message.png');
-
-    // 3. Test adding description
-    const descriptionInput = propsPanel.getByTestId('prop-control-description').locator('input');
-    await descriptionInput.fill('This is a description');
-    await expect(componentPreview).toHaveScreenshot('sonner-with-description.png');
-
-    // 4. Test changing variant
-    const variantSelect = propsPanel.getByTestId('prop-control-variant').locator('select');
-    await variantSelect.selectOption('success');
-    await expect(componentPreview).toHaveScreenshot('sonner-success-variant.png');
-
-    // 5. Test error variant
-    await variantSelect.selectOption('error');
-    await expect(componentPreview).toHaveScreenshot('sonner-error-variant.png');
-
-    // 6. Test warning variant
-    await variantSelect.selectOption('warning');
-    await expect(componentPreview).toHaveScreenshot('sonner-warning-variant.png');
+  test('should render the default sonner', async ({ page }) => {
+    const { componentPreview, renderedComponent } = await setupSonnerTestConsts(page);
+    await doesComponentRender(componentName, componentPreview, renderedComponent);
   });
 
-  test('should handle examples correctly', async ({ page }) => {
-    const componentPreview = page.getByTestId('component-preview');
-    const propsPanel = page.getByTestId('props-panel');
+  test.describe('Test sonner props', () => {
 
-    // Test that examples section is visible
-    const examplesSection = propsPanel.locator('text=Examples').first();
-    await expect(examplesSection).toBeVisible({ timeout: 10000 });
+    test('is message prop working', async ({ page }) => {
+      const { componentPreview } = await setupSonnerTestConsts(page);
+      await testMessageProp(componentName, componentPreview, page);
+    });
 
-    // Test clicking on the first available example
-    const firstExample = propsPanel.getByRole('button').filter({ hasText: 'Toast' }).first();
-    if (await firstExample.isVisible()) {
-      await firstExample.click();
-      await expect(componentPreview).toHaveScreenshot('sonner-first-example.png');
-    }
-  });
+    test('is description prop working', async ({ page }) => {
+      const { componentPreview } = await setupSonnerTestConsts(page);
+      await testDescriptionProp(componentName, componentPreview, page);
+    });
 
-  test('should handle different toast variants', async ({ page }) => {
-    const componentPreview = page.getByTestId('component-preview');
-    
-    // Test that the Sonner component renders correctly
-    await expect(componentPreview).toHaveScreenshot('sonner-provider-rendered.png');
-    
-    // Test that the component preview contains some content
-    await expect(componentPreview).toBeVisible();
+    test('is variant prop working with success', async ({ page }) => {
+      const { componentPreview } = await setupSonnerTestConsts(page);
+      await selectOption(page, 'variant', 'success');
+      await expect(componentPreview).toHaveScreenshot(`${componentName}-success-variant.png`);
+    });
+
+    test('is variant prop working with error', async ({ page }) => {
+      const { componentPreview } = await setupSonnerTestConsts(page);
+      await selectOption(page, 'variant', 'error');
+      await expect(componentPreview).toHaveScreenshot(`${componentName}-error-variant.png`);
+    });
+
+    test('is variant prop working with warning', async ({ page }) => {
+      const { componentPreview } = await setupSonnerTestConsts(page);
+      await selectOption(page, 'variant', 'warning');
+      await expect(componentPreview).toHaveScreenshot(`${componentName}-warning-variant.png`);
+    });
+
+    test('is variant prop working with info', async ({ page }) => {
+      const { componentPreview } = await setupSonnerTestConsts(page);
+      await selectOption(page, 'variant', 'info');
+      await expect(componentPreview).toHaveScreenshot(`${componentName}-info-variant.png`);
+    });
+
+    test('should handle toast button interaction', async ({ page }) => {
+      const { componentPreview, renderedComponent } = await setupSonnerTestConsts(page);
+
+      // Test that clicking the show toast button works
+      await expect(renderedComponent).toBeVisible();
+      await renderedComponent.click();
+      
+      // Wait a moment for the toast to appear
+      await page.waitForTimeout(1000);
+      
+      // The toast should be visible on the page
+      await expect(componentPreview).toHaveScreenshot(`${componentName}-after-click.png`);
+    });
   });
 }); 
