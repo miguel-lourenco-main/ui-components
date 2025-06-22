@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import ComponentSelector from '@/components/ComponentSelector';
 import LocalComponentRenderer from '@/components/LocalComponentRenderer';
 import CodeViewer from '@/components/CodeViewer';
@@ -8,7 +9,8 @@ import ViewportControls from '@/components/ViewportControls';
 import CodeButtons from '@/components/CodeButtons';
 
 import { useLocalComponentState } from '@/lib/hooks/useLocalComponentState';
-import { PlayIcon, SettingsIcon, XIcon } from 'lucide-react';
+import { PlayIcon, SettingsIcon, XIcon, EyeOffIcon, EyeIcon } from 'lucide-react';
+import { getMonacoPreloadStatus } from '@/lib/monaco-preloader';
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -23,6 +25,7 @@ interface ComponentPreviewProps {
   viewMode: 'desktop' | 'tablet' | 'mobile';
   selectedExampleIndex: number;
   onRetry: () => void;
+  onPropChange: (propName: string, value: any) => void;
   rendererButtons: React.ReactNode;
 }
 
@@ -32,6 +35,7 @@ function ComponentPreview({
   viewMode, 
   selectedExampleIndex, 
   onRetry, 
+  onPropChange,
   rendererButtons 
 }: ComponentPreviewProps) {
   return (
@@ -47,6 +51,7 @@ function ComponentPreview({
             props={currentProps}
             viewMode={viewMode}
             onRetry={onRetry}
+            onPropChange={onPropChange}
           />
         ) : (
           <div className="h-full flex items-center justify-center text-gray-500">
@@ -68,24 +73,31 @@ export default function PlaygroundPage() {
     selectedExampleIndex,
     loading,
     error,
+    loadComponents,
     selectComponent,
     selectExample,
     updateProps,
+    resetToDefaults,
     setViewMode,
     togglePropsPanel,
     toggleCodePanel,
     setSearchQuery,
     setSelectedCategory,
-    loadComponents
+    handlePropChange,
   } = useLocalComponentState();
 
-  const togglePanel = (panel: 'props' | 'code') => {
-    if (panel === 'props') {
-      togglePropsPanel();
-    } else {
-      toggleCodePanel();
-    }
-  };
+  // Track Monaco preload status for debugging (development only)
+  const [monacoStatus, setMonacoStatus] = useState(() => getMonacoPreloadStatus());
+  
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'development') return;
+    
+    const interval = setInterval(() => {
+      setMonacoStatus(getMonacoPreloadStatus());
+    }, 500);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   const rendererButtons = (): React.ReactNode => {
     return playgroundState.selectedComponent ?(
@@ -97,8 +109,19 @@ export default function PlaygroundPage() {
         <CodeButtons
           component={playgroundState.selectedComponent}
           showCode={playgroundState.showCode}
-          onToggleCode={() => togglePanel('code')}
+          onToggleCode={() => toggleCodePanel()}
         />
+        {/* Monaco Preload Status Debug (Development Only) */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="text-xs text-gray-500 bg-blue-50 px-2 py-1 rounded">
+            Monaco: {(() => {
+              if (monacoStatus.isPreloaded) return '✅ Ready';
+              if (monacoStatus.isLoading) return '⏳ Loading';
+              if (monacoStatus.preloadStarted) return '🔄 Starting';
+              return '❌ Not Started';
+            })()}
+          </div>
+        )}
       </>
     ) : null;
   }
@@ -149,17 +172,17 @@ export default function PlaygroundPage() {
               </span>
             )}
           </div>
-          {selectedExampleIndex > -1 && (
+          {playgroundState.selectedComponent && (
             <div 
               key={`header-controls-${playgroundState.selectedComponent?.name}`}
               className="flex items-center space-x-2 slide-in-left"
             >
               <button
-                onClick={() => togglePanel('props')}
+                onClick={() => togglePropsPanel()}
                 className={`p-2 rounded transition-colors duration-200 ${playgroundState.showProps ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'}`}
-                title="Toggle Props Panel"
+                title={`${playgroundState.showProps ? 'Hide' : 'Show'} Props Panel`}
               >
-                <SettingsIcon className="w-5 h-5" />
+                {playgroundState.showProps ? <EyeOffIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
               </button>
             </div>
           )}
@@ -218,6 +241,7 @@ export default function PlaygroundPage() {
                         selectComponent(playgroundState.selectedComponent, selectedExampleIndex);
                       }
                     }}
+                    onPropChange={handlePropChange}
                     rendererButtons={rendererButtons()}
                   />
                 </ResizablePanel>
@@ -227,14 +251,8 @@ export default function PlaygroundPage() {
                 {/* Code Viewer */}
                 <ResizablePanel defaultSize={40} minSize={20} className="bg-white border-t border-gray-200">
                   <div className="h-full flex flex-col">
-                    <div className="p-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
+                    <div className="p-4 border-b border-gray-200 flex items-center justify-start flex-shrink-0">
                       <h3 className="font-semibold">Generated Code</h3>
-                      <button
-                        onClick={() => togglePanel('code')}
-                        className="p-1 hover:bg-gray-100 rounded"
-                      >
-                        <XIcon className="w-4 h-4" />
-                      </button>
                     </div>
                     <div className="flex-1 overflow-hidden">
                       <CodeViewer
@@ -258,6 +276,7 @@ export default function PlaygroundPage() {
                     selectComponent(playgroundState.selectedComponent, selectedExampleIndex);
                   }
                 }}
+                onPropChange={handlePropChange}
                 rendererButtons={rendererButtons()}
               />
             )}
@@ -274,14 +293,8 @@ export default function PlaygroundPage() {
                 className="bg-white border-l border-gray-200"
               >
                 <div className="h-full flex flex-col slide-in-right" data-testid="props-panel">
-                  <div className="p-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
+                  <div className="p-4 border-b border-gray-200 flex items-center justify-start flex-shrink-0">
                     <h3 className="font-semibold">Props</h3>
-                    <button
-                      onClick={() => togglePanel('props')}
-                      className="p-1 hover:bg-gray-100 rounded"
-                    >
-                      <XIcon className="w-4 h-4" />
-                    </button>
                   </div>
                   <div className="flex-1 overflow-hidden">
                     <PropsPanel

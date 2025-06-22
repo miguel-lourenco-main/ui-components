@@ -1,0 +1,53 @@
+{
+  "id": "switch",
+  "name": "Switch",
+  "category": "form",
+  "description": "A control that allows the user to toggle between checked and not checked. Used for binary settings and preferences",
+  "props": [
+    {
+      "name": "checked",
+      "type": "boolean",
+      "required": false,
+      "description": "The controlled checked state of the switch"
+    },
+    {
+      "name": "onCheckedChange",
+      "type": "function",
+      "required": false,
+      "description": "Event handler called when the checked state changes",
+      "functionSignature": {
+        "params": "checked: boolean",
+        "returnType": "void"
+      }
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "required": false,
+      "defaultValue": false,
+      "description": "Whether the switch is disabled"
+    },
+    {
+      "name": "id",
+      "type": "string",
+      "required": false,
+      "description": "The id attribute for the switch element"
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "required": false,
+      "description": "Optional label text to display next to the switch"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "defaultValue": "",
+      "description": "Additional CSS classes for styling"
+    }
+  ],
+  "tags": ["switch", "toggle", "boolean", "form", "control"],
+  "version": "1.0.0",
+  "author": "UI Components Team"
+} 

@@ -1,4 +1,25 @@
+import { 
+  doesComponentRender, 
+  setupComponentTestConsts, 
+  testDefaultValueProp, 
+  testDisabledProp, 
+  testOnChangeProp, 
+  testPlaceholderProp, 
+  testTypeProp, 
+  testValueProp,
+  testOnFocusProp,
+  testOnBlurProp,
+  testRequiredProp,
+  testSizeProp,
+  testVariantClassProp,
+  testClassNameProp,
+  testLabelProp,
+  testHelperTextProp,
+  testErrorProp
+} from '@/lib/test-utils';
 import { test, expect } from '@playwright/test';
+
+const componentName = 'input';
 
 test.describe('Component: Input', () => {
   test.describe.configure({ mode: 'serial' });
@@ -9,56 +30,91 @@ test.describe('Component: Input', () => {
     await expect(loadingIndicator).not.toBeVisible({ timeout: 20000 });
     await expect(page.getByRole('heading', { name: 'Components', level: 2 })).toBeVisible();
     // Select the Input component before each test
-    await page.getByRole('button', { name: 'Input' }).click();
+    await page.getByRole('button', { name: /^Input v/ }).click();
   });
 
-  test('should render and handle visual props correctly', async ({ page }) => {
-    const componentPreview = page.getByTestId('component-preview');
-    const propsPanel = page.getByTestId('props-panel');
-    const renderedInput = componentPreview.getByRole('textbox');
+  const setupInputTestConsts = setupComponentTestConsts(componentName);
 
-    // 1. Baseline snapshot
-    await expect(renderedInput).toBeVisible();
-    await expect(componentPreview).toHaveScreenshot('input-default.png');
-    
-    const labelEditor = propsPanel.getByTestId('prop-control-label').locator("input");
-    
-    // Test 'label' and 'required' props to make 'name' testable
-    await labelEditor.clear();
-    await labelEditor.fill('Email Address');
-
-    await propsPanel.getByTestId('prop-control-required').locator('input').check();
-    await expect(componentPreview.getByText('Email Address')).toBeVisible();
-
-    // 3. Test 'placeholder' prop
-    await propsPanel.getByTestId('prop-control-placeholder').locator('input').fill('Enter new text...');
-    await expect(componentPreview).toHaveScreenshot('input-placeholder.png');
-
-    // 4. Test 'size' prop
-    await propsPanel.getByTestId('prop-control-size').locator('select').selectOption('lg');
-    await expect(componentPreview).toHaveScreenshot('input-size-lg.png');
-
-    // 5. Test 'variant' prop
-    await propsPanel.getByTestId('prop-control-variant').locator('select').selectOption('success');
-    await expect(componentPreview).toHaveScreenshot('input-variant-success.png');
-    
-    // 6. Test 'disabled' prop visually
-    await propsPanel.getByTestId('prop-control-disabled').locator('input').check();
-    await expect(componentPreview).toHaveScreenshot('input-disabled.png');
+  test('should render the default input', async ({ page }) => {
+    const { componentPreview, renderedComponent } = await setupInputTestConsts(page);
+    await doesComponentRender(componentName, componentPreview, renderedComponent);
   });
 
-  test('should handle helper and error message props', async ({ page }) => {
-    const componentPreview = page.getByTestId('component-preview');
-    const propsPanel = page.getByTestId('props-panel');
+  test.describe('Test input props', () => {
 
-    // 1. Test 'helperText' prop
-    await propsPanel.getByTestId('prop-control-helperText').locator('input').fill('This is a hint.');
-    await expect(componentPreview.getByText('This is a hint.')).toBeVisible();
-    await expect(componentPreview).toHaveScreenshot('input-with-helper-text.png');
+    test('is type prop working', async ({ page }) => {
+      const { componentPreview } = await setupInputTestConsts(page);
+      await testTypeProp(componentName, componentPreview, page);
+    });
 
-    // 2. Test 'errorMessage' prop
-    await propsPanel.getByTestId('prop-control-errorMessage').locator('input').fill('This field is required.');
-    await expect(componentPreview.getByText('This field is required.')).toBeVisible();
-    await expect(componentPreview).toHaveScreenshot('input-with-error-message.png');
+    test('is placeholder prop working', async ({ page }) => {
+      const { componentPreview } = await setupInputTestConsts(page);
+      await testPlaceholderProp(componentName, componentPreview, page);
+    });
+
+    test('is value prop working', async ({ page }) => {
+      const { componentPreview } = await setupInputTestConsts(page);
+      await testValueProp(componentName, componentPreview, page);
+    });
+
+    test('is defaultValue prop working', async ({ page }) => {
+      const { componentPreview } = await setupInputTestConsts(page);
+      await testDefaultValueProp(componentName, componentPreview, page);
+    });
+
+    test('is onChange prop working', async ({ page }) => {
+      const { componentPreview, renderedComponent } = await setupInputTestConsts(page);
+      await testOnChangeProp(componentName, renderedComponent, page);
+    });
+
+    test('is onFocus prop working', async ({ page }) => {
+      const { componentPreview, renderedComponent } = await setupInputTestConsts(page);
+      await testOnFocusProp(componentName, componentPreview, renderedComponent, page);
+    });
+
+    test('is onBlur prop working', async ({ page }) => {
+      const { componentPreview, renderedComponent } = await setupInputTestConsts(page);
+      await testOnBlurProp(componentName, componentPreview, renderedComponent, page);
+    });
+
+    test('is disabled prop working', async ({ page }) => {
+      const { componentPreview } = await setupInputTestConsts(page);
+      await testDisabledProp(componentName, componentPreview, page);
+    });
+
+    test('is required prop working', async ({ page }) => {
+      const { componentPreview, renderedComponent } = await setupInputTestConsts(page);
+      await testRequiredProp(componentName, componentPreview, renderedComponent, page);
+    });
+
+    test('is size prop working', async ({ page }) => {
+      const { componentPreview } = await setupInputTestConsts(page);
+      await testSizeProp(componentName, componentPreview, page);
+    });
+
+    test('is variant class prop working', async ({ page }) => {
+      const { componentPreview, renderedComponent } = await setupInputTestConsts(page);
+      await testVariantClassProp(componentName, componentPreview, renderedComponent, page, 'error');
+    });
+
+    test('is className prop working', async ({ page }) => {
+      const { componentPreview } = await setupInputTestConsts(page);
+      await testClassNameProp(componentName, componentPreview, page);
+    });
+
+    test('is label prop working', async ({ page }) => {
+      const { componentPreview, renderedComponent } = await setupInputTestConsts(page);
+      await testLabelProp(componentName, componentPreview, renderedComponent, page);
+    });
+
+    test('is helperText prop working', async ({ page }) => {
+      const { componentPreview, renderedComponent } = await setupInputTestConsts(page);
+      await testHelperTextProp(componentName, componentPreview, renderedComponent, page);
+    });
+
+    test('is errorMessage prop working', async ({ page }) => {
+      const { componentPreview, renderedComponent } = await setupInputTestConsts(page);
+      await testErrorProp(componentName, componentPreview, renderedComponent, page);
+    });
   });
 }); 

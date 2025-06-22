@@ -3,7 +3,6 @@ const path = require('path');
 
 const REGISTRY_PATH = path.join(process.cwd(), 'components/display_components/_registry/components.json');
 const OUTPUT_PATH = path.join(process.cwd(), 'lib/generated-registry.json');
-const PUBLIC_OUTPUT_PATH = path.join(process.cwd(), 'public/generated-registry.json');
 
 async function buildExpandedRegistry() {
   try {
@@ -40,16 +39,14 @@ async function buildExpandedRegistry() {
       buildTime: new Date().toISOString()
     };
     
-    // Write the expanded registry to both locations
+    // Write the expanded registry
     const registryJson = JSON.stringify(expandedRegistry, null, 2);
     await fs.writeFile(OUTPUT_PATH, registryJson);
-    await fs.writeFile(PUBLIC_OUTPUT_PATH, registryJson);
     
     console.log(`🎉 Expanded registry built successfully!`);
     console.log(`   - ${expandedComponents.length} components processed`);
     console.log(`   - ${errors.length} errors encountered`);
     console.log(`   - Output: ${OUTPUT_PATH}`);
-    console.log(`   - Public output: ${PUBLIC_OUTPUT_PATH}`);
     
   } catch (error) {
     console.error('💥 Failed to build registry:', error);
@@ -110,12 +107,21 @@ async function loadComponentExamples(examplesPath) {
   try {
     const examplesContent = await fs.readFile(examplesPath, 'utf-8');
     
-      // Check if this is a DataTable component (needs special handling)
-  if (examplesPath.includes('DataTable')) {
-    return await loadDataTableExamples(examplesPath, examplesContent);
-  }
+    // Check if this is a DataTable component (needs special handling)
+    if (examplesPath.includes('DataTable')) {
+      return await loadDataTableExamples(examplesPath, examplesContent);
+    }
     
-    // Look for exported examples array or individual example objects
+    // Get component name from path for predefined examples
+    const componentName = path.basename(path.dirname(examplesPath));
+    
+    // Return predefined examples for new components
+    const predefinedExamples = getPredefinedExamples(componentName);
+    if (predefinedExamples.length > 0) {
+      return predefinedExamples;
+    }
+    
+    // Fallback to parsing for older components
     const examples = [];
     
     // Try to find example objects with name, description, and props
@@ -279,6 +285,315 @@ function parseExample(exampleString) {
     description,
     props
   };
+}
+
+function getPredefinedExamples(componentName) {
+  const exampleMap = {
+    'Progress': [
+      {
+        name: 'Basic Progress',
+        description: 'Simple progress bar at 33%',
+        props: {
+          value: 33,
+          className: 'w-full'
+        }
+      },
+      {
+        name: 'Animated Progress',
+        description: 'Progress bar that animates from 13% to 66%',
+        props: {
+          value: 66,
+          className: 'w-full'
+        }
+      },
+      {
+        name: 'Progress with Percentage',
+        description: 'Progress bar at 75% with percentage display',
+        props: {
+          value: 75,
+          className: 'w-full'
+        }
+      },
+      {
+        name: 'Complete Progress',
+        description: 'Completed progress bar',
+        props: {
+          value: 100,
+          className: 'w-full'
+        }
+      }
+    ],
+    'Skeleton': [
+      {
+        name: 'Basic Skeleton',
+        description: 'Simple loading skeleton',
+        props: {
+          className: 'h-4 w-[250px]'
+        }
+      },
+      {
+        name: 'Card Skeleton',
+        description: 'Skeleton for card layout',
+        props: {
+          className: 'h-[125px] w-[250px] rounded-xl'
+        }
+      },
+      {
+        name: 'Profile Skeleton',
+        description: 'Skeleton for profile section',
+        props: {
+          className: 'w-20 h-20 rounded-full'
+        }
+      },
+      {
+        name: 'List Skeleton',
+        description: 'Skeleton for list items',
+        props: {
+          className: 'h-12 w-12 rounded-full'
+        }
+      },
+      {
+        name: 'Text Block Skeleton',
+        description: 'Skeleton for text content',
+        props: {
+          className: 'h-4 w-full'
+        }
+      }
+    ],
+    'Slider': [
+      {
+        name: 'Basic Slider',
+        description: 'Simple slider with default value',
+        props: {
+          defaultValue: [50],
+          max: 100,
+          step: 1,
+          className: 'w-full'
+        }
+      },
+      {
+        name: 'Range Slider',
+        description: 'Dual handle range slider',
+        props: {
+          defaultValue: [25, 75],
+          max: 100,
+          step: 1,
+          className: 'w-full'
+        }
+      },
+      {
+        name: 'Price Range',
+        description: 'Price range from $0 to $1000',
+        props: {
+          defaultValue: [200, 800],
+          max: 1000,
+          min: 0,
+          step: 10,
+          className: 'w-full'
+        }
+      },
+      {
+        name: 'Stepped Slider',
+        description: 'Slider with 10-unit steps',
+        props: {
+          defaultValue: [50],
+          max: 100,
+          min: 0,
+          step: 10,
+          className: 'w-full'
+        }
+      }
+    ],
+    'Switch': [
+      {
+        name: 'Basic Switch',
+        description: 'Simple toggle switch',
+        props: {
+          id: 'basic-switch'
+        }
+      },
+      {
+        name: 'Switch with Label',
+        description: 'Switch with descriptive label',
+        props: {
+          id: 'labeled-switch',
+          label: 'Enable notifications'
+        }
+      },
+      {
+        name: 'Checked Switch',
+        description: 'Switch that starts enabled',
+        props: {
+          id: 'checked-switch',
+          checked: true,
+          label: 'Dark mode'
+        }
+      },
+      {
+        name: 'Disabled Switch',
+        description: 'Switch in disabled state',
+        props: {
+          id: 'disabled-switch',
+          disabled: true,
+          label: 'Maintenance mode'
+        }
+      }
+    ],
+    'Textarea': [
+      {
+        name: 'Basic Textarea',
+        description: 'Simple multi-line text input',
+        props: {
+          placeholder: 'Type your message here...'
+        }
+      },
+      {
+        name: 'Textarea with Label',
+        description: 'Textarea with descriptive label',
+        props: {
+          label: 'Your message',
+          placeholder: 'Type your message here...'
+        }
+      },
+      {
+        name: 'Textarea with Helper Text',
+        description: 'Textarea with helpful guidance',
+        props: {
+          label: 'Bio',
+          placeholder: 'Tell us about yourself...',
+          helperText: 'Your bio will be displayed on your public profile.'
+        }
+      },
+      {
+        name: 'Textarea with Value',
+        description: 'Textarea with pre-filled content',
+        props: {
+          label: 'Description',
+          value: 'This is a sample description that demonstrates the textarea with existing content.',
+          placeholder: 'Enter description...'
+        }
+      },
+      {
+        name: 'Large Textarea',
+        description: 'Taller textarea for longer content',
+        props: {
+          label: 'Comments',
+          placeholder: 'Write your detailed comments here...',
+          rows: 6
+        }
+      }
+    ],
+    'Toggle': [
+      {
+        name: 'Basic Toggle',
+        description: 'Simple two-state button',
+        props: {
+          children: 'Toggle me',
+          'aria-label': 'Toggle button'
+        }
+      },
+      {
+        name: 'Bold Toggle',
+        description: 'Text formatting toggle',
+        props: {
+          children: 'Bold',
+          'aria-label': 'Toggle bold formatting'
+        }
+      },
+      {
+        name: 'Pressed Toggle',
+        description: 'Toggle in pressed state',
+        props: {
+          children: 'Italic',
+          pressed: true,
+          'aria-label': 'Toggle italic formatting'
+        }
+      },
+      {
+        name: 'Outline Toggle',
+        description: 'Toggle with outline variant',
+        props: {
+          children: 'Outline',
+          variant: 'outline',
+          'aria-label': 'Toggle with outline style'
+        }
+      },
+      {
+        name: 'Large Toggle',
+        description: 'Larger sized toggle button',
+        props: {
+          children: 'Large',
+          size: 'lg',
+          'aria-label': 'Large toggle button'
+        }
+      },
+      {
+        name: 'Disabled Toggle',
+        description: 'Toggle in disabled state',
+        props: {
+          children: 'Disabled',
+          disabled: true,
+          'aria-label': 'Disabled toggle button'
+        }
+      }
+    ],
+    'Sonner': [
+      {
+        name: 'Basic Toast',
+        description: 'Simple toast notification',
+        props: {
+          message: 'Hello World!',
+          position: 'bottom-right'
+        }
+      },
+      {
+        name: 'Toast with Description',
+        description: 'Toast with additional description',
+        props: {
+          message: 'Event has been created',
+          description: 'Sunday, December 03, 2023 at 9:00 AM',
+          position: 'bottom-right'
+        }
+      },
+      {
+        name: 'Success Toast',
+        description: 'Success variant toast',
+        props: {
+          variant: 'success',
+          message: 'Success toast',
+          position: 'bottom-right'
+        }
+      },
+      {
+        name: 'Error Toast',
+        description: 'Error variant toast',
+        props: {
+          variant: 'error',
+          message: 'Error toast',
+          position: 'bottom-right'
+        }
+      },
+      {
+        name: 'Top Position',
+        description: 'Toast positioned at top',
+        props: {
+          message: 'Positioned toast!',
+          position: 'top-center'
+        }
+      },
+      {
+        name: 'With Action',
+        description: 'Toast with action button',
+        props: {
+          message: 'File deleted successfully',
+          description: 'Your file has been moved to trash',
+          position: 'bottom-right'
+        }
+      }
+    ]
+  };
+  
+  return exampleMap[componentName] || [];
 }
 
 function extractDependencies(code) {

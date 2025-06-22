@@ -7,6 +7,7 @@ export const buttonExamples: ComponentExample[] = [
     props: {
       variant: "primary",
       size: "md",
+      title: "Click me",
       children: "return (<div>Click me</div>);"
     }
   },

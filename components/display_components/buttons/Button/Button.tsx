@@ -5,6 +5,7 @@ interface ButtonProps {
   size?: 'sm' | 'md' | 'lg';
   children: React.ReactNode | (() => React.ReactNode);
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  title?: string;
   disabled?: boolean;
   className?: string;
 }
@@ -30,6 +31,7 @@ export default function Button({
   size = 'sm',
   children,
   onClick,
+  title,
   disabled = false,
   className = ''
 }: ButtonProps) {
@@ -56,6 +58,7 @@ export default function Button({
       onClick={onClick}
       disabled={disabled}
       data-testid="rendered-component-button"
+      title={title}
     >
       {typeof children === 'function' ? children() : children}
     </button>

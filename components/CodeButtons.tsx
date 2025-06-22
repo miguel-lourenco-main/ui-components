@@ -3,6 +3,8 @@
 import { CodeIcon, ExternalLinkIcon } from 'lucide-react';
 import { Component, LocalComponent } from '@/types';
 import Image from 'next/image';
+import Button from './display_components/buttons/Button/Button';
+import { GitLabIconSingle } from '@/lib/icons';
 
 interface CodeButtonsProps {
   component: Component | LocalComponent;
@@ -14,7 +16,7 @@ export default function CodeButtons({ component, showCode, onToggleCode }: CodeB
 
   const getGitLabUrl = (component: Component | LocalComponent) => {
     // Base GitLab repository URL - you can make this configurable
-    const baseRepoUrl = 'https://gitlab.com/miguel-lourenco-main/ui-components';
+    const baseRepoUrl = 'https://gitlab.com/personal1625516/ui-components';
     
     if ('isLocal' in component && component.isLocal) {
       // For local components, link to the file path
@@ -32,28 +34,27 @@ export default function CodeButtons({ component, showCode, onToggleCode }: CodeB
 
   return (
     <div className="flex items-center space-x-2 ml-4">
-      <button
+      <Button
         onClick={onToggleCode}
-        className={`flex items-center space-x-2 px-3 py-2 rounded transition-colors ${
-          showCode 
-            ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' 
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-        }`}
-        title="Toggle Code Viewer"
+        className="flex items-center space-x-2 px-3 py-2 rounded transition-colors bg-blue-100 text-blue-700 hover:bg-blue-200"
+        title={showCode ? 'Hide Code' : 'Show Code'}
       >
         <CodeIcon className="w-4 h-4" />
-        <span className="text-sm font-medium">
+        <span className="text-sm font-medium [@media(max-width:1300px)]:hidden block">
           {showCode ? 'Hide Code' : 'Show Code'}
         </span>
-      </button>
+      </Button>
       
-      <button
+      <Button
         onClick={handleGitLabClick}
-        className="flex items-center space-x-2 rounded bg-orange-100 text-orange-700 hover:bg-orange-200 transition-colors"
+        className="flex items-center space-x-2 rounded transition-colors text-black! bg-orange-200 hover:bg-orange-300"
         title="View on GitLab"
       >
-        <Image className="h-9" src="/gitlab-logo-100.svg" alt="GitLab" width={85} height={85} />
-      </button>
+        <GitLabIconSingle />
+        <span className="text-sm font-medium [@media(max-width:1300px)]:hidden block">
+          GitLab
+        </span>
+      </Button>
     </div>
   );
-} 
+}

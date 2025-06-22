@@ -69,6 +69,90 @@
       "tags": ["table", "data", "sorting", "filtering", "pagination", "selection"],
       "version": "1.0.0",
       "author": "UI Components Team"
+    },
+    {
+      "id": "progress",
+      "name": "Progress",
+      "category": "data-display",
+      "description": "Displays an indicator showing the completion progress of a task, typically displayed as a progress bar",
+      "filePath": "components/display_components/data-display/Progress/Progress.tsx",
+      "metaPath": "components/display_components/data-display/Progress/Progress.meta.json",
+      "examplesPath": "components/display_components/data-display/Progress/Progress.examples.tsx",
+      "tags": ["progress", "loading", "indicator", "data-display"],
+      "version": "1.0.0",
+      "author": "UI Components Team"
+    },
+    {
+      "id": "skeleton",
+      "name": "Skeleton",
+      "category": "data-display",
+      "description": "Use to show a placeholder while content is loading. Provides a visual indication that content is being loaded",
+      "filePath": "components/display_components/data-display/Skeleton/Skeleton.tsx",
+      "metaPath": "components/display_components/data-display/Skeleton/Skeleton.meta.json",
+      "examplesPath": "components/display_components/data-display/Skeleton/Skeleton.examples.tsx",
+      "tags": ["skeleton", "loading", "placeholder", "data-display"],
+      "version": "1.0.0",
+      "author": "UI Components Team"
+    },
+    {
+      "id": "sonner",
+      "name": "Sonner",
+      "category": "data-display",
+      "description": "An opinionated toast component for React. Provides elegant notifications with various types and customization options",
+      "filePath": "components/display_components/data-display/Sonner/Sonner.tsx",
+      "metaPath": "components/display_components/data-display/Sonner/Sonner.meta.json",
+      "examplesPath": "components/display_components/data-display/Sonner/Sonner.examples.tsx",
+      "tags": ["toast", "notification", "feedback", "sonner", "data-display"],
+      "version": "1.0.0",
+      "author": "UI Components Team"
+    },
+    {
+      "id": "slider",
+      "name": "Slider",
+      "category": "form",
+      "description": "An input where the user selects a value from within a given range. Supports single values and ranges",
+      "filePath": "components/display_components/forms/Slider/Slider.tsx",
+      "metaPath": "components/display_components/forms/Slider/Slider.meta.json",
+      "examplesPath": "components/display_components/forms/Slider/Slider.examples.tsx",
+      "tags": ["slider", "range", "input", "form", "control"],
+      "version": "1.0.0",
+      "author": "UI Components Team"
+    },
+    {
+      "id": "switch",
+      "name": "Switch",
+      "category": "form",
+      "description": "A control that allows the user to toggle between checked and not checked. Used for binary settings and preferences",
+      "filePath": "components/display_components/forms/Switch/Switch.tsx",
+      "metaPath": "components/display_components/forms/Switch/Switch.meta.json",
+      "examplesPath": "components/display_components/forms/Switch/Switch.examples.tsx",
+      "tags": ["switch", "toggle", "boolean", "form", "control"],
+      "version": "1.0.0",
+      "author": "UI Components Team"
+    },
+    {
+      "id": "textarea",
+      "name": "Textarea",
+      "category": "form",
+      "description": "Displays a form textarea or a component that looks like a textarea. Used for multi-line text input",
+      "filePath": "components/display_components/forms/Textarea/Textarea.tsx",
+      "metaPath": "components/display_components/forms/Textarea/Textarea.meta.json",
+      "examplesPath": "components/display_components/forms/Textarea/Textarea.examples.tsx",
+      "tags": ["textarea", "input", "form", "multiline", "text"],
+      "version": "1.0.0",
+      "author": "UI Components Team"
+    },
+    {
+      "id": "toggle",
+      "name": "Toggle",
+      "category": "form",
+      "description": "A two-state button that can be either on or off. Commonly used for formatting controls and settings",
+      "filePath": "components/display_components/forms/Toggle/Toggle.tsx",
+      "metaPath": "components/display_components/forms/Toggle/Toggle.meta.json",
+      "examplesPath": "components/display_components/forms/Toggle/Toggle.examples.tsx",
+      "tags": ["toggle", "button", "state", "form", "control"],
+      "version": "1.0.0",
+      "author": "UI Components Team"
     }
   ]
 } 

@@ -1,0 +1,42 @@
+{
+  "id": "sonner",
+  "name": "Sonner",
+  "category": "data-display",
+  "description": "An opinionated toast component for React. Provides elegant notifications with various types and customization options",
+  "props": [
+    {
+      "name": "message",
+      "type": "string",
+      "required": false,
+      "defaultValue": "Event has been created",
+      "description": "The main message to display in the toast"
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "required": false,
+      "description": "Additional description text for the toast"
+    },
+    {
+      "name": "action",
+      "type": "object",
+      "required": false,
+      "description": "Action button with label and onClick handler",
+      "properties": {
+        "label": "string",
+        "onClick": "() => void"
+      }
+    },
+    {
+      "name": "variant",
+      "type": "enum",
+      "required": false,
+      "defaultValue": "default",
+      "options": ["default", "success", "error", "warning", "info"],
+      "description": "The type/variant of the toast"
+    }
+  ],
+  "tags": ["toast", "notification", "feedback", "sonner", "data-display"],
+  "version": "1.0.0",
+  "author": "UI Components Team"
+} 

@@ -56,7 +56,7 @@ export default function Input({
   const inputId = React.useId();
   
   return (
-    <div className="space-y-1">
+    <div className="space-y-1" data-testid="rendered-component-input">
       {label && (
         <label htmlFor={inputId} className="block text-sm font-medium text-gray-700">
           {label}
