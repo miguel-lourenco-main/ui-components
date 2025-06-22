@@ -94,7 +94,7 @@ test.describe('Component: Input', () => {
 
     test('is variant class prop working', async ({ page }) => {
       const { componentPreview, renderedComponent } = await setupInputTestConsts(page);
-      await testVariantClassProp(componentName, componentPreview, renderedComponent, page);
+      await testVariantClassProp(componentName, componentPreview, renderedComponent, page, 'error');
     });
 
     test('is className prop working', async ({ page }) => {

@@ -2,12 +2,9 @@ import { test, expect } from '@playwright/test';
 import { 
   setupComponentTestConsts, 
   doesComponentRender, 
-  testTableLabelProp, 
-  testIdentifierProp,
-  typeInInput
 } from '@/lib/test-utils';
 
-const componentName = 'datatable';
+const componentName = 'data-table';
 
 test.describe('Component: DataTable', () => {
   test.describe.configure({ mode: 'serial' });

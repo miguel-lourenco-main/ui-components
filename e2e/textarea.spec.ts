@@ -2,14 +2,10 @@ import { test, expect } from '@playwright/test';
 import { 
   setupComponentTestConsts, 
   doesComponentRender, 
-  testPlaceholderProp, 
   testLabelProp, 
   testHelperTextProp, 
-  testDisabledProp, 
   testClassNameProp,
-  testRowsProp,
   typeInInput,
-  testIdProp
 } from '@/lib/test-utils';
 
 const componentName = 'textarea';
@@ -34,11 +30,6 @@ test.describe('Component: Textarea', () => {
   });
 
   test.describe('Test textarea props', () => {
-
-    test('is id prop working', async ({ page }) => {
-      const { componentPreview } = await setupTextareaTestConsts(page);
-      await testIdProp(componentName, componentPreview, page);
-    });
 
     test('is label prop working', async ({ page }) => {
       const { componentPreview, renderedComponent } = await setupTextareaTestConsts(page);

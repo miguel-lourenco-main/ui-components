@@ -186,7 +186,7 @@ export function DataTable<TData, TValue>({
   }, [createToolbarButtons, defaultCreateToolbarButtons, setRowSelection, rowSelection, table])
 
   return (
-    <div className="flex flex-col h-fit min-w-[400px] space-y-4" data-testid="rendered-component-datatable">
+    <div className="flex flex-col h-fit min-w-[400px] space-y-4" data-testid="rendered-component-data-table">
       {/* Toolbar with filters and custom buttons */}
       <DataTableToolbar 
         identifier={identifier} 

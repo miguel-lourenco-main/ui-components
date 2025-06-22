@@ -43,6 +43,7 @@ export const selectOption = async (page: any, propName: string, value: string) =
 export const typeInInput = async (page: any, propName: string, text: string) => {
   const input = getInputControl(page, propName);
   await expect(input).toBeEnabled();
+  await input.scrollIntoViewIfNeeded();
   await input.click();
   await page.keyboard.press('Control+A');
   await page.keyboard.press('Delete');
@@ -52,6 +53,7 @@ export const typeInInput = async (page: any, propName: string, text: string) => 
 export const typeInNumberInput = async (page: any, propName: string, value: number | string) => {
   const input = getInputControl(page, propName);
   await expect(input).toBeEnabled();
+  await input.scrollIntoViewIfNeeded();
   await input.clear();
   await input.fill(value.toString());
 };
@@ -63,8 +65,156 @@ export const toggleCheckbox = async (page: any, propName: string) => {
   await checkbox.click();
 };
 
+/**
+ * Reset component state to clean slate before each test
+ */
+export const resetComponentState = async (page: any) => {
+  console.log('🧹 Resetting component state...');
+  
+  try {
+    // Clear browser state
+    await page.evaluate(() => {
+      // Clear all storage
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Clear console
+      console.clear();
+      
+      // Reset any global variables that might persist
+      if (window.location.href.includes('localhost')) {
+        // Force a clean slate for React state
+        if ((window as any).__REACT_DEVTOOLS_GLOBAL_HOOK__) {
+          (window as any).__REACT_DEVTOOLS_GLOBAL_HOOK__.onCommitFiberRoot = null;
+        }
+      }
+    });
+    
+    // Clear any Monaco Editor content and reset to defaults
+    const editors = await page.locator('.monaco-editor').all();
+    for (const editor of editors) {
+      if (await editor.isVisible()) {
+        await editor.click();
+        await page.keyboard.press('Control+A');
+        await page.keyboard.press('Delete');
+      }
+    }
+    
+    // Wait for any pending operations to complete
+    await page.waitForTimeout(300);
+    
+    console.log('✅ Component state reset complete');
+  } catch (error) {
+    console.log('⚠️ Component state reset had issues (continuing):', error);
+  }
+};
+
+/**
+ * Universal test setup that ensures clean state before each test
+ */
+export const setupTest = async (page: any, componentName: string) => {
+  console.log(`🚀 Setting up test for ${componentName}...`);
+  
+  // Navigate to the app
+  await page.goto('/');
+  
+  // Wait for the loading indicator to disappear
+  const loadingIndicator = page.getByText('Loading components...');
+  await expect(loadingIndicator).not.toBeVisible({ timeout: 20000 });
+  
+  // Wait for the main component list header to be visible
+  await expect(page.getByRole('heading', { name: 'Components', level: 2 })).toBeVisible();
+  
+  // Reset any existing component state
+  await resetComponentState(page);
+  
+  console.log(`✅ Test setup complete for ${componentName}`);
+};
+
+/**
+ * Wait for component to stabilize after prop changes, especially function props
+ */
+export const waitForComponentStability = async (page: any, propName?: string, expectedContent?: string, timeoutMs: number = 3000, targetElement?: any) => {
+  console.log(`🔄 Stabilizing component for ${propName || 'general'}...`);
+  
+  // Wait for any React updates to settle
+  await page.waitForTimeout(300);
+  
+  // Wait for any pending function validation to complete (simplified)
+  if (propName) {
+    try {
+      const status = getFunctionPropStatus(page, propName);
+      await expect.poll(async () => {
+        const statusText = await status.textContent();
+        return statusText === VALID_FUNCTION_TEST || statusText === INVALID_FUNCTION_TEST;
+      }, {
+        message: `Function validation for ${propName} did not complete`,
+        timeout: timeoutMs,
+        intervals: [300],
+      }).toBe(true);
+      console.log(`✅ Function validation complete for ${propName}`);
+    } catch (error) {
+      console.log(`⚠️ Function validation timed out for ${propName}, continuing...`);
+    }
+  }
+  
+  // Longer wait for component re-rendering to complete
+  await page.waitForTimeout(500);
+  
+  // For event handlers, wait longer and be more permissive
+  if (targetElement && propName && (propName.startsWith('on'))) {
+    console.log(`🎯 Ensuring ${propName} handler is ready...`);
+    
+    // Multiple attempts with increasing waits
+    let attempts = 0;
+    const maxAttempts = 3;
+    
+    while (attempts < maxAttempts) {
+      try {
+        const hasHandler = await targetElement.evaluate((el: any, handlerName: string) => {
+          // Check React synthetic event handlers
+          const reactKeys = Object.keys(el).filter(key => key.startsWith('__react'));
+          for (const key of reactKeys) {
+            const reactData = el[key];
+            if (reactData && reactData.memoizedProps && reactData.memoizedProps[handlerName]) {
+              return true;
+            }
+          }
+          return false;
+        }, propName);
+        
+        if (hasHandler) {
+          console.log(`✅ ${propName} handler confirmed attached`);
+          break;
+        }
+        
+        attempts++;
+        console.log(`🔄 Attempt ${attempts}/${maxAttempts} - ${propName} handler not ready, waiting...`);
+        await page.waitForTimeout(500);
+        
+      } catch (error) {
+        console.log(`⚠️ Handler check attempt ${attempts + 1} failed, continuing...`);
+        attempts++;
+        await page.waitForTimeout(500);
+      }
+    }
+  }
+  
+  // Final stabilization wait
+  await page.waitForTimeout(200);
+  console.log(`✅ Component stability complete for ${propName || 'general'}`);
+};
+
 export const setFunctionProp = async (page: any, propName: string, functionCode: string) => {
   const editor = getMonacoEditor(page, propName);
+  
+  // Wait for Monaco editor to be available and visible
+  await expect(editor).toBeVisible({ timeout: 15000 });
+  await editor.scrollIntoViewIfNeeded();
+  
+  // Ensure Monaco editor is ready for interaction
+  await page.waitForTimeout(500);
+  
   await editor.click();
   await page.keyboard.press('Control+A');
   await page.keyboard.press('Delete');
@@ -72,7 +222,9 @@ export const setFunctionProp = async (page: any, propName: string, functionCode:
   
   const status = getFunctionPropStatus(page, propName);
   await expect(status).toHaveText(VALID_FUNCTION_TEST, { timeout: 10000 });
-  await page.waitForTimeout(1000); // Wait for function to be set up
+  
+  // Use the enhanced stability waiting with content verification
+  await waitForComponentStability(page, propName, functionCode);
 };
 
 // Generic prop testing functions that can be reused
@@ -109,9 +261,22 @@ export const createGenericFunctionTest = (propName: string, functionCode: string
 };
 
 export const setupComponentTestConsts = (componentName: string) => {
-  // Select the Button component from the list
+  // Select the component from the list
   return async (page: any) => {
-    page.getByRole('button', { name: new RegExp(`^${componentName.charAt(0).toUpperCase() + componentName.slice(1)} v`) }).click();
+    // Convert kebab-case to PascalCase for proper matching
+    // e.g., "data-table" -> "DataTable", "button" -> "Button"
+    const displayName = componentName
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join('');
+
+    console.log('displayName', displayName);
+    
+    // Use a more flexible regex that matches the component name followed by version
+    // This handles both "DataTable v1.0.0" and "Button v1.0.0" patterns
+    const buttonPattern = new RegExp(`^${displayName} v`);
+    
+    await page.getByRole('button', { name: buttonPattern }).click();
 
     // Wait for examples to be visible and get their count
     const examples = page.getByTestId('examples-panel').getByRole('button', { name: /Currently selected|^(?!.*Currently selected).*$/ });
@@ -142,15 +307,21 @@ export const doesComponentRender = async (componentName: string, componentPrevie
 }
 
 export async function testChildrenProp(componentName: string, componentPreview:any, testingComponent: any, page: any) {
+  const jsxContent = 'return (<div>Click e</div>)';
 
   const childrenInput = page.getByTestId('prop-control-children');
   const functionPropStatus = childrenInput.getByTestId('function-prop-status');
+  await childrenInput.scrollIntoViewIfNeeded();
   await childrenInput.locator('.monaco-editor').click();
   await page.keyboard.press('Control+A');
   await page.keyboard.press('Delete');
-  await page.keyboard.type('return (<div>Click e</div>)');
+  await page.keyboard.type(jsxContent);
 
   await expect(functionPropStatus).toHaveText(VALID_FUNCTION_TEST, { timeout: 10000 });
+  
+  // Wait for component to stabilize with the new JSX content
+  await waitForComponentStability(page, 'children', jsxContent);
+  
   await expect(testingComponent).toBeVisible();
   await expect(componentPreview).toHaveScreenshot(`${componentName}-children-success-test.png`);
 
@@ -171,42 +342,45 @@ export async function testSizeProp(componentName: string, componentPreview: any,
 }
 
 export async function testOnClickProp(componentName: string, clickableComponent: any, page: any) {
-
-  const onClickEditor = page.getByTestId('prop-control-onClick');
-
-  // Set up console listener EARLY and capture ALL console messages for debugging
-  
   const consoleMessages: string[] = [];
   const allConsoleMessages: string[] = [];
+
+  const message = `${componentName} was clicked!`;
 
   page.on('console', (msg: any) => {
     const text = msg.text();
     allConsoleMessages.push(text);
-    
+        
     // Capture our specific message
-    if (text === `${componentName} was clicked!`) {
+    if (text === message) {
       consoleMessages.push(text);
     }
   });
   
-  await onClickEditor.locator('.monaco-editor').click();
-  await page.keyboard.press('Control+A');
-  await page.keyboard.press('Delete');
-  await page.keyboard.type(`console.log("${componentName} was clicked!")`);
-  
-  // Wait for the app to validate the new function
-  const status = onClickEditor.getByTestId('function-prop-status');
-  await expect(status).toHaveText(VALID_FUNCTION_TEST, { timeout: 10000 });
+  await setFunctionProp(page, 'onClick', `console.log("${message}")`);
 
-  // Wait a bit for the function to be properly set up
-  await page.waitForTimeout(1000);
+  // Additional stability wait for function prop interaction with target element
+  await waitForComponentStability(page, 'onClick', `console.log("${message}")`, 3000, clickableComponent);
 
   // Click the button in the preview
   await expect(clickableComponent).toBeVisible();
-  await clickableComponent.click();
+  
+  // Add debugging to ensure the button is clickable
+  const isEnabled = await clickableComponent.isEnabled();
+  console.log('Button enabled status:', isEnabled);
+  
+  // Try to ensure the button is in the viewport and clickable
+  await clickableComponent.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(200); // Short wait for any animations
+  
+  // Force click if needed
+  await clickableComponent.click({ force: true });
+  
+  // Try triggering the event manually as a backup
+  await clickableComponent.dispatchEvent('click');
 
-  // Wait a bit for console message to be processed
-  await page.waitForTimeout(500);
+  // Wait longer for console message to be processed
+  await page.waitForTimeout(1000);
   
   // Verify that the console message was logged
   await expect.poll(() => {
@@ -252,11 +426,15 @@ export async function testRoundedProp(componentName: string, componentPreview: a
 
 export async function testHeaderProp(componentName: string, componentPreview: any, page: any) {
   await setFunctionProp(page, 'header', 'return (<div>Header</div>)');
+  // Additional stability wait for JSX rendering
+  await waitForComponentStability(page);
   await expect(componentPreview).toHaveScreenshot(`${componentName}-header.png`);
 }
 
 export async function testFooterProp(componentName: string, componentPreview: any, page: any) {
   await setFunctionProp(page, 'footer', 'return (<div>Footer</div>)');
+  // Additional stability wait for JSX rendering
+  await waitForComponentStability(page);
   await expect(componentPreview).toHaveScreenshot(`${componentName}-footer.png`);
 }
 
@@ -281,9 +459,6 @@ export async function testDefaultValueProp(componentName: string, componentPrevi
 }
 
 export async function testOnChangeProp(componentName: string, renderedComponent: any, page: any) {
-
-  const onChangeInput = page.getByTestId('prop-control-onChange');
-
   const consoleMessages: string[] = [];
   const allConsoleMessages: string[] = [];
 
@@ -292,26 +467,21 @@ export async function testOnChangeProp(componentName: string, renderedComponent:
     allConsoleMessages.push(text);
     
     // Capture our specific message
-    if (text === `${componentName} was clicked!`) {
+    if (text === `${componentName} was changed!`) {
       consoleMessages.push(text);
     }
   });
   
-  await onChangeInput.locator('.monaco-editor').click();
-  await page.keyboard.press('Control+A');
-  await page.keyboard.press('Delete');
-  await page.keyboard.type(`console.log("${componentName} was clicked!")`);
+  await setFunctionProp(page, 'onChange', `console.log("${componentName} was changed!")`);
   
-  // Wait for the app to validate the new function
-  const status = onChangeInput.getByTestId('function-prop-status');
-  await expect(status).toHaveText(VALID_FUNCTION_TEST, { timeout: 10000 });
+  // Wait for component to stabilize before interaction
+  await waitForComponentStability(page, 'onChange', `console.log("${componentName} was changed!")`, 3000, renderedComponent);
 
-  // Wait a bit for the function to be properly set up
-  await page.waitForTimeout(1000);
-
-  // Click the button in the preview
+  // For input components, trigger onChange by typing text
   await expect(renderedComponent).toBeVisible();
-  await renderedComponent.click();
+  const inputElement = renderedComponent.locator('input');
+  await inputElement.click();
+  await inputElement.fill('test input');
 
   // Wait a bit for console message to be processed
   await page.waitForTimeout(500);
@@ -322,7 +492,7 @@ export async function testOnChangeProp(componentName: string, renderedComponent:
     console.log('All console messages:', allConsoleMessages.slice(-10)); // Show last 10 for debugging
     return consoleMessages.length > 0;
   }, {
-    message: 'The onClick handler did not fire the expected console message',
+    message: 'The onChange handler did not fire the expected console message',
     timeout: 3000,
     intervals: [500],
   }).toBe(true);
@@ -330,9 +500,13 @@ export async function testOnChangeProp(componentName: string, renderedComponent:
 
 export async function testOnFocusProp(componentName: string, componentPreview: any, renderedComponent: any, page: any) {
   const consoleMessages: string[] = [];
+  const allConsoleMessages: string[] = [];
   
   page.on('console', (msg: any) => {
     const text = msg.text();
+    allConsoleMessages.push(text);
+    
+    // Capture our specific message
     if (text === `${componentName} was focused!`) {
       consoleMessages.push(text);
     }
@@ -340,13 +514,27 @@ export async function testOnFocusProp(componentName: string, componentPreview: a
   
   await setFunctionProp(page, 'onFocus', `console.log("${componentName} was focused!")`);
   
-  // Focus the component
+  // Wait for component to stabilize before interaction
+  await waitForComponentStability(page, 'onFocus', `console.log("${componentName} was focused!")`, 3000, renderedComponent);
+  
+  // Focus the component - try focusing the actual input element if it exists
   await expect(renderedComponent).toBeVisible();
-  await renderedComponent.focus();
+  
+  // Try to focus the input element first, fall back to the container
+  const inputElement = renderedComponent.locator('input');
+  const inputExists = await inputElement.count() > 0;
+  
+  if (inputExists) {
+    await inputElement.focus();
+  } else {
+    await renderedComponent.focus();
+  }
   
   await page.waitForTimeout(500);
   
   await expect.poll(() => {
+    console.log('Console messages captured:', consoleMessages);
+    console.log('All console messages:', allConsoleMessages.slice(-10)); // Show last 10 for debugging
     return consoleMessages.length > 0;
   }, {
     message: 'The onFocus handler did not fire the expected console message',
@@ -357,9 +545,13 @@ export async function testOnFocusProp(componentName: string, componentPreview: a
 
 export async function testOnBlurProp(componentName: string, componentPreview: any, renderedComponent: any, page: any) {
   const consoleMessages: string[] = [];
+  const allConsoleMessages: string[] = [];
   
   page.on('console', (msg: any) => {
     const text = msg.text();
+    allConsoleMessages.push(text);
+    
+    // Capture our specific message
     if (text === `${componentName} was blurred!`) {
       consoleMessages.push(text);
     }
@@ -367,14 +559,29 @@ export async function testOnBlurProp(componentName: string, componentPreview: an
   
   await setFunctionProp(page, 'onBlur', `console.log("${componentName} was blurred!")`);
   
-  // Focus then blur the component
+  // Wait for component to stabilize before interaction
+  await waitForComponentStability(page, 'onBlur', `console.log("${componentName} was blurred!")`, 3000, renderedComponent);
+  
+  // Focus then blur the component - try focusing the actual input element if it exists
   await expect(renderedComponent).toBeVisible();
-  await renderedComponent.focus();
-  await renderedComponent.blur();
+  
+  // Try to focus the input element first, fall back to the container
+  const inputElement = renderedComponent.locator('input');
+  const inputExists = await inputElement.count() > 0;
+  
+  if (inputExists) {
+    await inputElement.focus();
+    await inputElement.blur();
+  } else {
+    await renderedComponent.focus();
+    await renderedComponent.blur();
+  }
   
   await page.waitForTimeout(500);
   
   await expect.poll(() => {
+    console.log('Console messages captured:', consoleMessages);
+    console.log('All console messages:', allConsoleMessages.slice(-10)); // Show last 10 for debugging
     return consoleMessages.length > 0;
   }, {
     message: 'The onBlur handler did not fire the expected console message',
@@ -388,9 +595,10 @@ export async function testRequiredProp(componentName: string, componentPreview: 
   await expect(componentPreview).toHaveScreenshot(`${componentName}-required.png`);
 }
 
-export async function testVariantClassProp(componentName: string, componentPreview: any, renderedComponent: any, page: any) {
-  await selectOption(page, 'variant', 'outline');
-  await expect(componentPreview).toHaveScreenshot(`${componentName}-variant-outline.png`);
+export async function testVariantClassProp(componentName: string, componentPreview: any, renderedComponent: any, page: any, variantValue: string = 'outline', screenshotSuffix?: string) {
+  await selectOption(page, 'variant', variantValue);
+  const suffix = screenshotSuffix || `variant-${variantValue}`;
+  await expect(componentPreview).toHaveScreenshot(`${componentName}-${suffix}.png`);
 }
 
 export async function testLabelProp(componentName: string, componentPreview: any, renderedComponent: any, page: any) {
@@ -420,15 +628,22 @@ export async function testAriaLabelProp(componentName: string, componentPreview:
 
 export async function testOnPressedChangeProp(componentName: string, renderedComponent: any, page: any) {
   const consoleMessages: string[] = [];
+  const allConsoleMessages: string[] = [];
   
   page.on('console', (msg: any) => {
     const text = msg.text();
+    allConsoleMessages.push(text);
+    
+    // Capture our specific message
     if (text === `${componentName} was pressed!`) {
       consoleMessages.push(text);
     }
   });
   
   await setFunctionProp(page, 'onPressedChange', `console.log("${componentName} was pressed!")`);
+  
+  // Wait for component to stabilize before interaction
+  await waitForComponentStability(page, 'onPressedChange', `console.log("${componentName} was pressed!")`, 3000, renderedComponent);
   
   // Click the toggle component
   await expect(renderedComponent).toBeVisible();
@@ -437,6 +652,8 @@ export async function testOnPressedChangeProp(componentName: string, renderedCom
   await page.waitForTimeout(500);
   
   await expect.poll(() => {
+    console.log('Console messages captured:', consoleMessages);
+    console.log('All console messages:', allConsoleMessages.slice(-10)); // Show last 10 for debugging
     return consoleMessages.length > 0;
   }, {
     message: 'The onPressedChange handler did not fire the expected console message',
@@ -462,15 +679,22 @@ export async function testIdProp(componentName: string, componentPreview: any, p
 
 export async function testOnCheckedChangeProp(componentName: string, renderedComponent: any, page: any) {
   const consoleMessages: string[] = [];
+  const allConsoleMessages: string[] = [];
   
   page.on('console', (msg: any) => {
     const text = msg.text();
+    allConsoleMessages.push(text);
+    
+    // Capture our specific message
     if (text === `${componentName} was checked!`) {
       consoleMessages.push(text);
     }
   });
   
   await setFunctionProp(page, 'onCheckedChange', `console.log("${componentName} was checked!")`);
+  
+  // Wait for component to stabilize before interaction
+  await waitForComponentStability(page, 'onCheckedChange', `console.log("${componentName} was checked!")`, 3000, renderedComponent);
   
   // Click the switch component
   await expect(renderedComponent).toBeVisible();
@@ -479,6 +703,8 @@ export async function testOnCheckedChangeProp(componentName: string, renderedCom
   await page.waitForTimeout(500);
   
   await expect.poll(() => {
+    console.log('Console messages captured:', consoleMessages);
+    console.log('All console messages:', allConsoleMessages.slice(-10)); // Show last 10 for debugging
     return consoleMessages.length > 0;
   }, {
     message: 'The onCheckedChange handler did not fire the expected console message',

@@ -6,7 +6,6 @@ import {
   testSizeProp, 
   testPressedProp, 
   testDisabledProp, 
-  testAriaLabelProp, 
   testClassNameProp, 
   testChildrenProp,
   testOnPressedChangeProp

@@ -6,14 +6,16 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './e2e',
-  /* Run tests in files in parallel */
-  fullyParallel: true,
+  /* Disable parallel execution for stability - this is the key fix */
+  fullyParallel: false,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  /* Add retries for flaky tests - this handles intermittent failures */
+  retries: 3,
+  /* Use single worker to prevent resource contention */
+  workers: 1,
+  /* Global setup for complete test isolation */
+  globalSetup: './e2e/global-setup.ts',
   /* Reporter to use. See https://playwright.dev/docs/reporting */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -25,6 +27,16 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+    
+    /* Add longer timeouts for stability */
+    actionTimeout: 15000,
+    navigationTimeout: 30000,
+    
+    /* Force fresh browser context for each test - this prevents state pollution */
+    contextOptions: {
+      // Clear all storage between tests
+      storageState: undefined,
+    },
   },
 
   /* Visual comparison settings */

@@ -45,9 +45,17 @@
     },
     {
       "name": "children",
-      "type": "React.ReactNode",
+      "type": "function",
       "required": false,
-      "description": "The content to display inside the toggle"
+      "description": "Function that returns JSX for the toggle content.",
+      "defaultValue": {
+        "type": "function",
+        "source": "return <span>Toggle</span>;"
+      },
+      "functionSignature": {
+        "params": "",
+        "returnType": "React.ReactNode"
+      }
     },
     {
       "name": "aria-label",
