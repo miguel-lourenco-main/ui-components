@@ -16,24 +16,11 @@ const nextConfig = {
     loader: 'custom',
     loaderFile: './lib/image-loader.js',
   },
-  // Enable build-time optimizations
+  // Enable build-time optimizations (conservative for static export)
   experimental: {
-    // Optimize bundle splitting
+    // Only optimize the largest packages to avoid over-splitting
     optimizePackageImports: [
-      '@radix-ui/react-icons',
       'lucide-react',
-      '@radix-ui/react-alert-dialog',
-      '@radix-ui/react-dialog',
-      '@radix-ui/react-dropdown-menu',
-      '@radix-ui/react-popover',
-      '@radix-ui/react-progress',
-      '@radix-ui/react-select',
-      '@radix-ui/react-separator',
-      '@radix-ui/react-slider',
-      '@radix-ui/react-slot',
-      '@radix-ui/react-switch',
-      '@radix-ui/react-toggle',
-      '@radix-ui/react-tooltip',
     ],
   },
   webpack: (config, { isServer, dev }) => {
@@ -47,50 +34,54 @@ const nextConfig = {
       };
     }
 
-    // Optimize Monaco Editor loading
+    // Conservative chunk splitting optimized for GitLab Pages static hosting
     if (!dev && !isServer) {
-      // Split Monaco Editor into separate chunks for better caching
       config.optimization = {
         ...config.optimization,
         splitChunks: {
           ...config.optimization.splitChunks,
+          chunks: 'all',
+          minSize: 100000, // Minimum 100KB chunks to reduce HTTP requests
+          maxSize: 500000, // Maximum 500KB chunks for reasonable file sizes
           cacheGroups: {
-            ...config.optimization.splitChunks?.cacheGroups,
+            // Default Next.js groups but with larger minimums
+            default: {
+              name: false,
+              minChunks: 2,
+              priority: -20,
+              reuseExistingChunk: true,
+              minSize: 100000, // Larger minimum to reduce file count
+            },
+            // Large vendor libraries only
+            vendor: {
+              name: 'vendor',
+              test: /[\\/]node_modules[\\/]/,
+              chunks: 'all',
+              priority: -10,
+              reuseExistingChunk: true,
+              minSize: 150000, // Only create vendor chunks for larger libraries
+              maxSize: 800000, // Allow larger vendor chunks
+            },
+            // Monaco Editor as separate chunk only if it's large enough
             monaco: {
               name: 'monaco-editor',
               test: /[\\/]node_modules[\\/](@monaco-editor|monaco-editor)[\\/]/,
               chunks: 'all',
               priority: 30,
               reuseExistingChunk: true,
-            },
-            radixui: {
-              name: 'radix-ui',
-              test: /[\\/]node_modules[\\/]@radix-ui[\\/]/,
-              chunks: 'all',
-              priority: 20,
-              reuseExistingChunk: true,
-            },
-            vendor: {
-              name: 'vendor',
-              test: /[\\/]node_modules[\\/]/,
-              chunks: 'all',
-              priority: 10,
-              reuseExistingChunk: true,
-              maxSize: 200000, // 200KB chunks
+              enforce: true, // Always split Monaco due to its size
             },
           },
         },
       };
 
-      // Add performance hints for large assets
+      // Relax performance hints for fewer, larger files
       config.performance = {
         ...config.performance,
-        maxAssetSize: 300000, // 300KB
-        maxEntrypointSize: 300000, // 300KB
+        maxAssetSize: 800000, // 800KB - allow larger files to reduce HTTP requests
+        maxEntrypointSize: 800000, // 800KB
         assetFilter: function(assetFilename) {
-          // Ignore source maps and known large files
-          return !assetFilename.endsWith('.map') && 
-                 !assetFilename.includes('monaco-editor');
+          return !assetFilename.endsWith('.map');
         },
       };
     }

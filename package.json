@@ -12,7 +12,8 @@
     "test": "jest",
     "test:e2e": "pnpm exec playwright test",
     "test:e2e:ui": "pnpm exec playwright test --ui",
-    "build-registry": "node scripts/build-registry.js"
+    "build-registry": "node scripts/build-registry.js",
+    "analyze-build": "node scripts/check-build-files.js"
   },
   "dependencies": {
     "@babel/standalone": "^7.27.6",
