@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import ComponentSelector from '@/components/ComponentSelector';
 import LocalComponentRenderer from '@/components/LocalComponentRenderer';
 import CodeViewer from '@/components/CodeViewer';
@@ -9,6 +10,7 @@ import CodeButtons from '@/components/CodeButtons';
 
 import { useLocalComponentState } from '@/lib/hooks/useLocalComponentState';
 import { PlayIcon, SettingsIcon, XIcon, EyeOffIcon, EyeIcon } from 'lucide-react';
+import { getMonacoPreloadStatus } from '@/lib/monaco-preloader';
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -84,6 +86,19 @@ export default function PlaygroundPage() {
     handlePropChange,
   } = useLocalComponentState();
 
+  // Track Monaco preload status for debugging (development only)
+  const [monacoStatus, setMonacoStatus] = useState(() => getMonacoPreloadStatus());
+  
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'development') return;
+    
+    const interval = setInterval(() => {
+      setMonacoStatus(getMonacoPreloadStatus());
+    }, 500);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   const rendererButtons = (): React.ReactNode => {
     return playgroundState.selectedComponent ?(
       <>
@@ -96,6 +111,17 @@ export default function PlaygroundPage() {
           showCode={playgroundState.showCode}
           onToggleCode={() => toggleCodePanel()}
         />
+        {/* Monaco Preload Status Debug (Development Only) */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="text-xs text-gray-500 bg-blue-50 px-2 py-1 rounded">
+            Monaco: {(() => {
+              if (monacoStatus.isPreloaded) return '✅ Ready';
+              if (monacoStatus.isLoading) return '⏳ Loading';
+              if (monacoStatus.preloadStarted) return '🔄 Starting';
+              return '❌ Not Started';
+            })()}
+          </div>
+        )}
       </>
     ) : null;
   }

@@ -1,8 +1,27 @@
 'use client';
 
 import { useRef } from 'react';
-import Editor from '@monaco-editor/react';
-import { CodeIcon, CopyIcon, DownloadIcon } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { CodeIcon, CopyIcon, DownloadIcon, Loader2 } from 'lucide-react';
+import { getPreloadedMonaco, isMonacoPreloaded } from '@/lib/monaco-preloader';
+
+// Use preloaded Monaco Editor if available, otherwise load dynamically
+const Editor = dynamic(
+  () => getPreloadedMonaco().then(module => ({ default: module.default })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-full bg-gray-50">
+        <div className="flex items-center space-x-2 text-gray-500">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span className="text-sm">
+            {isMonacoPreloaded() ? 'Initializing code viewer...' : 'Loading code viewer...'}
+          </span>
+        </div>
+      </div>
+    )
+  }
+);
 
 interface CodeViewerProps {
   value: string;

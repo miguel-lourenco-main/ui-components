@@ -23,6 +23,23 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        {/* Performance optimizations */}
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+        <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+        
+        {/* Monaco Editor optimization */}
+        <link rel="preload" as="script" href="/_next/static/chunks/monaco-editor.js" />
+        
+        {/* Cache control for better performance */}
+        <meta httpEquiv="Cache-Control" content="public, max-age=31536000, immutable" />
+        
+        {/* Viewport optimization */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        
+        {/* Prevent render blocking */}
+        <meta name="color-scheme" content="light" />
+      </head>
       <body className={inter.className}>
         <div className="min-h-screen bg-background">
           {children}

@@ -4,6 +4,8 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Component, LocalComponent, LocalPlaygroundState } from '@/types';
 import { discoverLocalComponents } from '@/lib/localComponents';
 import { debugLog } from '@/lib/constants';
+import { perf } from '@/lib/performance';
+import { startMonacoPreload } from '@/lib/monaco-preloader';
 import { parse } from 'acorn';
 import { simple as walkSimple } from 'acorn-walk';
 import { 
@@ -233,25 +235,32 @@ export default function Example() {${functionDeclarationsCode}
    * Load all local components
    */
   const loadComponents = useCallback(async () => {
+    perf.start('components-loading', { operation: 'loadComponents' });
     debugLog('state', '🚀 Hook: Starting loadComponents...');
     
     try {
       setLoading(true);
       setError(null);
       
-      debugLog('state', '🚀 Hook: Calling discoverLocalComponents...');
-      
-      // Add timeout to prevent infinite loading
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => {
-          reject(new Error('Component loading timed out after 10 seconds'));
-        }, 10000);
+      // Start Monaco Editor preload immediately - this will load in parallel with components
+      debugLog('state', '🚀 Hook: Starting Monaco Editor preload...');
+      startMonacoPreload().catch(err => {
+        console.warn('⚠️ Monaco preload failed, will load on-demand:', err);
       });
       
-      const result = await Promise.race([
+      debugLog('state', '🚀 Hook: Calling discoverLocalComponents...');
+      
+      // Add timeout to prevent infinite loading (reduced from 10s to 8s for better UX)
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('Component loading timed out after 8 seconds. This may be due to network issues or GitLab Pages configuration.'));
+        }, 8000);
+      });
+      
+      const result = await perf.track('registry-discovery', Promise.race([
         discoverLocalComponents(),
         timeoutPromise
-      ]);
+      ]));
       
       debugLog('state', '🚀 Hook: Got result:', {
         components: result.components.length,
@@ -265,6 +274,10 @@ export default function Example() {${functionDeclarationsCode}
         setError(`Found ${result.errors.length} component errors. Check console for details.`);
       }
       
+      perf.end('components-loading', { 
+        componentCount: result.components.length, 
+        errorCount: result.errors.length 
+      });
       debugLog('state', '✅ Hook: Components loaded successfully');
     } catch (err) {
       console.error('❌ Hook: Failed to load components:', err);
@@ -278,6 +291,7 @@ export default function Example() {${functionDeclarationsCode}
       
       // Even on error, set an empty array so the UI can render
       setComponents([]);
+      perf.end('components-loading', { success: false, error: err });
     } finally {
       debugLog('state', '🏁 Hook: Setting loading to false');
       setLoading(false);

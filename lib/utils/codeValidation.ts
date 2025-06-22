@@ -10,32 +10,62 @@ import * as ts from 'typescript';
 const tsLibCache: { [key: string]: string } = {};
 const tsLibVersion = '5.3.3'; // From package.json
 
+// Cache loading promises to prevent duplicate requests
+const loadingPromises: { [key: string]: Promise<void> } = {};
+
 /**
  * Fetch TypeScript library files from a CDN and cache them.
+ * Optimized to prevent blocking and duplicate requests
  */
 async function ensureTsLibsAreLoaded(libNames: string[]): Promise<void> {
   const promises: Promise<void>[] = [];
+  
   for (const libName of libNames) {
     if (!tsLibCache[libName]) {
-      promises.push(
-        fetch(`https://cdn.jsdelivr.net/npm/typescript@${tsLibVersion}/lib/${libName}`)
-          .then(res => {
-            if (!res.ok) {
-              throw new Error(`Failed to fetch TS lib: ${libName}`);
-            }
-            return res.text();
-          })
-          .then(text => {
-            tsLibCache[libName] = text;
-            console.log(`[Validation] Loaded and cached TS lib: ${libName}`);
-          })
-          .catch(err => {
-            console.error(`[Validation] Error fetching TS lib ${libName}:`, err);
-          })
-      );
+      // Check if already loading
+      if (libName in loadingPromises) {
+        promises.push(loadingPromises[libName]);
+        continue;
+      }
+      
+      // Start loading and cache the promise
+      const loadPromise = fetch(`https://cdn.jsdelivr.net/npm/typescript@${tsLibVersion}/lib/${libName}`)
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`Failed to fetch TS lib: ${libName}`);
+          }
+          return res.text();
+        })
+        .then(text => {
+          tsLibCache[libName] = text;
+          console.log(`[Validation] Loaded and cached TS lib: ${libName}`);
+          delete loadingPromises[libName]; // Clean up loading promise
+        })
+        .catch(err => {
+          console.error(`[Validation] Error fetching TS lib ${libName}:`, err);
+          delete loadingPromises[libName]; // Clean up on error
+          // Don't throw to prevent blocking other lib loads
+        });
+      
+      loadingPromises[libName] = loadPromise;
+      promises.push(loadPromise);
     }
   }
-  await Promise.all(promises);
+  
+  // Wait for all libs to load, with timeout
+  try {
+    await Promise.all(promises.map(p => 
+      Promise.race([
+        p,
+        new Promise<void>((_, reject) => 
+          setTimeout(() => reject(new Error('TS lib load timeout')), 5000)
+        )
+      ])
+    ));
+  } catch (error) {
+    // Continue even if some libs fail to load
+    console.warn('[Validation] Some TypeScript libraries failed to load:', error);
+  }
 }
 
 export interface ValidationResult {

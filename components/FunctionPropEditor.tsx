@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import Editor from '@monaco-editor/react';
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { PropDefinition } from '@/types';
 import { AlertTriangleIcon, CheckIcon, CodeIcon, Trash2Icon, PencilIcon, Loader2 } from 'lucide-react';
 import { parse as babelParse, ParserOptions } from '@babel/parser';
@@ -18,6 +18,25 @@ import {
   getValidationSummary,
   ValidationResult 
 } from '@/lib/utils/codeValidation';
+import { getPreloadedMonaco, isMonacoPreloaded } from '@/lib/monaco-preloader';
+
+// Use preloaded Monaco Editor if available, otherwise load dynamically
+const Editor = dynamic(
+  () => getPreloadedMonaco().then(module => ({ default: module.default })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-[120px] bg-gray-50 rounded border">
+        <div className="flex items-center space-x-2 text-gray-500">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span className="text-sm">
+            {isMonacoPreloaded() ? 'Initializing editor...' : 'Loading editor...'}
+          </span>
+        </div>
+      </div>
+    )
+  }
+);
 
 interface FunctionPropEditorProps {
   prop: PropDefinition;
