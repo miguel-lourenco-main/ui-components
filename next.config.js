@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
   trailingSlash: true,
   distDir: 'out',
   // Configure for GitLab Pages - detect if we're using a project subdomain or branch deployment
@@ -93,6 +92,13 @@ const nextConfig = {
       'react/jsx-runtime.js': 'react/jsx-runtime',
       'react/jsx-dev-runtime.js': 'react/jsx-dev-runtime',
     };
+
+    // Support importing source files as raw strings using ?raw
+    config.module.rules.push({
+      test: /\.(ts|tsx|js|jsx)$/,
+      resourceQuery: /raw/,
+      type: 'asset/source',
+    });
 
     return config;
   },

@@ -1,0 +1,123 @@
+{
+  "id": "input",
+  "name": "Input",
+  "category": "form",
+  "description": "Form input component with validation states and labels",
+  "props": [
+    {
+      "name": "type",
+      "type": "enum",
+      "required": false,
+      "defaultValue": "text",
+      "options": ["text", "email", "password", "number", "tel", "url"],
+      "description": "Input type"
+    },
+    {
+      "name": "placeholder",
+      "type": "string",
+      "required": false,
+      "description": "Placeholder text"
+    },
+    {
+      "name": "value",
+      "type": "string",
+      "required": false,
+      "description": "Controlled value"
+    },
+    {
+      "name": "defaultValue",
+      "type": "string",
+      "required": false,
+      "description": "Default uncontrolled value"
+    },
+    {
+      "name": "onChange",
+      "type": "function",
+      "required": false,
+      "description": "Change handler function",
+      "functionSignature": {
+        "params": "event: React.ChangeEvent<HTMLInputElement>",
+        "returnType": "void"
+      }
+    },
+    {
+      "name": "onFocus",
+      "type": "function",
+      "required": false,
+      "description": "Focus handler function",
+      "functionSignature": {
+        "params": "event: React.FocusEvent<HTMLInputElement>",
+        "returnType": "void"
+      }
+    },
+    {
+      "name": "onBlur",
+      "type": "function",
+      "required": false,
+      "description": "Blur handler function",
+      "functionSignature": {
+        "params": "event: React.FocusEvent<HTMLInputElement>",
+        "returnType": "void"
+      }
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "required": false,
+      "defaultValue": false,
+      "description": "Whether the input is disabled"
+    },
+    {
+      "name": "required",
+      "type": "boolean",
+      "required": false,
+      "defaultValue": false,
+      "description": "Whether the input is required"
+    },
+    {
+      "name": "size",
+      "type": "enum",
+      "required": false,
+      "defaultValue": "md",
+      "options": ["sm", "md", "lg"],
+      "description": "Input size"
+    },
+    {
+      "name": "variant",
+      "type": "enum",
+      "required": false,
+      "defaultValue": "default",
+      "options": ["default", "error", "success"],
+      "description": "Input variant/state"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "defaultValue": "",
+      "description": "Additional CSS classes"
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "required": false,
+      "description": "Input label"
+    },
+    {
+      "name": "helperText",
+      "type": "string",
+      "required": false,
+      "description": "Helper text below input"
+    },
+    {
+      "name": "errorMessage",
+      "type": "string",
+      "required": false,
+      "description": "Error message (overrides helperText)"
+    }
+  ],
+  "tags": ["form", "input", "validation"],
+  "version": "1.0.0",
+  "author": "UI Components Team",
+  "code": "import React from 'react';\n\ninterface InputProps {\n  type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url';\n  name?: string;\n  placeholder?: string;\n  value?: string;\n  defaultValue?: string;\n  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;\n  onFocus?: (event: React.FocusEvent<HTMLInputElement>) => void;\n  onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;\n  disabled?: boolean;\n  required?: boolean;\n  size?: 'sm' | 'md' | 'lg';\n  variant?: 'default' | 'error' | 'success';\n  className?: string;\n  label?: string;\n  helperText?: string;\n  errorMessage?: string;\n}\n\nexport default function Input({\n  type = 'text',\n  name,\n  placeholder,\n  value,\n  defaultValue,\n  onChange,\n  onFocus,\n  onBlur,\n  disabled = false,\n  required = false,\n  size = 'md',\n  variant = 'default',\n  className = '',\n  label,\n  helperText,\n  errorMessage\n}: InputProps) {\n  const baseStyles = 'border rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none';\n  \n  const variantStyles = {\n    default: 'border-gray-300 focus:border-blue-500 focus:ring-blue-500',\n    error: 'border-red-500 focus:border-red-500 focus:ring-red-500',\n    success: 'border-green-500 focus:border-green-500 focus:ring-green-500'\n  };\n  \n  const sizeStyles = {\n    sm: 'px-3 py-2 text-sm',\n    md: 'px-4 py-2 text-base',\n    lg: 'px-4 py-3 text-lg'\n  };\n  \n  const inputClassName = `${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`.trim();\n  \n  const inputId = React.useId();\n  \n  return (\n    <div className=\"space-y-1\" data-testid=\"rendered-component-input\">\n      {label && (\n        <label htmlFor={inputId} className=\"block text-sm font-medium text-gray-700\">\n          {label}\n          {required && <span className=\"text-red-500 ml-1\">*</span>}\n        </label>\n      )}\n      \n      <input\n        id={inputId}\n        name={name}\n        type={type}\n        placeholder={placeholder}\n        value={value}\n        defaultValue={defaultValue}\n        onChange={onChange}\n        onFocus={onFocus}\n        onBlur={onBlur}\n        disabled={disabled}\n        required={required}\n        className={inputClassName}\n      />\n      \n      {(helperText || errorMessage) && (\n        <p className=\"text-sm ${'${'}errorMessage ? 'text-red-600' : 'text-gray-500'${'}'}\">\n          {errorMessage || helperText}\n        </p>\n      )}\n    </div>\n  );\n}"
+} 

@@ -39,3 +39,115 @@ export interface Filter {
         icon?: LucideIcon;
     }[];
 }
+
+export interface Component {
+  id: string;
+  name: string;
+  description: string;
+  props: PropDefinition[];
+  code: string;
+  examples: ComponentExample[];
+  dependencies?: string[];
+  tags?: string[];
+  version?: string;
+  author?: string;
+}
+
+export interface PropDefinition {
+  name: string;
+  type: PropType;
+  required: boolean;
+  defaultValue?: any;
+  description?: string;
+  options?: string[] | number[]; // For enum/select types
+  // Function signature information (only used when type === 'function')
+  functionSignature?: {
+    params: string;
+    returnType: string;
+  };
+}
+
+// New interface for function prop storage
+export interface FunctionPropValue {
+  type: 'function';
+  source: string; // The actual function body as string
+  signature?: {
+    params: string;
+    returnType: string;
+  };
+}
+
+export type PropType = 
+  | 'string'
+  | 'number'
+  | 'boolean'
+  | 'enum'
+  | 'select'
+  | 'array'
+  | 'object'
+  | 'color'
+  | 'function';
+
+export interface ComponentExample {
+  name: string;
+  description?: string;
+  props: Record<string, any>;
+  code?: string;
+}
+
+export interface ComponentManifest {
+  version: string;
+  components: Component[];
+}
+
+export interface GitLabConfig {
+  token: string;
+  projectId: string;
+  baseUrl: string;
+  repoPath: string;
+  manifestPath: string;
+}
+
+export interface PlaygroundState {
+  selectedComponent: Component | null;
+  currentProps: Record<string, any>;
+  currentCode: string;
+  viewMode: 'desktop' | 'tablet' | 'mobile';
+  showProps: boolean;
+  showCode: boolean;
+  searchQuery: string;
+}
+
+// Local component types
+export interface FullComponentInfo extends ComponentInfo {
+  preview: string;
+}
+
+export interface ComponentInfo {
+  id: string;
+  name: string;
+  description: string;
+  props: PropDefinition[];
+  tags?: string[];
+  version?: string;
+  author?: string;
+}
+
+export interface ComponentDiscoveryResult {
+  components: FullComponentInfo[];
+  errors: ComponentDiscoveryError[];
+}
+
+export interface ComponentDiscoveryError {
+  filePath: string;
+  error: string;
+  type: 'metadata' | 'component' | 'examples';
+}
+
+export interface FullComponentInfo extends ComponentInfo {
+  examples: ComponentExample[];
+}
+
+export interface LocalPlaygroundState extends Omit<PlaygroundState, 'selectedComponent'> {
+  selectedComponent: FullComponentInfo | null;
+} 

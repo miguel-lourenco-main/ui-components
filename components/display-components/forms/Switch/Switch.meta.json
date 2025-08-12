@@ -1,0 +1,54 @@
+{
+  "id": "switch",
+  "name": "Switch",
+  "category": "form",
+  "description": "A control that allows the user to toggle between checked and not checked. Used for binary settings and preferences",
+  "props": [
+    {
+      "name": "checked",
+      "type": "boolean",
+      "required": false,
+      "description": "The controlled checked state of the switch"
+    },
+    {
+      "name": "onCheckedChange",
+      "type": "function",
+      "required": false,
+      "description": "Event handler called when the checked state changes",
+      "functionSignature": {
+        "params": "checked: boolean",
+        "returnType": "void"
+      }
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "required": false,
+      "defaultValue": false,
+      "description": "Whether the switch is disabled"
+    },
+    {
+      "name": "id",
+      "type": "string",
+      "required": false,
+      "description": "The id attribute for the switch element"
+    },
+    {
+      "name": "label",
+      "type": "string",
+      "required": false,
+      "description": "Optional label text to display next to the switch"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "defaultValue": "",
+      "description": "Additional CSS classes for styling"
+    }
+  ],
+  "tags": ["switch", "toggle", "boolean", "form", "control"],
+  "version": "1.0.0",
+  "author": "UI Components Team",
+  "code": "import React from 'react';\nimport { Switch } from '@/components/ui/switch';\n\nexport interface SwitchComponentProps {\n  checked?: boolean;\n  onCheckedChange?: (checked: boolean) => void;\n  disabled?: boolean;\n  id?: string;\n  className?: string;\n  label?: string;\n}\n\nconst SwitchComponent: React.FC<SwitchComponentProps> = ({ \n  checked,\n  onCheckedChange,\n  disabled = false,\n  id,\n  className,\n  label\n}) => {\n  return (\n    <div className=\"flex items-center space-x-2\">\n      <Switch\n        id={id}\n        checked={checked}\n        onCheckedChange={onCheckedChange}\n        disabled={disabled}\n        className={className}\n        data-testid=\"rendered-component-switch\"\n      />\n      {label && (\n        <label \n          htmlFor={id}\n          className=\"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70\"\n        >\n          {label}\n        </label>\n      )}\n    </div>\n  );\n};\n\nexport default SwitchComponent;"
+} 

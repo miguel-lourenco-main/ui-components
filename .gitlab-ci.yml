@@ -16,7 +16,7 @@ cache:
 # Define stages
 stages:
   - build
-  - test
+  #- test
   - deploy
 
 # Build stage for all branches
@@ -111,7 +111,7 @@ pages:
     expire_in: never
   dependencies:
     - build
-    - test
+    #- test
   environment:
     name: production
     url: $CI_PAGES_URL

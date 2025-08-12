@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import { ThemeProvider } from "@/components/theme-provider"
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -41,9 +44,9 @@ export default function RootLayout({
         <meta name="color-scheme" content="light" />
       </head>
       <body className={inter.className}>
-        <div className="min-h-screen bg-background">
-          {children}
-        </div>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <main className="flex justify-center flex-1 min-h-screen bg-background">{children}</main>
+        </ThemeProvider>
       </body>
     </html>
   )

@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 import dynamic from 'next/dynamic';
-import { PropDefinition } from '@/types';
+import { PropDefinition } from '@/lib/interfaces';
 import { AlertTriangleIcon, CheckIcon, CodeIcon, Trash2Icon, PencilIcon, Loader2 } from 'lucide-react';
 import { parse as babelParse, ParserOptions } from '@babel/parser';
 import { debugLog } from '@/lib/constants';
-import { FunctionPropValue } from '@/types';
+import { FunctionPropValue } from '@/lib/interfaces';
 import { 
   isFunctionPropValue, 
   getFunctionSource, 
@@ -181,7 +181,7 @@ export default function FunctionPropEditor({
     }, 500); // 500ms debounce
 
     return () => clearTimeout(timer);
-  }, [functionBody, getFunctionSignature, isInitialized, lastSentFunctionBody, prop, value]);
+  }, [functionBody, getFunctionSignature, isInitialized, lastSentFunctionBody, prop.name, value]);
 
   // Clear function - resets the function body and removes it from props
   const handleClearFunction = useCallback(() => {

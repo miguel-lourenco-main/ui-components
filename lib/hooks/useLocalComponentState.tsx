@@ -1,25 +1,20 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
-import { Component, LocalComponent, LocalPlaygroundState } from '@/types';
-import { discoverLocalComponents } from '@/lib/localComponents';
+import { useState, useCallback, useEffect } from 'react';
+import { FullComponentInfo, LocalPlaygroundState } from '@/lib/interfaces';
+import { discoverLocalComponents, getFullComponentsInfo } from '@/lib/localComponents';
 import { debugLog } from '@/lib/constants';
 import { perf } from '@/lib/performance';
 import { startMonacoPreload } from '@/lib/monaco-preloader';
-import { parse } from 'acorn';
-import { simple as walkSimple } from 'acorn-walk';
 import { 
   isFunctionPropValue, 
-  getFunctionSource, 
   convertFunctionPropValuesToFunctions,
-  convertFunctionsToFunctionPropValues,
-  extractFunctionSource,
   setFunctionSource
 } from '@/lib/utils/functionProps';
 
 interface UseLocalComponentStateReturn {
   // State
-  components: LocalComponent[];
+  components: FullComponentInfo[];
   playgroundState: LocalPlaygroundState;
   selectedExampleIndex: number;
   loading: boolean;
@@ -27,7 +22,7 @@ interface UseLocalComponentStateReturn {
   
   // Actions
   loadComponents: () => Promise<void>;
-  selectComponent: (component: LocalComponent, exampleIndex?: number) => void;
+  selectComponent: (component: FullComponentInfo, exampleIndex?: number) => void;
   selectExample: (exampleIndex: number) => void;
   updateProps: (props: Record<string, any>) => void;
   resetToDefaults: () => void;
@@ -37,14 +32,13 @@ interface UseLocalComponentStateReturn {
   togglePropsPanel: () => void;
   toggleCodePanel: () => void;
   setSearchQuery: (query: string) => void;
-  setSelectedCategory: (category: string | null) => void;
   
   // New handlePropChange action
   handlePropChange: (propName: string, value: any) => void;
 }
 
 export function useLocalComponentState(): UseLocalComponentStateReturn {
-  const [components, setComponents] = useState<LocalComponent[]>([]);
+  const [components, setComponents] = useState<FullComponentInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -56,7 +50,6 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
     showProps: true,
     showCode: true,
     searchQuery: '',
-    selectedCategory: null
   });
 
   // Track which example is currently selected (0 for first example, -1 for none/default)
@@ -79,7 +72,7 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
   /**
    * Generate component code with current props, including validation warnings
    */
-  const generateCodeWithProps = (component: LocalComponent, props: Record<string, any>) => {
+  const generateCodeWithProps = (component: FullComponentInfo, props: Record<string, any>) => {
     debugLog('props', '🏗️ generateCodeWithProps called for:', component.name);
     
     // Convert FunctionPropValues to actual functions for code generation
@@ -248,7 +241,7 @@ export default function Example() {${functionDeclarationsCode}
         console.warn('⚠️ Monaco preload failed, will load on-demand:', err);
       });
       
-      debugLog('state', '🚀 Hook: Calling discoverLocalComponents...');
+      debugLog('state', '🚀 Hook: Getting full components info...');
       
       // Add timeout to prevent infinite loading (reduced from 10s to 8s for better UX)
       const timeoutPromise = new Promise<never>((_, reject) => {
@@ -257,26 +250,20 @@ export default function Example() {${functionDeclarationsCode}
         }, 8000);
       });
       
-      const result = await perf.track('registry-discovery', Promise.race([
-        discoverLocalComponents(),
+      const fullComponents = await perf.track('registry-discovery', Promise.race([
+        getFullComponentsInfo(),
         timeoutPromise
       ]));
-      
-      debugLog('state', '🚀 Hook: Got result:', {
-        components: result.components.length,
-        errors: result.errors.length
+
+      debugLog('state', '🚀 Hook: Got components:', {
+        components: fullComponents.length,
       });
-      
-      setComponents(result.components);
-      
-      if (result.errors.length > 0) {
-        console.warn('⚠️ Hook: Component discovery errors:', result.errors);
-        setError(`Found ${result.errors.length} component errors. Check console for details.`);
-      }
+
+      setComponents(fullComponents);
       
       perf.end('components-loading', { 
-        componentCount: result.components.length, 
-        errorCount: result.errors.length 
+        componentCount: fullComponents.length, 
+        errorCount: 0 
       });
       debugLog('state', '✅ Hook: Components loaded successfully');
     } catch (err) {
@@ -289,7 +276,6 @@ export default function Example() {${functionDeclarationsCode}
         setError(err instanceof Error ? err.message : 'Failed to load components');
       }
       
-      // Even on error, set an empty array so the UI can render
       setComponents([]);
       perf.end('components-loading', { success: false, error: err });
     } finally {
@@ -301,7 +287,7 @@ export default function Example() {${functionDeclarationsCode}
   /**
    * Select a component and initialize its state
    */
-  const selectComponent = useCallback((component: LocalComponent | null, exampleIndex: number = 0) => {
+  const selectComponent = useCallback((component: FullComponentInfo | null, exampleIndex: number = 0) => {
     if (!component) {
       setPlaygroundState(prevState => ({
         ...prevState,
@@ -479,7 +465,7 @@ export default function Example() {${functionDeclarationsCode}
       currentProps: newProps,
       currentCode: generateCodeWithProps(prev.selectedComponent!, newProps)
     }));
-  }, [playgroundState.selectedComponent, generateCodeWithProps, selectedExampleIndex]);
+  }, [playgroundState.selectedComponent, playgroundState.currentProps, generateCodeWithProps, selectedExampleIndex]);
 
 
 
@@ -556,13 +542,6 @@ export default function Example() {${functionDeclarationsCode}
   }, []);
 
   /**
-   * Set selected category
-   */
-  const setSelectedCategory = useCallback((category: string | null) => {
-    setPlaygroundState(prev => ({ ...prev, selectedCategory: category }));
-  }, []);
-
-  /**
    * Handle prop changes from interactive components
    */
   const handlePropChange = useCallback((propName: string, value: any) => {
@@ -610,7 +589,6 @@ export default function Example() {${functionDeclarationsCode}
     togglePropsPanel,
     toggleCodePanel,
     setSearchQuery,
-    setSelectedCategory,
     handlePropChange,
   };
 } 

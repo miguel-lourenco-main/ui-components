@@ -1,48 +1,49 @@
 'use client';
 
 import { useState } from 'react';
-import { LocalComponent } from '@/types';
+import { FullComponentInfo } from '@/lib/interfaces';
 import { SearchIcon, FilterIcon, TagIcon } from 'lucide-react';
 
 interface ComponentSelectorProps {
-  components: LocalComponent[];
-  selectedComponent: LocalComponent | null;
-  onSelect: (component: LocalComponent) => void;
+  components: FullComponentInfo[];
+  selectedComponent: FullComponentInfo | null;
+  onSelect: (component: FullComponentInfo) => void;
   searchQuery: string;
-  selectedCategory: string | null;
   onSearchChange: (query: string) => void;
-  onCategoryChange: (category: string | null) => void;
 }
-
-const categories = [
-  { id: 'form', name: 'Form', icon: '📝' },
-  { id: 'layout', name: 'Layout', icon: '📐' },
-  { id: 'data-display', name: 'Data Display', icon: '📊' },
-];
 
 export default function ComponentSelector({
   components,
   selectedComponent,
   onSelect,
   searchQuery,
-  selectedCategory,
   onSearchChange,
-  onCategoryChange,
 }: ComponentSelectorProps) {
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
-  const filteredComponents = components.filter(component => {
-    const matchesSearch = component.name.toLowerCase().includes(searchQuery.toLowerCase())
+  // Build unique, sorted tag list from components
+  const tags: string[] = Array.from(
+    new Set(
+      components.flatMap(c => (c.tags || []).filter(Boolean))
+    )
+  ).sort((a, b) => a.localeCompare(b));
 
-    const matchesCategory = !selectedCategory || component.category === selectedCategory;
-    
-    return matchesSearch && matchesCategory;
-  });
+  // First, apply search filter
+  const searchFiltered = components.filter(component =>
+    component.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-  const groupedComponents = categories.reduce((acc, category) => {
-    acc[category.id] = filteredComponents.filter(c => c.category === category.id);
+  // Then, apply tag filter (if any)
+  const filteredComponents = searchFiltered.filter(component =>
+    selectedTag ? (component.tags || []).includes(selectedTag) : true
+  );
+
+  // Compute counts per tag within the search-filtered set
+  const tagCounts: Record<string, number> = tags.reduce((acc, tag) => {
+    acc[tag] = searchFiltered.filter(c => (c.tags || []).includes(tag)).length;
     return acc;
-  }, {} as Record<string, LocalComponent[]>);
+  }, {} as Record<string, number>);
 
   return (
     <div className="flex flex-col h-full">
@@ -69,9 +70,9 @@ export default function ComponentSelector({
             <FilterIcon className="w-4 h-4 mr-1" />
             Filters
           </button>
-          {selectedCategory && (
+          {selectedTag && (
             <button
-              onClick={() => onCategoryChange(null)}
+              onClick={() => setSelectedTag(null)}
               className="text-sm text-blue-600 hover:text-blue-800"
             >
               Clear filters
@@ -79,23 +80,23 @@ export default function ComponentSelector({
           )}
         </div>
         
-        {/* Category Filters */}
+        {/* Tag Filters */}
         {showFilters && (
           <div className="mt-3 space-y-1" data-testid="filter-list">
-            {categories.map(category => (
+            {tags.map(tag => (
               <button
-                key={category.id}
-                onClick={() => onCategoryChange(category.id === selectedCategory ? null : category.id)}
+                key={tag}
+                onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
                 className={`w-full text-left px-3 py-2 rounded text-sm flex items-center ${
-                  selectedCategory === category.id 
+                  selectedTag === tag 
                     ? 'bg-blue-100 text-blue-800' 
                     : 'hover:bg-gray-100'
                 }`}
               >
-                <span className="mr-2">{category.icon}</span>
-                {category.name}
+                <TagIcon className="w-4 h-4 mr-2 text-gray-500" />
+                {tag}
                 <span className="ml-auto text-xs text-gray-500">
-                  {groupedComponents[category.id]?.length || 0}
+                  {tagCounts[tag] || 0}
                 </span>
               </button>
             ))}
@@ -103,59 +104,20 @@ export default function ComponentSelector({
         )}
       </div>
 
-      {/* Component List */}
+      {/* Component List - always flat, tags only filter */}
       <div className="flex-1 overflow-y-auto">
-        {selectedCategory ? (
-          // Show single category
-          <div className="p-4">
-            <h3 className="font-medium text-gray-900 mb-3 flex items-center">
-              <span className="mr-2">
-                {categories.find(c => c.id === selectedCategory)?.icon}
-              </span>
-              {categories.find(c => c.id === selectedCategory)?.name}
-            </h3>
-            <div className="space-y-2">
-              {groupedComponents[selectedCategory]?.map(component => (
-                <ComponentItem
-                  key={component.id}
-                  component={component}
-                  isSelected={selectedComponent?.id === component.id}
-                  onSelect={onSelect}
-                />
-              ))}
-            </div>
+        <div className="p-4">
+          <div className="space-y-2">
+            {filteredComponents.map(component => (
+              <ComponentItem
+                key={component.id}
+                component={component}
+                isSelected={selectedComponent?.id === component.id}
+                onSelect={onSelect}
+              />
+            ))}
           </div>
-        ) : (
-          // Show all categories
-          <div className="p-4 space-y-6">
-            {categories.map(category => {
-              const categoryComponents = groupedComponents[category.id];
-              if (!categoryComponents || categoryComponents.length === 0) return null;
-
-              return (
-                <div key={category.id}>
-                  <h3 className="font-medium text-gray-900 mb-3 flex items-center">
-                    <span className="mr-2">{category.icon}</span>
-                    {category.name}
-                    <span className="ml-2 text-xs text-gray-500">
-                      ({categoryComponents.length})
-                    </span>
-                  </h3>
-                  <div className="space-y-2">
-                    {categoryComponents.map(component => (
-                      <ComponentItem
-                        key={component.id}
-                        component={component}
-                        isSelected={selectedComponent?.id === component.id}
-                        onSelect={onSelect}
-                      />
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        </div>
         
         {filteredComponents.length === 0 && (
           <div className="p-8 text-center text-gray-500">
@@ -170,9 +132,9 @@ export default function ComponentSelector({
 }
 
 interface ComponentItemProps {
-  component: LocalComponent;
+  component: FullComponentInfo;
   isSelected: boolean;
-  onSelect: (component: LocalComponent) => void;
+  onSelect: (component: FullComponentInfo) => void;
 }
 
 function ComponentItem({ component, isSelected, onSelect }: ComponentItemProps) {

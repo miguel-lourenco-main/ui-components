@@ -1,0 +1,40 @@
+{
+    "blacklist": ["textarea"],
+    "components": [
+        {
+            "id": "button",
+            "name": "Button",
+            "path": "./buttons/Button/"
+        },
+        {
+            "id": "card",
+            "name": "Card",
+            "path": "./cards/Card/"
+        },
+        {
+            "id": "input",
+            "name": "Input",
+            "path": "./forms/Input/"
+        },
+        {
+            "id": "slider",
+            "name": "Slider",
+            "path": "./forms/Slider/"
+        },
+        {
+            "id": "switch",
+            "name": "Switch",
+            "path": "./forms/Switch/"
+        },
+        {
+            "id": "textarea",
+            "name": "Textarea",
+            "path": "./forms/Textarea/"
+        },
+        {
+            "id": "toggle",
+            "name": "Toggle",
+            "path": "./forms/Toggle/"
+        }
+    ]
+}

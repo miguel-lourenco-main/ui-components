@@ -1,0 +1,55 @@
+{
+  "id": "card",
+  "name": "Card", 
+  "category": "layout",
+  "description": "Flexible content container with header, body, and footer sections",
+  "props": [
+    {
+      "name": "children",
+      "type": "React.ReactNode",
+      "required": true,
+      "description": "Content to be displayed inside the card"
+    },
+    {
+      "name": "title",
+      "type": "string",
+      "required": false,
+      "defaultValue": "",
+      "description": "Card title displayed in the header"
+    },
+    {
+      "name": "subtitle",
+      "type": "string",
+      "required": false,
+      "defaultValue": "",
+      "description": "Card subtitle displayed below the title"
+    },
+    {
+      "name": "variant",
+      "type": "enum",
+      "required": false,
+      "defaultValue": "default",
+      "options": ["default", "outlined", "elevated", "flat"],
+      "description": "Card style variant"
+    },
+    {
+      "name": "size",
+      "type": "enum",
+      "required": false,
+      "defaultValue": "md",
+      "options": ["sm", "md", "lg"],
+      "description": "Card size"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "defaultValue": "",
+      "description": "Additional CSS classes"
+    }
+  ],
+  "tags": ["layout", "container", "content"],
+  "version": "1.0.0",
+  "author": "UI Components Team",
+  "code": "import React from 'react';\n\ninterface CardProps {\n  children: React.ReactNode;\n  title?: string;\n  subtitle?: string;\n  variant?: 'default' | 'outlined' | 'elevated' | 'flat';\n  size?: 'sm' | 'md' | 'lg';\n  className?: string;\n}\n\nexport default function Card({\n  children,\n  title,\n  subtitle,\n  variant = 'default',\n  size = 'md',\n  className = ''\n}: CardProps) {\n  const baseStyles = 'rounded-lg transition-all duration-200';\n  \n  const variantStyles = {\n    default: 'bg-white border border-gray-200 shadow-sm',\n    outlined: 'bg-white border-2 border-gray-300',\n    elevated: 'bg-white shadow-lg border border-gray-100',\n    flat: 'bg-gray-50'\n  };\n  \n  const sizeStyles = {\n    sm: 'p-4',\n    md: 'p-6',\n    lg: 'p-8'\n  };\n  \n  const combinedClassName = `${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`.trim();\n  \n  return (\n    <div className={combinedClassName} data-testid=\"rendered-component-card\">\n      {(title || subtitle) && (\n        <div className=\"mb-4\">\n          {title && (\n            <h3 className=\"text-lg font-semibold text-gray-900 mb-1\">\n              {title}\n            </h3>\n          )}\n          {subtitle && (\n            <p className=\"text-sm text-gray-600\">\n              {subtitle}\n            </p>\n          )}\n        </div>\n      )}\n      <div>\n        {children}\n      </div>\n    </div>\n  );\n}"
+} 

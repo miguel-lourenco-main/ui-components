@@ -1,14 +1,14 @@
 'use client';
 
 import React, { Component as ComponentType, useState, useEffect, Suspense } from 'react';
-import { LocalComponent } from '@/types';
+import { FullComponentInfo } from '@/lib/interfaces';
 import { AlertTriangleIcon, RefreshCwIcon, LoaderIcon } from 'lucide-react';
-import { getComponentByName } from '@/lib/componentRegistry';
 import { debugLog } from '@/lib/constants';
 import { convertFunctionPropValuesToFunctions } from '@/lib/utils/functionProps';
+import indexJson from '@/components/display-components/index.json';
 
 interface LocalComponentRendererProps {
-  component: LocalComponent;
+  component: FullComponentInfo;
   props: Record<string, any>;
   viewMode: 'desktop' | 'tablet' | 'mobile';
   onRetry: () => void;
@@ -90,32 +90,57 @@ export default function LocalComponentRenderer({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadComponent = () => {
+    let isMounted = true;
+    const loadComponent = async () => {
       try {
         setLoading(true);
         setError(null);
-        
+
         debugLog('general', `🔄 Loading component: ${component.name}`);
-        
-        // Get component from static registry
-        const loadedComponent = getComponentByName(component.name);
-        
+
+        // Build id -> normalized path map from index.json
+        const idToPath: Record<string, string> = (indexJson.components || []).reduce(
+          (acc: Record<string, string>, item: { id: string; path: string }) => {
+            const normalizedPath = (item.path || '').replace(/^\.\/+/, '').replace(/\/+$/, '');
+            acc[item.id] = normalizedPath;
+            return acc;
+          },
+          {}
+        );
+
+        const compPath = idToPath[component.id];
+        if (!compPath) {
+          throw new Error(`Path not found for component id "${component.id}" in index.json`);
+        }
+
+        // Dynamically import the component module using its path and name
+        const mod = await import(
+          `@/components/display-components/${compPath}/${component.name}`
+        );
+        const loadedComponent: React.ComponentType<any> = mod.default || (mod as any)[component.name];
+
         if (loadedComponent) {
+          if (!isMounted) return;
           setComponentToRender(() => loadedComponent);
           debugLog('general', `✅ Component ${component.name} loaded successfully`);
         } else {
-          throw new Error(`Component ${component.name} not found in registry`);
+          throw new Error(`Component export not found for ${component.name}`);
         }
       } catch (err) {
         console.error(`❌ Failed to load component ${component.name}:`, err);
+        if (!isMounted) return;
         setError(err instanceof Error ? err.message : 'Failed to load component');
       } finally {
+        if (!isMounted) return;
         setLoading(false);
       }
     };
-    
+
     loadComponent();
-  }, [component.name]); // Only reload when component name changes, not props
+    return () => {
+      isMounted = false;
+    };
+  }, [component.id, component.name]); // Only reload when component changes, not props
 
   const getViewportStyles = () => {
     switch (viewMode) {
@@ -152,9 +177,7 @@ export default function LocalComponentRenderer({
         <div className="border-2 border-dashed border-red-300 rounded-lg p-8">
           <div className="text-center">
             <AlertTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-red-700 mb-2">
-              Registry Error
-            </h3>
+            <h3 className="text-lg font-semibold text-red-700 mb-2">Component Load Error</h3>
             <p className="text-red-600 text-sm font-mono bg-red-50 p-2 rounded mb-4">
               {error}
             </p>
@@ -253,7 +276,7 @@ export default function LocalComponentRenderer({
  */
 function injectChangeCallbacks(
   props: Record<string, any>,
-  component: LocalComponent,
+  component: FullComponentInfo,
   onPropChange?: (propName: string, value: any) => void
 ): Record<string, any> {
   if (!onPropChange) return props;

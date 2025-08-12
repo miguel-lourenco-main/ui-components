@@ -6,12 +6,12 @@ export const MAX_FILE_SIZE_STRING = `${MAX_FILE_SIZE_MB / 1024 / 1024}MB`;
 
 // Toggle detailed logging for different parts of the app
 export const DEBUG_ENABLED = {
-  general: true,
-  state: true,
-  props: true,
-  effects: true,
-  validation: true,
-  FUNCTION_EDITOR: true,
+  general: false,
+  state: false,
+  props: false,
+  effects: false,
+  validation: false,
+  FUNCTION_EDITOR: false,
 };
 
 type DebugCategory = keyof typeof DEBUG_ENABLED;
@@ -25,3 +25,7 @@ export function debugLog(category: DebugCategory, ...args: any[]) {
     console.log(...args);
   }
 }
+
+// Components blacklist moved to components/display-components/index.json
+// This is kept for backward compatibility but no longer used
+export const COMPONENTS_BLACKLIST: string[] = [];
