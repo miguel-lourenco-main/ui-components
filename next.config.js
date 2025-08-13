@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   trailingSlash: true,
-  distDir: 'out',
   // Configure for GitLab Pages - detect if we're using a project subdomain or branch deployment
   assetPrefix: process.env.NODE_ENV === 'production' && process.env.CI_COMMIT_REF_SLUG && process.env.CI_COMMIT_REF_SLUG !== 'main'
     ? `/${process.env.CI_COMMIT_REF_SLUG}`
@@ -15,13 +14,32 @@ const nextConfig = {
     loader: 'custom',
     loaderFile: './lib/image-loader.js',
   },
-  // Enable build-time optimizations (conservative for static export)
+  // Enable build-time optimizations for better tree shaking
   experimental: {
-    // Only optimize the largest packages to avoid over-splitting
     optimizePackageImports: [
       'lucide-react',
+      '@radix-ui/react-icons',
+      'recharts',
+      'react-hook-form',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-popover',
+      '@radix-ui/react-tabs',
+      '@radix-ui/react-select',
+      '@radix-ui/react-toast',
     ],
+    // Enable more aggressive tree shaking
+    turbo: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+    },
   },
+  // Enable compression for better performance
+  compress: true,
   webpack: (config, { isServer, dev }) => {
     // Only apply fallbacks on client-side, keep Node.js modules available on server-side
     if (!isServer) {
@@ -33,52 +51,100 @@ const nextConfig = {
       };
     }
 
-    // Conservative chunk splitting optimized for GitLab Pages static hosting
+    // Optimized chunk splitting for GitLab Pages static hosting
     if (!dev && !isServer) {
       config.optimization = {
         ...config.optimization,
         splitChunks: {
-          ...config.optimization.splitChunks,
           chunks: 'all',
-          minSize: 100000, // Minimum 100KB chunks to reduce HTTP requests
-          maxSize: 500000, // Maximum 500KB chunks for reasonable file sizes
+          minSize: 200000, // Increased minimum size to reduce chunk count
+          maxSize: 1000000, // Increased maximum size for better consolidation
           cacheGroups: {
-            // Default Next.js groups but with larger minimums
-            default: {
-              name: false,
-              minChunks: 2,
-              priority: -20,
-              reuseExistingChunk: true,
-              minSize: 100000, // Larger minimum to reduce file count
+            // React and React DOM as a single chunk
+            react: {
+              name: 'react',
+              test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+              chunks: 'all',
+              priority: 40,
+              enforce: true,
             },
-            // Large vendor libraries only
+            // Next.js framework as a single chunk
+            next: {
+              name: 'next',
+              test: /[\\/]node_modules[\\/](next)[\\/]/,
+              chunks: 'all',
+              priority: 35,
+              enforce: true,
+            },
+            // Monaco Editor as separate chunk
+            monaco: {
+              name: 'monaco-editor',
+              test: /[\\/]node_modules[\\/](@monaco-editor|monaco-editor)[\\/]/,
+              chunks: 'all',
+              priority: 30,
+              enforce: true,
+            },
+            // Large UI libraries grouped together
+            ui: {
+              name: 'ui-libs',
+              test: /[\\/]node_modules[\\/](@radix-ui|class-variance-authority|clsx|tailwind-merge|tailwindcss-animate|vaul|cmdk|embla-carousel-react|input-otp|sonner)[\\/]/,
+              chunks: 'all',
+              priority: 25,
+              enforce: true,
+            },
+            // Chart and PDF libraries
+            charts: {
+              name: 'charts-pdf',
+              test: /[\\/]node_modules[\\/](recharts|react-pdf|react-resizable-panels)[\\/]/,
+              chunks: 'all',
+              priority: 20,
+              enforce: true,
+            },
+            // Form and table libraries
+            forms: {
+              name: 'forms-tables',
+              test: /[\\/]node_modules[\\/](react-hook-form|@tanstack|react-day-picker)[\\/]/,
+              chunks: 'all',
+              priority: 15,
+              enforce: true,
+            },
+            // Babel and code parsing libraries
+            babel: {
+              name: 'babel-parser',
+              test: /[\\/]node_modules[\\/](@babel|acorn|eslint-scope)[\\/]/,
+              chunks: 'all',
+              priority: 10,
+              enforce: true,
+            },
+            // Remaining vendor libraries consolidated
             vendor: {
               name: 'vendor',
               test: /[\\/]node_modules[\\/]/,
               chunks: 'all',
               priority: -10,
               reuseExistingChunk: true,
-              minSize: 150000, // Only create vendor chunks for larger libraries
-              maxSize: 800000, // Allow larger vendor chunks
+              minSize: 300000, // Higher minimum to avoid tiny vendor chunks
             },
-            // Monaco Editor as separate chunk only if it's large enough
-            monaco: {
-              name: 'monaco-editor',
-              test: /[\\/]node_modules[\\/](@monaco-editor|monaco-editor)[\\/]/,
-              chunks: 'all',
-              priority: 30,
+            // Default group for shared code
+            default: {
+              name: false,
+              minChunks: 2,
+              priority: -20,
               reuseExistingChunk: true,
-              enforce: true, // Always split Monaco due to its size
+              minSize: 200000, // Higher minimum to reduce file count
             },
           },
         },
+        // Enable more aggressive tree shaking
+        usedExports: true,
+        sideEffects: false,
       };
 
       // Relax performance hints for fewer, larger files
       config.performance = {
         ...config.performance,
-        maxAssetSize: 800000, // 800KB - allow larger files to reduce HTTP requests
-        maxEntrypointSize: 800000, // 800KB
+        maxAssetSize: 1200000, // 1.2MB - allow larger files to reduce HTTP requests
+        maxEntrypointSize: 1200000, // 1.2MB
         assetFilter: function(assetFilename) {
           return !assetFilename.endsWith('.map');
         },
