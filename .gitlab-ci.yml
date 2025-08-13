@@ -140,7 +140,6 @@ pages-review:
     expire_in: 1 week  # Auto-cleanup after 1 week
   dependencies:
     - build
-    - test
   environment:
     name: review/$CI_COMMIT_REF_SLUG
     url: $CI_PAGES_URL/$CI_COMMIT_REF_SLUG/
