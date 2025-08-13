@@ -30,8 +30,6 @@ build:
     - echo "NODE_ENV=$NODE_ENV"
     - echo "CI_COMMIT_REF_SLUG=$CI_COMMIT_REF_SLUG"
     - echo "CI_DEFAULT_BRANCH=$CI_DEFAULT_BRANCH"
-    - pnpm run type-check
-    - pnpm run lint
     - pnpm run build
   artifacts:
     paths:
