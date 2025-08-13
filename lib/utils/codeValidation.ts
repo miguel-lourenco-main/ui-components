@@ -1,10 +1,8 @@
-import { PropDefinition } from '@/types';
+import { PropDefinition } from '@/lib/interfaces';
 
 // Browser-compatible parsers (like CodeSandbox/StackBlitz use)
 import { parse as babelParse } from '@babel/parser';
 import traverse, { NodePath } from '@babel/traverse';
-// @ts-ignore - TypeScript compiler API for browser
-import * as ts from 'typescript';
 
 // A simple cache for TypeScript library files fetched from a CDN
 const tsLibCache: { [key: string]: string } = {};
@@ -164,8 +162,8 @@ export async function validateFunctionCode(
     }
     errors.push(...syntaxErrors);
     
-    // TypeScript validation for TS/TSX
-    if (language === 'typescript' || language === 'tsx' || language === 'javascript') {
+    // TypeScript validation for TS/TSX only
+    if (language === 'typescript' || language === 'tsx') {
       const tsValidationErrors = await validateWithTypeScript(source, language, params, returnType);
       if (tsValidationErrors.length > 0) {
         console.log(`[Validation] TypeScript errors for ${propName}:`, tsValidationErrors);
@@ -245,116 +243,9 @@ async function validateWithTypeScript(
   params?: string, 
   returnType?: string
 ): Promise<ValidationError[]> {
-  if (typeof ts === 'undefined' || !ts.createSourceFile) {
-    console.warn('TypeScript compiler API is not available. Skipping TypeScript validation.');
-    return [];
-  }
-  const errors: ValidationError[] = [];
-  
-  try {
-    // Ensure required TypeScript library files are loaded
-    const libFiles = ["lib.esnext.d.ts", "lib.dom.d.ts"];
-    await ensureTsLibsAreLoaded(libFiles);
-
-    // Create TypeScript source file
-    const fullSource = `
-      declare var React: any; // Add React declaration for JSX
-      function temp(${params || ''}): ${returnType || 'any'} {
-        ${source}
-      }
-    `;
-    
-    const options: ts.CompilerOptions = {
-      target: ts.ScriptTarget.ESNext,
-      module: ts.ModuleKind.ESNext,
-      jsx: (language === 'tsx' || language === 'jsx') ? ts.JsxEmit.ReactJSX : ts.JsxEmit.None,
-      strict: true,
-      noImplicitAny: false,
-      noEmit: true,
-      skipLibCheck: true,
-      esModuleInterop: true,
-      allowSyntheticDefaultImports: true,
-      lib: libFiles
-    };
-    
-    const compilerHost: ts.CompilerHost = {
-      getSourceFile: (fileName, languageVersion) => {
-        if (fileName === 'temp.ts') {
-          return ts.createSourceFile(fileName, fullSource, options.target!, true);
-        }
-        const libSource = tsLibCache[fileName];
-        if (libSource) {
-          return ts.createSourceFile(fileName, libSource, options.target!, true);
-        }
-        console.warn(`[Validation] TS source file not found in cache: ${fileName}`);
-        return undefined;
-      },
-      writeFile: () => {},
-      getDefaultLibFileName: () => ts.getDefaultLibFileName(options),
-      useCaseSensitiveFileNames: () => false,
-      getCanonicalFileName: fileName => fileName,
-      getCurrentDirectory: () => '',
-      getNewLine: () => '\n',
-      fileExists: fileName => {
-        return fileName === 'temp.ts' || !!tsLibCache[fileName];
-      },
-      readFile: fileName => {
-        if (fileName === 'temp.ts') {
-          return fullSource;
-        }
-        return tsLibCache[fileName];
-      },
-      resolveModuleNames: (moduleNames, containingFile) => {
-        // Basic module resolution for things like 'react'
-        return moduleNames.map(moduleName => {
-          if (moduleName === 'react' || moduleName.startsWith('@types/react')) {
-            // In a browser environment, we can't really resolve node_modules.
-            // We rely on ambient declarations (like `declare var React: any;`)
-            // or pre-loaded type definitions.
-            return { resolvedFileName: `node_modules/${moduleName}/index.d.ts`, isExternalLibraryImport: true };
-          }
-          return undefined;
-        });
-      }
-    };
-    
-    const program = ts.createProgram(['temp.ts'], options, compilerHost);
-    const diagnostics = ts.getPreEmitDiagnostics(program);
-
-    diagnostics.forEach(diagnostic => {
-      if (diagnostic.file && diagnostic.start !== undefined) {
-        const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-        const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
-        
-        errors.push({
-          line: line + 1,
-          column: character + 1,
-          message,
-          severity: 'error',
-          source: 'typescript'
-        });
-      } else {
-        errors.push({
-          line: 1,
-          column: 1,
-          message: ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'),
-          severity: 'error',
-          source: 'typescript'
-        });
-      }
-    });
-
-  } catch (error) {
-    errors.push({
-      line: 1,
-      column: 1,
-      message: `TypeScript validation failed: ${error instanceof Error ? error.message : String(error)}`,
-      severity: 'error',
-      source: 'syntax'
-    });
-  }
-  
-  return filterIgnoredTsErrors(errors);
+  // Disabled in client to avoid bundling the TypeScript compiler and related warnings.
+  // We still perform syntax and linter checks via Babel above.
+  return [];
 }
 
 /**
@@ -422,7 +313,7 @@ function validateWithCustomLinter(source: string, language: string, params?: str
  * Validates custom rules using @babel/traverse for a unified AST
  */
 function validateCustomRules(ast: any, source: string, params: string | undefined, errors: ValidationError[], warnings: ValidationWarning[]) {
-  // Example custom rule: Check for console.log statements
+  // Example custom rule: Check for console.log statements (as a warning only)
   traverse(ast, {
     CallExpression(path: NodePath) {
       if (!path.isCallExpression()) return;
@@ -481,20 +372,7 @@ function validateReturnType(source: string, expectedReturnType: string, language
     }
   }
 
-  // Check for explicit return statements
-  if (source.trim() && !source.includes('return')) {
-    // If it's a single line and looks like an expression, it's likely an implicit return
-    const isSingleLineExpression = !source.includes('\n') && !source.endsWith(';');
-    if (!isSingleLineExpression) {
-      errors.push({
-        line: 1,
-        column: 1,
-        message: `Function is expected to return a value of type '${expectedReturnType}', but no return statement was found.`,
-        severity: 'error',
-        source: 'linter'
-      });
-    }
-  }
+  // Allow expression-only bodies without explicit return (runtime layer wraps them)
 
   // A simple check to see if the return statement is followed by something that looks like JSX
   if (language === 'jsx' || language === 'tsx') {

@@ -1,0 +1,70 @@
+{
+  "id": "slider",
+  "name": "Slider",
+  "category": "form",
+  "description": "An input where the user selects a value from within a given range. Supports single values and ranges",
+  "props": [
+    {
+      "name": "defaultValue",
+      "type": "number[]",
+      "required": false,
+      "defaultValue": [50],
+      "description": "The default value(s) for the slider"
+    },
+    {
+      "name": "value",
+      "type": "number[]",
+      "required": false,
+      "description": "The controlled value(s) for the slider"
+    },
+    {
+      "name": "onValueChange",
+      "type": "function",
+      "required": false,
+      "description": "Callback fired when the slider value changes",
+      "functionSignature": {
+        "params": "value: number[]",
+        "returnType": "void"
+      }
+    },
+    {
+      "name": "max",
+      "type": "number",
+      "required": false,
+      "defaultValue": 100,
+      "description": "The maximum value for the slider"
+    },
+    {
+      "name": "min",
+      "type": "number",
+      "required": false,
+      "defaultValue": 0,
+      "description": "The minimum value for the slider"
+    },
+    {
+      "name": "step",
+      "type": "number",
+      "required": false,
+      "defaultValue": 1,
+      "description": "The step value for the slider"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "required": false,
+      "defaultValue": false,
+      "description": "Whether the slider is disabled"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "defaultValue": "",
+      "description": "Additional CSS classes for styling"
+    }
+  ],
+  "tags": ["slider", "range", "input", "form", "control"],
+  "version": "1.0.0",
+  "author": "UI Components Team",
+  "code": "import React from 'react';\nimport { Slider } from '@/components/ui/slider';\n\nexport interface SliderComponentProps {\n  defaultValue?: number[];\n  max?: number;\n  min?: number;\n  step?: number;\n  value?: number[];\n  onValueChange?: (value: number[]) => void;\n  className?: string;\n  disabled?: boolean;\n}\n\nconst SliderComponent: React.FC<SliderComponentProps> = ({ \n  defaultValue = [50],\n  max = 100,\n  min = 0,\n  step = 1,\n  value,\n  onValueChange,\n  className,\n  disabled = false\n}) => {\n  return (\n    <Slider\n      defaultValue={defaultValue}\n      max={max}\n      min={min}\n      step={step}\n      value={value}\n      onValueChange={onValueChange}\n      className={className}\n      disabled={disabled}\n      data-testid=\"rendered-component-slider\"\n    />\n  );\n};\n\nexport default SliderComponent;"
+} 

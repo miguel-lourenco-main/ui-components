@@ -1,0 +1,78 @@
+{
+  "id": "toggle",
+  "name": "Toggle",
+  "category": "form",
+  "description": "A two-state button that can be either on or off. Commonly used for formatting controls and settings",
+  "props": [
+    {
+      "name": "pressed",
+      "type": "boolean",
+      "required": false,
+      "description": "The controlled pressed state of the toggle"
+    },
+    {
+      "name": "onPressedChange",
+      "type": "function",
+      "required": false,
+      "description": "Event handler called when the pressed state changes",
+      "functionSignature": {
+        "params": "pressed: boolean",
+        "returnType": "void"
+      }
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "required": false,
+      "defaultValue": false,
+      "description": "Whether the toggle is disabled"
+    },
+    {
+      "name": "variant",
+      "type": "enum",
+      "required": false,
+      "defaultValue": "default",
+      "options": ["default", "outline"],
+      "description": "The visual variant of the toggle"
+    },
+    {
+      "name": "size",
+      "type": "enum",
+      "required": false,
+      "defaultValue": "default",
+      "options": ["sm", "default", "lg"],
+      "description": "The size of the toggle"
+    },
+    {
+      "name": "children",
+      "type": "function",
+      "required": false,
+      "description": "Function that returns JSX for the toggle content.",
+      "defaultValue": {
+        "type": "function",
+        "source": "return <span>Toggle</span>;"
+      },
+      "functionSignature": {
+        "params": "",
+        "returnType": "React.ReactNode"
+      }
+    },
+    {
+      "name": "aria-label",
+      "type": "string",
+      "required": false,
+      "description": "Accessible label for the toggle"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "defaultValue": "",
+      "description": "Additional CSS classes for styling"
+    }
+  ],
+  "tags": ["toggle", "button", "state", "form", "control"],
+  "version": "1.0.0",
+  "author": "UI Components Team",
+  "code": "import React from 'react';\nimport { Toggle } from '@/components/ui/toggle';\n\nexport interface ToggleComponentProps {\n  pressed?: boolean;\n  onPressedChange?: (pressed: boolean) => void;\n  disabled?: boolean;\n  variant?: 'default' | 'outline';\n  size?: 'default' | 'sm' | 'lg';\n  className?: string;\n  children?: React.ReactNode;\n  'aria-label'?: string;\n}\n\nconst ToggleComponent: React.FC<ToggleComponentProps> = ({ \n  pressed,\n  onPressedChange,\n  disabled = false,\n  variant = 'default',\n  size = 'default',\n  className,\n  children,\n  'aria-label': ariaLabel,\n}) => {\n  return (\n    <Toggle\n      pressed={pressed}\n      onPressedChange={onPressedChange}\n      disabled={disabled}\n      variant={variant}\n      size={size}\n      className={className}\n      aria-label={ariaLabel}\n      data-testid=\"rendered-component-toggle\"\n    >\n      {children}\n    </Toggle>\n  );\n};\n\nexport default ToggleComponent;"
+} 

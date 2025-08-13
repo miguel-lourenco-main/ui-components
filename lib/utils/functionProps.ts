@@ -1,11 +1,10 @@
-import { FunctionPropValue } from '@/types';
+import { FunctionPropValue } from '@/lib/interfaces';
 import { parse } from 'acorn';
 import { simple as walkSimple } from 'acorn-walk';
 import React from 'react';
-import type { PropDefinition } from '@/types';
+import type { PropDefinition } from '@/lib/interfaces';
 // @ts-ignore - Babel standalone doesn't have perfect types
 import * as Babel from '@babel/standalone';
-import { validateFunctionCode, determineLanguageFromReturnType, getValidationSummary } from './codeValidation';
 
 /**
  * Check if a value is a function prop value object
@@ -260,7 +259,18 @@ export function functionPropValueToFunction(
       return jsxFunction;
     } else {
       // For non-JSX content, create the function normally
-      const fullFunction = `(${jsParams}) => {\n${propValue.source}\n}`;
+      const rawSource = propValue.source.trim();
+      const hasReturn = /\breturn\b/.test(rawSource);
+      const looksLikeCode = /[{}();]|=>|\bfunction\b/.test(rawSource);
+      let bodyContent = rawSource;
+
+      // If it's likely plain text (especially for children), wrap as a string literal
+      if (!hasReturn && !looksLikeCode && propName === 'children') {
+        bodyContent = JSON.stringify(rawSource);
+      }
+
+      const body = hasReturn ? rawSource : `return ${bodyContent};`;
+      const fullFunction = `(${jsParams}) => {\n${body}\n}`;
       
       console.log(`🔍 Creating non-JSX function for ${propName}:`, {
         jsParams,
@@ -288,7 +298,7 @@ export function functionPropValueToFunction(
     console.log(`Full function that failed:`, propValue);
     
     // Return a function that shows a compact error instead of completely failing
-    return (...args: any[]) => {
+    const FallbackDisplayName = (...args: any[]) => {
       return React.createElement('div', {
         className: 'inline-flex items-center gap-1 px-2 py-1 bg-red-100 border border-red-300 rounded text-xs text-red-700',
         title: `Function Creation Error: ${error instanceof Error ? error.message : String(error)}`
@@ -298,6 +308,8 @@ export function functionPropValueToFunction(
         React.createElement('span', { key: 'error' }, 'Failed')
       ]);
     };
+    Object.defineProperty(FallbackDisplayName, 'name', { value: `${propName || 'Anonymous'}Fallback` });
+    return FallbackDisplayName;
   }
 }
 

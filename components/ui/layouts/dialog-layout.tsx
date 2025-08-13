@@ -77,8 +77,6 @@ export default function DialogLayout({
             <DialogContent 
                 className={cn("flex flex-col max-h-[90vh]", contentClassName)}
                 onInteractOutside={(event) => event.preventDefault()}
-                // Optional close handler
-                optionalClose={() => handleOpenChange(false)}
             >
                 {(title ?? description) && (
                     <div className="flex-shrink-0 mb-4">

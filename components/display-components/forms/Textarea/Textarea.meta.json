@@ -1,0 +1,72 @@
+{
+  "id": "textarea",
+  "name": "Textarea",
+  "category": "form",
+  "description": "Displays a form textarea or a component that looks like a textarea. Used for multi-line text input",
+  "props": [
+    {
+      "name": "label",
+      "type": "string",
+      "required": false,
+      "description": "The label text for the textarea"
+    },
+    {
+      "name": "placeholder",
+      "type": "string",
+      "required": false,
+      "description": "Placeholder text shown when textarea is empty"
+    },
+    {
+      "name": "value",
+      "type": "string",
+      "required": false,
+      "description": "The controlled value of the textarea"
+    },
+    {
+      "name": "onChange",
+      "type": "function",
+      "required": false,
+      "description": "Called when the textarea value changes",
+      "functionSignature": {
+        "params": "event: React.ChangeEvent<HTMLTextAreaElement>",
+        "returnType": "void"
+      }
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "required": false,
+      "defaultValue": false,
+      "description": "Whether the textarea is disabled"
+    },
+    {
+      "name": "rows",
+      "type": "number",
+      "required": false,
+      "description": "The number of visible text lines"
+    },
+    {
+      "name": "helperText",
+      "type": "string",
+      "required": false,
+      "description": "Helper text displayed below the textarea"
+    },
+    {
+      "name": "error",
+      "type": "string",
+      "required": false,
+      "description": "Error message to display"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "defaultValue": "",
+      "description": "Additional CSS classes for styling"
+    }
+  ],
+  "tags": ["textarea", "input", "form", "multiline", "text"],
+  "version": "1.0.0",
+  "author": "UI Components Team",
+  "code": "import React from 'react';\nimport { Textarea } from '@/components/ui/textarea';\n\nexport interface TextareaComponentProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {\n  label?: string;\n  helperText?: string;\n  error?: string;\n}\n\nconst TextareaComponent: React.FC<TextareaComponentProps> = ({ \n  label,\n  helperText,\n  error,\n  id,\n  className,\n  ...props\n}) => {\n  const textareaId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`;\n\n  return (\n    <div className=\"space-y-2\" data-testid=\"rendered-component-textarea\">\n      {label && (\n        <label htmlFor={textareaId} className=\"text-sm font-medium leading-none\">\n          {label}\n        </label>\n      )}\n      <Textarea\n        id={textareaId}\n        className={className}\n        {...props}\n      />\n      {helperText && !error && (\n        <p className=\"text-sm text-muted-foreground\">\n          {helperText}\n        </p>\n      )}\n      {error && (\n        <p className=\"text-sm text-destructive\">\n          {error}\n        </p>\n      )}\n    </div>\n  );\n};\n\nexport default TextareaComponent;"
+} 

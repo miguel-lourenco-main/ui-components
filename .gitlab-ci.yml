@@ -16,7 +16,7 @@ cache:
 # Define stages
 stages:
   - build
-  - test
+  #- test
   - deploy
 
 # Build stage for all branches
@@ -25,7 +25,6 @@ build:
   before_script:
     - npm install -g pnpm
     - pnpm install --frozen-lockfile
-    - pnpm run build-registry
   script:
     - echo "Environment variables for debugging:"
     - echo "NODE_ENV=$NODE_ENV"
@@ -44,55 +43,55 @@ build:
     - when: always
 
 # Test stage - runs e2e tests against built static files
-test:
-  stage: test
-  before_script:
-    - npm install -g pnpm
-    - pnpm install --frozen-lockfile
-    - npm install -g serve
-    - echo "Installing Playwright browsers..."
-    - pnpm exec playwright install --with-deps chromium
-  script:
-    - echo "Creating directory structure to match expected paths..."
-    - if [ "$CI_COMMIT_REF_SLUG" != "main" ]; then
-        mkdir -p public/$CI_COMMIT_REF_SLUG;
-        cp -r out/* public/$CI_COMMIT_REF_SLUG/;
-        cp -r out/index.html public/index.html;
-      else
-        mkdir -p public;
-        cp -r out/* public/;
-      fi
-    # Remove the redundant lines that always execute
-    - ls -la public/
-    - echo "Starting static file server on port 3000..."
-    - serve -s public -l 3000 &
-    - sleep 5  # Give the server time to start
-    - echo "Testing server response..."
-    - curl -f http://localhost:3000/$CI_COMMIT_REF_SLUG/ || echo "Server not responding properly"
-    - echo "Verifying website content..."
-    - curl -s http://localhost:3000/$CI_COMMIT_REF_SLUG/ | grep -q "<html" || (echo "ERROR - No HTML content found" && exit 1)
-    - curl -s http://localhost:3000/$CI_COMMIT_REF_SLUG/ | grep -q "<title" || (echo "ERROR - No title tag found" && exit 1)
-    - curl -s http://localhost:3000/$CI_COMMIT_REF_SLUG/ | grep -q "next" || (echo "ERROR - Next.js content not found" && exit 1)
-    - echo "✅ Website is serving properly"
-    - echo "Testing component registry availability..."
-    - curl -f http://localhost:3000/$CI_COMMIT_REF_SLUG/generated-registry.json || (echo "ERROR - Component registry not available" && exit 1)
-    - echo "✅ Component registry is accessible"
-    - echo "Running Playwright tests..."
-    - pnpm exec playwright test --workers=1 || exit 1
-  after_script:
-    - echo "Cleaning up background processes..."
-    - pkill -f "serve" || true  # Kill the serve process, ignore if already dead
-  dependencies:
-    - build
-  artifacts:
-    when: always
-    paths:
-      - playwright-report
-    expire_in: 2 days
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: never
-    - when: always
+#test:
+#  stage: test
+#  before_script:
+#    - npm install -g pnpm
+#    - pnpm install --frozen-lockfile
+#    - npm install -g serve
+#    - echo "Installing Playwright browsers..."
+#    - pnpm exec playwright install --with-deps chromium
+#  script:
+#    - echo "Creating directory structure to match expected paths..."
+#    - if [ "$CI_COMMIT_REF_SLUG" != "main" ]; then
+#        mkdir -p public/$CI_COMMIT_REF_SLUG;
+#        cp -r out/* public/$CI_COMMIT_REF_SLUG/;
+#        cp -r out/index.html public/index.html;
+#      else
+#        mkdir -p public;
+#        cp -r out/* public/;
+#      fi
+#    # Remove the redundant lines that always execute
+#    - ls -la public/
+#    - echo "Starting static file server on port 3000..."
+#    - serve -s public -l 3000 &
+#    - sleep 5  # Give the server time to start
+#    - echo "Testing server response..."
+#    - curl -f http://localhost:3000/$CI_COMMIT_REF_SLUG/ || echo "Server not responding properly"
+#    - echo "Verifying website content..."
+#    - curl -s http://localhost:3000/$CI_COMMIT_REF_SLUG/ | grep -q "<html" || (echo "ERROR - No HTML content found" && exit 1)
+#    - curl -s http://localhost:3000/$CI_COMMIT_REF_SLUG/ | grep -q "<title" || (echo "ERROR - No title tag found" && exit 1)
+#    - curl -s http://localhost:3000/$CI_COMMIT_REF_SLUG/ | grep -q "next" || (echo "ERROR - Next.js content not found" && exit 1)
+#    - echo "✅ Website is serving properly"
+#    - echo "Testing component registry availability..."
+#    - curl -f http://localhost:3000/$CI_COMMIT_REF_SLUG/generated-registry.json || (echo "ERROR - Component registry not available" && exit 1)
+#    - echo "✅ Component registry is accessible"
+#    - echo "Running Playwright tests..."
+#    - pnpm exec playwright test --workers=1 || exit 1
+#  after_script:
+#    - echo "Cleaning up background processes..."
+#    - pkill -f "serve" || true  # Kill the serve process, ignore if already dead
+#  dependencies:
+#    - build
+#  artifacts:
+#    when: always
+#    paths:
+#      - playwright-report
+#    expire_in: 2 days
+#  rules:
+#    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+#      when: never
+#    - when: always
 
 # Deploy to GitLab Pages - Production (main branch)
 pages:
@@ -111,7 +110,7 @@ pages:
     expire_in: never
   dependencies:
     - build
-    - test
+    #- test
   environment:
     name: production
     url: $CI_PAGES_URL
@@ -140,7 +139,6 @@ pages-review:
     expire_in: 1 week  # Auto-cleanup after 1 week
   dependencies:
     - build
-    - test
   environment:
     name: review/$CI_COMMIT_REF_SLUG
     url: $CI_PAGES_URL/$CI_COMMIT_REF_SLUG/

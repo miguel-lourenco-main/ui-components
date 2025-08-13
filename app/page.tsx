@@ -1,316 +1,111 @@
-'use client';
+import Link from "next/link"
+import dynamic from "next/dynamic"
+const PopularComponentsGrid = dynamic(() => import('@/components/PopularComponentsGrid'), { ssr: false })
+import { ArrowRight, Code, Palette, Zap } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Footer } from "@/components/footer"
+import { Header } from "@/components/header"
 
-import { useState, useEffect } from 'react';
-import ComponentSelector from '@/components/ComponentSelector';
-import LocalComponentRenderer from '@/components/LocalComponentRenderer';
-import CodeViewer from '@/components/CodeViewer';
-import PropsPanel from '@/components/PropsPanel';
-import ViewportControls from '@/components/ViewportControls';
-import CodeButtons from '@/components/CodeButtons';
-
-import { useLocalComponentState } from '@/lib/hooks/useLocalComponentState';
-import { PlayIcon, SettingsIcon, XIcon, EyeOffIcon, EyeIcon } from 'lucide-react';
-import { getMonacoPreloadStatus } from '@/lib/monaco-preloader';
-import {
-  ResizablePanelGroup,
-  ResizablePanel,
-  ResizableHandle,
-} from "@/components/ui/resizable"
-import { LocalComponent } from '@/types';
-
-// New component for the preview section
-interface ComponentPreviewProps {
-  selectedComponent: LocalComponent | null;
-  currentProps: Record<string, any>;
-  viewMode: 'desktop' | 'tablet' | 'mobile';
-  selectedExampleIndex: number;
-  onRetry: () => void;
-  onPropChange: (propName: string, value: any) => void;
-  rendererButtons: React.ReactNode;
-}
-
-function ComponentPreview({ 
-  selectedComponent, 
-  currentProps, 
-  viewMode, 
-  selectedExampleIndex, 
-  onRetry, 
-  onPropChange,
-  rendererButtons 
-}: ComponentPreviewProps) {
+export default function HomePage() {
   return (
-    <div className="h-full bg-gray-50 flex flex-col">
-      <div className="w-full flex items-center justify-between p-4 pb-0">
-        {/* Component Information Section */}
-        {rendererButtons}
-      </div>
-      <div className="flex-1 p-6" data-testid="component-preview">
-        {selectedComponent ? (
-          <LocalComponentRenderer
-            component={selectedComponent}
-            props={currentProps}
-            viewMode={viewMode}
-            onRetry={onRetry}
-            onPropChange={onPropChange}
-          />
-        ) : (
-          <div className="h-full flex items-center justify-center text-gray-500">
-            <div className="text-center">
-              <PlayIcon className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-              <p className="text-lg">Select a component to get started</p>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+    <div className="flex flex-col size-full">
+      <Header/>
 
-export default function PlaygroundPage() {
-  const {
-    components,
-    playgroundState,
-    selectedExampleIndex,
-    loading,
-    error,
-    loadComponents,
-    selectComponent,
-    selectExample,
-    updateProps,
-    resetToDefaults,
-    setViewMode,
-    togglePropsPanel,
-    toggleCodePanel,
-    setSearchQuery,
-    setSelectedCategory,
-    handlePropChange,
-  } = useLocalComponentState();
-
-  // Track Monaco preload status for debugging (development only)
-  const [monacoStatus, setMonacoStatus] = useState(() => getMonacoPreloadStatus());
-  
-  useEffect(() => {
-    if (process.env.NODE_ENV !== 'development') return;
-    
-    const interval = setInterval(() => {
-      setMonacoStatus(getMonacoPreloadStatus());
-    }, 500);
-    
-    return () => clearInterval(interval);
-  }, []);
-
-  const rendererButtons = (): React.ReactNode => {
-    return playgroundState.selectedComponent ?(
-      <>
-        <ViewportControls
-          viewMode={playgroundState.viewMode}
-          onViewModeChange={setViewMode}
-        />
-        <CodeButtons
-          component={playgroundState.selectedComponent}
-          showCode={playgroundState.showCode}
-          onToggleCode={() => toggleCodePanel()}
-        />
-        {/* Monaco Preload Status Debug (Development Only) */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="text-xs text-gray-500 bg-blue-50 px-2 py-1 rounded">
-            Monaco: {(() => {
-              if (monacoStatus.isPreloaded) return '✅ Ready';
-              if (monacoStatus.isLoading) return '⏳ Loading';
-              if (monacoStatus.preloadStarted) return '🔄 Starting';
-              return '❌ Not Started';
-            })()}
-          </div>
-        )}
-      </>
-    ) : null;
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-600">Loading components...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            <p className="font-bold">Error</p>
-            <p>{error}</p>
-          </div>
-          <button
-            onClick={loadComponents}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="h-screen flex flex-col bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4 flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-semibold flex items-center">
-              <PlayIcon className="w-6 h-6 mr-2 text-blue-600" />
-              Components Playground
+      <div className="flex flex-col min-h-screen">
+        {/* Hero Section */}
+        <section className="relative py-20 px-4 text-center bg-gradient-to-b from-background to-muted/20">
+          <div className="container mx-auto max-w-4xl">
+            <Badge variant="outline" className="mb-4">
+              Beta Release
+            </Badge>
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
+              Beautiful Components.
+              <br />
+              <span className="text-primary">Multiple Styles.</span>
             </h1>
-            {playgroundState.selectedComponent && (
-              <span className="text-lg font-medium text-gray-700">
-                {playgroundState.selectedComponent.name}
-              </span>
-            )}
+            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+              Discover a curated collection of components crafted in various design styles. Copy the code you need and
+              build faster.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" asChild>
+                <Link href="/components">
+                  Browse Components <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
           </div>
-          {playgroundState.selectedComponent && (
-            <div 
-              key={`header-controls-${playgroundState.selectedComponent?.name}`}
-              className="flex items-center space-x-2 slide-in-left"
-            >
-              <button
-                onClick={() => togglePropsPanel()}
-                className={`p-2 rounded transition-colors duration-200 ${playgroundState.showProps ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'}`}
-                title={`${playgroundState.showProps ? 'Hide' : 'Show'} Props Panel`}
-              >
-                {playgroundState.showProps ? <EyeOffIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
-              </button>
+        </section>
+
+        {/* Features Section */}
+        <section className="py-20 px-4">
+          <div className="container mx-auto max-w-6xl">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl font-bold mb-4">Why Choose Our Components?</h2>
+              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                Built with modern technologies and designed for flexibility
+              </p>
             </div>
-          )}
-        </div>
-      </div>
 
-      {/* Main Resizable Layout */}
-      <div className="flex-1 overflow-hidden">
-        <ResizablePanelGroup direction="horizontal" className="h-full">
-          {/* Sidebar - Component Selector */}
-          <ResizablePanel 
-            defaultSize={playgroundState.showProps ? 25 : 35} 
-            minSize={15} 
-            className="bg-white border-r border-gray-200"
-          >
-            <div className="h-full flex flex-col">
-              <div className="p-4 border-b border-gray-200 flex-shrink-0">
-                <h2 className="text-lg font-semibold text-gray-800">Components</h2>
-              </div>
-              <div className="flex-1 overflow-hidden">
-                <ComponentSelector
-                  components={components}
-                  selectedComponent={playgroundState.selectedComponent}
-                  onSelect={selectComponent}
-                  searchQuery={playgroundState.searchQuery}
-                  selectedCategory={playgroundState.selectedCategory}
-                  onSearchChange={setSearchQuery}
-                  onCategoryChange={setSelectedCategory}
-                />
-              </div>
+            <div className="grid md:grid-cols-3 gap-8">
+              <Card>
+                <CardHeader>
+                  <Palette className="h-10 w-10 text-primary mb-2" />
+                  <CardTitle>Multiple Styles</CardTitle>
+                  <CardDescription>
+                    Each component comes in various design styles - from minimal to bold, giving you options for every
+                    project.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <Code className="h-10 w-10 text-primary mb-2" />
+                  <CardTitle>Copy & Paste</CardTitle>
+                  <CardDescription>
+                    Simply copy the code you need. All components are built with modern React and TypeScript.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <Zap className="h-10 w-10 text-primary mb-2" />
+                  <CardTitle>Coming Soon</CardTitle>
+                  <CardDescription>
+                    AI-powered styling and interactive playground to customize components to your exact needs.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
             </div>
-          </ResizablePanel>
+          </div>
+        </section>
 
-          <ResizableHandle withHandle />
+        {/* Component Preview Section */}
+        <section className="py-20 px-4 bg-muted/20">
+          <div className="container mx-auto max-w-6xl">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl font-bold mb-4">Popular Components</h2>
+              <p className="text-muted-foreground text-lg">Get started with these frequently used components</p>
+            </div>
 
-          {/* Main Content Area */}
-          <ResizablePanel 
-            defaultSize={playgroundState.showProps ? 50 : 65} 
-            minSize={20}
-          >
-            {playgroundState.showCode && playgroundState.selectedComponent ? (
-              <ResizablePanelGroup direction="vertical" className="h-full">
-                {/* Component Preview */}
-                <ResizablePanel 
-                  defaultSize={60} 
-                  minSize={30}
-                  className="bg-gray-50 flex flex-col"
-                >
-                  <ComponentPreview
-                    selectedComponent={playgroundState.selectedComponent}
-                    currentProps={playgroundState.currentProps}
-                    viewMode={playgroundState.viewMode}
-                    selectedExampleIndex={selectedExampleIndex}
-                    onRetry={() => {
-                      if (playgroundState.selectedComponent) {
-                        selectComponent(playgroundState.selectedComponent, selectedExampleIndex);
-                      }
-                    }}
-                    onPropChange={handlePropChange}
-                    rendererButtons={rendererButtons()}
-                  />
-                </ResizablePanel>
+            {/* Popular Components - source dynamically from registry */}
+            <PopularComponentsGrid />
 
-                <ResizableHandle withHandle />
-
-                {/* Code Viewer */}
-                <ResizablePanel defaultSize={40} minSize={20} className="bg-white border-t border-gray-200">
-                  <div className="h-full flex flex-col">
-                    <div className="p-4 border-b border-gray-200 flex items-center justify-start flex-shrink-0">
-                      <h3 className="font-semibold">Generated Code</h3>
-                    </div>
-                    <div className="flex-1 overflow-hidden">
-                      <CodeViewer
-                        value={playgroundState.currentCode}
-                        language="typescript"
-                        title="Component Code"
-                      />
-                    </div>
-                  </div>
-                </ResizablePanel>
-              </ResizablePanelGroup>
-            ) : (
-              /* Component Preview - Full Height when Code Editor is hidden */
-              <ComponentPreview
-                selectedComponent={playgroundState.selectedComponent}
-                currentProps={playgroundState.currentProps}
-                viewMode={playgroundState.viewMode}
-                selectedExampleIndex={selectedExampleIndex}
-                onRetry={() => {
-                  if (playgroundState.selectedComponent) {
-                    selectComponent(playgroundState.selectedComponent, selectedExampleIndex);
-                  }
-                }}
-                onPropChange={handlePropChange}
-                rendererButtons={rendererButtons()}
-              />
-            )}
-          </ResizablePanel>
-
-          {/* Props Panel */}
-          {playgroundState.showProps && playgroundState.selectedComponent && (
-            <>
-              <ResizableHandle withHandle />
-              <ResizablePanel 
-                key={`props-panel-${playgroundState.selectedComponent.name}-${playgroundState.showProps}`}
-                defaultSize={25} 
-                minSize={15} 
-                className="bg-white border-l border-gray-200"
-              >
-                <div className="h-full flex flex-col slide-in-right" data-testid="props-panel">
-                  <div className="p-4 border-b border-gray-200 flex items-center justify-start flex-shrink-0">
-                    <h3 className="font-semibold">Props</h3>
-                  </div>
-                  <div className="flex-1 overflow-hidden">
-                    <PropsPanel
-                      component={playgroundState.selectedComponent}
-                      values={playgroundState.currentProps}
-                      onChange={updateProps}
-                      onSelectExample={selectExample}
-                      selectedExampleIndex={selectedExampleIndex}
-                    />
-                  </div>
-                </div>
-              </ResizablePanel>
-            </>
-          )}
-        </ResizablePanelGroup>
+            <div className="text-center mt-12">
+              <Button size="lg" variant="outline" asChild>
+                <Link href="/display-components">View All Components <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              </Button>
+            </div>
+          </div>
+        </section>
       </div>
+      <Footer/>
     </div>
-  );
-} 
+  )
+}
+
+// moved client PopularComponentsGrid into components/PopularComponentsGrid and dynamically imported above

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Component, LocalComponent, PropDefinition } from '@/types';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Component, FullComponentInfo, PropDefinition } from '@/lib/interfaces';
 import { RefreshCwIcon, InfoIcon, EyeIcon, EyeOffIcon } from 'lucide-react';
 import { debugLog } from '@/lib/constants';
 import TooltipComponent from '@/components/ui/tooltip-component';
@@ -13,7 +13,7 @@ import {
 import FunctionPropEditor from './FunctionPropEditor';
 
 interface PropsPanelProps {
-  component: Component | LocalComponent;
+  component: Component | FullComponentInfo;
   values: Record<string, any>;
   onChange: (values: Record<string, any>) => void;
   onSelectExample?: (exampleIndex: number) => void;
@@ -26,16 +26,14 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
 
   debugLog('props', `PropsPanel receiving props for ${component.name}`, { values });
 
-  const handlePropChange = (propName: string, value: any) => {
+  const handlePropChange = useCallback((propName: string, value: any) => {
     onChange({
       ...values,
       [propName]: value,
     });
-  };
+  }, [onChange, values]);
 
-  console.log("values", values);
-
-  const resetToDefaults = () => {
+  const resetToDefaults = useCallback(() => {
     debugLog('state', '🎛️ PropsPanel resetToDefaults called');
     
     // If there's a selected example, reset to that example using selectExample
@@ -54,9 +52,9 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
       return acc;
     }, {} as Record<string, any>);
     onChange(defaultValues);
-  };
+  }, [component.examples, component.props, onChange, onSelectExample, selectedExampleIndex]);
 
-  const togglePropExpansion = (propName: string) => {
+  const togglePropExpansion = useCallback((propName: string) => {
     const newExpanded = new Set(expandedProps);
     if (newExpanded.has(propName)) {
       newExpanded.delete(propName);
@@ -64,10 +62,10 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
       newExpanded.add(propName);
     }
     setExpandedProps(newExpanded);
-  };
+  }, [expandedProps]);
 
   // Filter out specific props for DataTable component
-  const shouldHideProp = (prop: PropDefinition) => {
+  const shouldHideProp = useCallback((prop: PropDefinition) => {
     if (component.name === 'DataTable') {
       // Hide filters, initialSorting, and all function props for DataTable
       return prop.name === 'filters' || 
@@ -75,10 +73,10 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
              prop.type === 'function';
     }
     return false;
-  };
+  }, [component.name]);
 
-  const requiredProps = component.props.filter(prop => prop.required && !shouldHideProp(prop));
-  const optionalProps = component.props.filter(prop => !prop.required && !shouldHideProp(prop));
+  const requiredProps = useMemo(() => component.props.filter(prop => prop.required && !shouldHideProp(prop)), [component.props]);
+  const optionalProps = useMemo(() => component.props.filter(prop => !prop.required && !shouldHideProp(prop)), [component.props]);
 
   const hasExamples = component.examples && component.examples.length > 0;
 

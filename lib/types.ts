@@ -1,5 +1,9 @@
 import { TrackableFile } from "./interfaces";
 
+import ButtonMeta from '@/components/display-components/buttons/Button/Button.meta.json';
+
+export type ComponentMetadata = typeof ButtonMeta;
+
 export type PDFFile = string | File | null;
 
 export type DirectionOptions = "rtl" | "ltr" | undefined;

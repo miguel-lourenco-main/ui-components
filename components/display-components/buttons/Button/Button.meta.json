@@ -1,0 +1,67 @@
+{
+  "id": "button",
+  "name": "Button", 
+  "category": "form",
+  "description": "Interactive button component with multiple variants and sizes",
+  "props": [
+    {
+      "name": "children",
+      "type": "function",
+      "required": true,
+      "description": "Function that returns JSX for the button content.",
+      "functionSignature": {
+        "params": "",
+        "returnType": "React.ReactNode"
+      }
+    },
+    {
+      "name": "variant",
+      "type": "enum",
+      "required": false,
+      "defaultValue": "primary",
+      "options": ["primary", "secondary", "outline", "ghost"],
+      "description": "Button style variant"
+    },
+    {
+      "name": "size",
+      "type": "enum", 
+      "required": false,
+      "defaultValue": "md",
+      "options": ["sm", "md", "lg"],
+      "description": "Button size"
+    },
+    {
+      "name": "onClick",
+      "type": "function",
+      "required": false,
+      "description": "Click handler function",
+      "functionSignature": {
+        "params": "event: React.MouseEvent<HTMLButtonElement>",
+        "returnType": "void"
+      }
+    },
+    {
+      "name": "title",
+      "type": "string",
+      "required": false,
+      "description": "Button title"
+    },
+    {
+      "name": "disabled",
+      "type": "boolean",
+      "required": false,
+      "defaultValue": false,
+      "description": "Whether the button is disabled"
+    },
+    {
+      "name": "className",
+      "type": "string",
+      "required": false,
+      "description": "Additional CSS classes"
+    }
+  ],
+  "tags": ["interactive", "form", "action"],
+  "version": "1.0.0",
+  "author": "UI Components Team",
+  "code": "import React from 'react';\n\ninterface ButtonProps {\n  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';\n  size?: 'sm' | 'md' | 'lg' | 'icon';\n  children: React.ReactNode | (() => React.ReactNode);\n  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;\n  title?: string;\n  disabled?: boolean;\n  className?: string;\n}\n\nexport default function Button({\n  variant = 'primary',\n  size = 'sm',\n  children,\n  onClick,\n  title,\n  disabled = false,\n  className = ''\n}: ButtonProps) {\n  const baseStyles = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none';\n  \n  const variantStyles = {\n    primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',\n    secondary: 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500',\n    outline: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-blue-500',\n    ghost: 'text-gray-600 hover:bg-gray-100 focus:ring-gray-500'\n  };\n  \n  const sizeStyles = {\n    sm: 'px-3 py-2 text-sm',\n    md: 'px-4 py-2 text-base',\n    lg: 'px-6 py-3 text-lg',\n    icon: 'p-2'\n  };\n  \n  const combinedClassName = `${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`.trim();\n  \n  return (\n    <button\n      className={combinedClassName}\n      onClick={onClick}\n      disabled={disabled}\n      data-testid=\"rendered-component-button\"\n      title={title}\n    >\n      {typeof children === 'function' ? children() : children}\n    </button>\n  );\n}"
+} 
