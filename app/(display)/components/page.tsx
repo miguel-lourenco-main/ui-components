@@ -2,14 +2,44 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { COMPONENTS_INDEX } from '@/lib/componentsIndex'
 import type { FullComponentInfo } from '@/lib/interfaces'
+import ImprovedDynamicComponent from '@/components/improved-dynamic-component'
+import indexJson from '@/components/display-components/index.json'
 
 export default function ComponentsPage() {
   const [components, setComponents] = useState<FullComponentInfo[]>(COMPONENTS_INDEX)
   const items = components
+  const searchParams = useSearchParams()
+  const componentParam = searchParams.get('component')
+  const selected = componentParam
+    ? COMPONENTS_INDEX.find(c => c.id.toLowerCase() === componentParam.toLowerCase() || c.name.toLowerCase() === componentParam.toLowerCase())
+    : undefined
+  const blacklist = (indexJson.blacklist || []) as string[]
+
+  if (selected) {
+    if (blacklist.includes(selected.id)) {
+      return (
+        <div className="container px-4 py-8">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-sm text-muted-foreground">Component not available.</div>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div className="container px-4 py-8">
+        <div className="max-w-6xl mx-auto">
+          <ImprovedDynamicComponent componentId={selected.id} />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="container px-4 py-8">
@@ -25,7 +55,7 @@ export default function ComponentsPage() {
           <h2 className="text-2xl font-bold mb-6">Components</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {items.map((component) => (
-                <Link key={component.id} href={`/components/${component.id}`}>
+                <Link key={component.id} href={`/components?component=${component.id}`}>
                   <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer group h-full">
                     <CardHeader>
                       <CardTitle className="group-hover:text-primary transition-colors">
