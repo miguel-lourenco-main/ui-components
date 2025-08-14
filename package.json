@@ -4,8 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "REACT_EDITOR=cursor node scripts/build-registry.js && next dev",
-    "build": "node scripts/build-registry.js && next build",
-    "export": "node scripts/build-registry.js && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
