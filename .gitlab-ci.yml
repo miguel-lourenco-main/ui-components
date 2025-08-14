@@ -4,7 +4,7 @@ image: node:18
 
 # Define variables
 variables:
-  NODE_ENV: production
+  NODE_ENV: development
   CI_COMMIT_REF_SLUG: $CI_COMMIT_REF_SLUG
 
 # Cache node_modules for faster builds
