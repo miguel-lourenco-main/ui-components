@@ -122,6 +122,9 @@ importers:
       acorn-walk:
         specifier: ^8.3.4
         version: 8.3.4
+      autoprefixer:
+        specifier: ^10.4.16
+        version: 10.4.21(postcss@8.5.4)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -222,9 +225,6 @@ importers:
       '@types/react-dom':
         specifier: ^18.2.0
         version: 18.3.7(@types/react@18.3.23)
-      autoprefixer:
-        specifier: ^10.4.16
-        version: 10.4.21(postcss@8.5.4)
       eslint:
         specifier: ^8.57.0
         version: 8.57.0
