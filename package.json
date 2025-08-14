@@ -15,8 +15,10 @@
     "analyze-build": "node scripts/check-build-files.js"
   },
   "dependencies": {
+    "@babel/parser": "^7.27.5",
     "@babel/standalone": "^7.27.6",
     "@babel/traverse": "^7.27.4",
+    "@monaco-editor/react": "^4.7.0",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-aspect-ratio": "^1.1.2",
@@ -48,7 +50,9 @@
     "@tanstack/react-table": "^8.21.3",
     "@types/babel__standalone": "^7.1.9",
     "@wojtekmaj/react-hooks": "^2.0.0",
+    "acorn": "^8.15.0",
     "acorn-jsx": "^5.3.2",
+    "acorn-walk": "^8.3.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -56,6 +60,7 @@
     "eslint-scope": "^8.4.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.294.0",
+    "monaco-editor": "^0.45.0",
     "next": "14.0.4",
     "next-themes": "^0.4.6",
     "react": "^18.2.0",
@@ -68,14 +73,13 @@
     "recharts": "^3.1.2",
     "sonner": "^2.0.5",
     "tailwind-merge": "^2.6.0",
+    "tailwindcss": "^3.3.6",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^11.1.0",
     "vaul": "^1.1.2",
     "typescript": "5.3.3"
   },
   "devDependencies": {
-    "@babel/parser": "^7.27.5",
-    "@monaco-editor/react": "^4.7.0",
     "@playwright/test": "^1.53.0",
     "@testing-library/react": "^14.1.2",
     "@testing-library/user-event": "^14.5.1",
@@ -84,15 +88,11 @@
     "@types/node": "^20.10.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "acorn": "^8.15.0",
-    "acorn-walk": "^8.3.4",
     "autoprefixer": "^10.4.16",
     "eslint": "^8.57.0",
     "eslint-config-next": "14.0.4",
-    "monaco-editor": "^0.45.0",
     "postcss": "^8.4.32",
-    "react-day-picker": "^9.8.1",
-    "tailwindcss": "^3.3.6"
+    "react-day-picker": "^9.8.1"
   },
   "packageManager": "pnpm@9.12.0+sha512.4abf725084d7bcbafbd728bfc7bee61f2f791f977fd87542b3579dcb23504d170d46337945e4c66485cd12d588a0c0e570ed9c477e7ccdd8507cf05f3f92eaca"
 }
