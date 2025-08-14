@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   trailingSlash: true,
-  distDir: 'out',
   // Configure for GitLab Pages - detect if we're using a project subdomain or branch deployment
   assetPrefix: process.env.NODE_ENV === 'production' && process.env.CI_COMMIT_REF_SLUG && process.env.CI_COMMIT_REF_SLUG !== 'main'
     ? `/${process.env.CI_COMMIT_REF_SLUG}`

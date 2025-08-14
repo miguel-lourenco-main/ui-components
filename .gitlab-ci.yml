@@ -99,9 +99,9 @@ pages:
   script:
     - echo "Deploying to GitLab Pages Production..."
     - echo "Production URL - ${CI_PAGES_URL}"
-    - ls -la out/  # Debug: List contents of out directory
+    - ls -la .next/  # Debug: List contents of out directory
     - mkdir -p public
-    - cp -r out/* public/  # Copy contents of out directory to public directory
+    - cp -r .next/* public/  # Copy contents of out directory to public directory
     - ls -la public/  # Debug: List contents of public directory
     - ls -la public/_next/static/chunks/ || echo "No chunks directory found"
   artifacts:
