@@ -23,7 +23,7 @@ stages:
 build:
   stage: build
   before_script:
-    - npm install -g pnpm
+    - npm install -g pnpm@10.14.0
     - pnpm install --frozen-lockfile
   script:
     - echo "Environment variables for debugging:"
