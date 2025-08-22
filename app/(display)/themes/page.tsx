@@ -126,9 +126,8 @@ export default function ThemesPage() {
                 return uniqueOrdered.map((id: string) => ({ id, name: componentMap[id] }))
               }
             )().map((componentType) => (
-              <Link href={`/components/?component=${componentType.id}`}>
+              <Link href={`/components/?component=${componentType.id}`} key={componentType.id}>
                 <Card
-                  key={componentType.id}
                   className={`transition-all duration-200 cursor-pointer group hover:shadow-lg dark:hover:shadow-[0_14px_24px_-6px_rgba(255,255,255,0.18),_0_6px_10px_-4px_rgba(255,255,255,0.12),_0_0_0_1px_rgba(255,255,255,0.06)]`}
                 >
                   <CardHeader>
