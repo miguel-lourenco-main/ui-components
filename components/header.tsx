@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils"
 const navigation = [
   { name: "Components", href: "/components" },
   { name: "Themes", href: "/themes" },
+  { name: "Playground", href: "/playground" },
 ]
 
 export function Header() {

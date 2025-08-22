@@ -1,8 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useTheme } from 'next-themes';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import ComponentSelector from '@/components/ComponentSelector';
 import LocalComponentRenderer from '@/components/LocalComponentRenderer';
@@ -12,16 +10,16 @@ import ViewportControls from '@/components/ViewportControls';
 import CodeButtons from '@/components/code-buttons';
 
 import { useLocalComponentState } from '@/lib/hooks/useLocalComponentState';
-import { PlayIcon, EyeOffIcon, EyeIcon, ArrowLeft, Sun, Moon } from 'lucide-react';
+import { PlayIcon, EyeOffIcon, EyeIcon } from 'lucide-react';
 import { getMonacoPreloadStatus } from '@/lib/monaco-preloader';
 import {
   ResizablePanelGroup,
   ResizablePanel,
   ResizableHandle,
 } from "@/components/ui/resizable"
+import { ImperativePanelHandle } from 'react-resizable-panels'
 import { FullComponentInfo } from '@/lib/interfaces';
-import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+// Header removed in favor of global site header
 
 interface ComponentPreviewProps {
   selectedComponent: FullComponentInfo | null;
@@ -88,7 +86,8 @@ export default function PlaygroundPage() {
     handlePropChange,
   } = useLocalComponentState();
 
-  const { setTheme } = useTheme();
+  const propsPanelRef = useRef<ImperativePanelHandle | null>(null);
+  const [propsCollapsed, setPropsCollapsed] = useState<boolean>(false);
 
   const searchParams = useSearchParams();
 
@@ -175,65 +174,11 @@ export default function PlaygroundPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-background">
-      <div className="bg-card border-b border-border px-4 py-3 flex-shrink-0">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-semibold flex items-center">
-              <PlayIcon className="w-6 h-6 mr-2 text-primary" />
-              Components Playground
-            </h1>
-            {playgroundState.selectedComponent && (
-              <span className="text-lg font-medium text-muted-foreground">
-                {playgroundState.selectedComponent.name}
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/components" className="flex items-center">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Components
-              </Link>
-            </Button>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="ml-1">
-                  <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                  <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                  <span className="sr-only">Toggle theme</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setTheme('light')}>Light</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme('dark')}>Dark</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme('system')}>System</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {playgroundState.selectedComponent && (
-              <div 
-                key={`header-controls-${playgroundState.selectedComponent?.name}`}
-                className="flex items-center space-x-2 slide-in-left"
-              >
-                <button
-                  onClick={() => togglePropsPanel()}
-                  className={`p-2 rounded transition-colors duration-200 ${playgroundState.showProps ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}
-                  title={`${playgroundState.showProps ? 'Hide' : 'Show'} Props Panel`}
-                >
-                  {playgroundState.showProps ? <EyeOffIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-hidden">
-        <ResizablePanelGroup direction="horizontal" className="h-full">
+    <div className="min-h-[calc(100vh-9rem)] flex flex-col bg-background justify-center">
+      <div className="overflow-hidden rounded-lg border border-border bg-card">
+        <ResizablePanelGroup direction="horizontal" className="">
           <ResizablePanel defaultSize={playgroundState.showProps ? 25 : 35} minSize={15} className="bg-card border-r border-border">
-            <div className="h-full flex flex-col">
+            <div className="h-[calc(100vh-14rem)] flex flex-col">
                 <div className="p-4 border-b border-border flex-shrink-0">
                 <h2 className="text-lg font-semibold text-foreground">Components</h2>
               </div>
@@ -300,15 +245,38 @@ export default function PlaygroundPage() {
             )}
           </ResizablePanel>
 
-          {playgroundState.showProps && playgroundState.selectedComponent && (
+          {playgroundState.selectedComponent && (
             <>
               <ResizableHandle withHandle />
-              <ResizablePanel key={`props-panel-${playgroundState.selectedComponent.name}-${playgroundState.showProps}`} defaultSize={25} minSize={15} className="bg-card border-l border-border">
-                <div className="h-full flex flex-col slide-in-right" data-testid="props-panel">
-                  <div className="p-4 border-b border-border flex items-center justify-start flex-shrink-0">
-                    <h3 className="font-semibold">Props</h3>
+              <ResizablePanel
+                ref={propsPanelRef}
+                key={`props-panel-${playgroundState.selectedComponent.name}`}
+                defaultSize={playgroundState.showProps ? 25 : 3}
+                minSize={3}
+                collapsible
+                collapsedSize={3}
+                className="bg-card border-l border-border"
+              >
+                <div className="h-full flex flex-col" data-testid="props-panel">
+                  <div className="p-2 border-b border-border flex items-center justify-between flex-shrink-0">
+                    <h3 className={`font-semibold transition-opacity ${propsCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>Props</h3>
+                    <button
+                      onClick={() => {
+                        if (propsPanelRef.current?.isCollapsed()) {
+                          propsPanelRef.current?.expand();
+                          setPropsCollapsed(false);
+                        } else {
+                          propsPanelRef.current?.collapse();
+                          setPropsCollapsed(true);
+                        }
+                      }}
+                      className={`p-1.5 rounded transition-colors duration-200 ${propsCollapsed ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}
+                      title={`${propsCollapsed ? 'Expand' : 'Minimize'} Props Panel`}
+                    >
+                      {propsCollapsed ? <EyeIcon className="w-4 h-4" /> : <EyeOffIcon className="w-4 h-4" />}
+                    </button>
                   </div>
-                  <div className="flex-1 overflow-hidden">
+                  <div className={`flex-1 overflow-hidden ${propsCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                     <PropsPanel
                       component={playgroundState.selectedComponent}
                       values={playgroundState.currentProps}
