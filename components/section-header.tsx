@@ -12,7 +12,7 @@ interface SectionHeaderProps {
 export function SectionHeader({ title, description, className, icon }: SectionHeaderProps) {
   return (
     <div className={"my-10 overflow-visible " + (className || "")}> 
-      <div className="h-[2px] relative left-1/2 -translate-x-1/2 w-[calc(100%+2rem)] bg-gradient-to-r from-primary/70 via-primary/40 to-transparent rounded-full mb-3" />
+      <div className="h-[2px] relative left-1/2 -translate-x-1/2 w-[calc(100%+2rem)] bg-gradient-to-l from-primary/70 via-primary/40 to-transparent rounded-full mb-3" />
       <div className="flex items-start gap-3">
         {icon ? <div className="mt-0.5 text-primary">{icon}</div> : null}
         <div>

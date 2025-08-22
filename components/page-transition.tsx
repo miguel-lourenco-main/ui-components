@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion"
 import { useSearchParams } from "next/navigation"
 import { COMPONENTS } from "@/components/component-navigation"
-import { useRef } from "react"
+import { useRef, useEffect } from "react"
 
 interface PageTransitionProps {
   children: React.ReactNode
@@ -12,11 +12,25 @@ interface PageTransitionProps {
 export function PageTransition({ children }: PageTransitionProps) {
   const searchParams = useSearchParams()
   const componentParam = searchParams.get("component")
-  const prevIndexRef = useRef<number | undefined>()
+  const prevIndexRef = useRef<number>()
 
   const currentIndex = COMPONENTS.findIndex(c => c.id === componentParam)
-  const direction = prevIndexRef.current !== undefined && currentIndex > prevIndexRef.current ? 1 : -1
-  prevIndexRef.current = currentIndex
+  const prevIndex = prevIndexRef.current
+
+  // On initial load, prevIndex is undefined, let's default to sliding from the right.
+  const direction = prevIndex === undefined ? 1 : currentIndex > prevIndex ? 1 : -1
+
+  useEffect(() => {
+    prevIndexRef.current = currentIndex
+  }, [currentIndex])
+
+  // Debug logs to inspect the values
+  console.log({
+    component: componentParam,
+    prevIndex,
+    currentIndex,
+    direction,
+  })
 
   const variants = {
     enter: (direction: number) => ({
