@@ -33,7 +33,7 @@ const viewModes = [
 
 export default function ViewportControls({ viewMode, onViewModeChange }: ViewportControlsProps) {
   return (
-    <div className="flex items-center bg-gray-100 rounded-lg p-1">
+    <div className="flex items-center bg-muted rounded-lg p-1 border border-border">
       {viewModes.map((mode) => {
         const Icon = mode.icon;
         const isActive = viewMode === mode.id;
@@ -44,8 +44,8 @@ export default function ViewportControls({ viewMode, onViewModeChange }: Viewpor
             onClick={() => onViewModeChange(mode.id)}
             className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
               isActive
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
+                ? 'bg-card text-primary shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
             }`}
             title={mode.description}
           >
@@ -53,7 +53,7 @@ export default function ViewportControls({ viewMode, onViewModeChange }: Viewpor
             <span className="hidden sm:inline">{mode.name}</span>
             <span className="sm:hidden">{mode.name.charAt(0)}</span>
             {mode.width !== '100%' && (
-              <span className="ml-2 text-xs text-gray-500 hidden md:inline">
+              <span className="ml-2 text-xs text-muted-foreground hidden md:inline">
                 {mode.width}
               </span>
             )}

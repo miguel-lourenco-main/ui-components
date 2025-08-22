@@ -11,8 +11,8 @@ const Editor = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex items-center justify-center h-full bg-gray-50">
-        <div className="flex items-center space-x-2 text-gray-500">
+      <div className="flex items-center justify-center h-full bg-muted">
+        <div className="flex items-center space-x-2 text-muted-foreground">
           <Loader2 className="w-4 h-4 animate-spin" />
           <span className="text-sm">
             {isMonacoPreloaded() ? 'Initializing code viewer...' : 'Loading code viewer...'}
@@ -90,8 +90,8 @@ export default function CodeViewer({
       'file:///node_modules/@types/react/index.d.ts'
     );
 
-    // Configure theme
-    monaco.editor.defineTheme('custom-theme', {
+    // Configure light and dark themes and auto-switch based on .dark
+    monaco.editor.defineTheme('viewer-light', {
       base: 'vs',
       inherit: true,
       rules: [],
@@ -101,8 +101,24 @@ export default function CodeViewer({
         'editorLineNumber.foreground': '#94a3b8',
       },
     });
+    monaco.editor.defineTheme('viewer-dark', {
+      base: 'vs-dark',
+      inherit: true,
+      rules: [],
+      colors: {
+        'editor.background': '#0b0f19',
+        'editor.lineHighlightBackground': '#111827',
+        'editorLineNumber.foreground': '#6b7280',
+      },
+    });
 
-    monaco.editor.setTheme('custom-theme');
+    const applyTheme = () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      monaco.editor.setTheme(isDark ? 'viewer-dark' : 'viewer-light');
+    };
+    applyTheme();
+    const observer = new MutationObserver(applyTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
   };
 
   const copyToClipboard = async () => {
@@ -127,11 +143,11 @@ export default function CodeViewer({
   return (
     <div className="h-full flex flex-col">
       {/* Viewer Toolbar */}
-      <div className="flex items-center justify-between p-3 bg-gray-50 border-b border-gray-200">
+      <div className="flex items-center justify-between p-3 bg-muted border-b border-border">
         <div className="flex items-center space-x-2">
-          <CodeIcon className="w-4 h-4 text-gray-600" />
-          <span className="text-sm font-medium text-gray-700">{title}</span>
-          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+          <CodeIcon className="w-4 h-4 text-muted-foreground" />
+          <span className="text-sm font-medium text-foreground">{title}</span>
+          <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
             {language === 'typescript' ? 'TypeScript' : 'JavaScript'}
           </span>
         </div>
@@ -139,7 +155,7 @@ export default function CodeViewer({
         <div className="flex items-center space-x-1">
           <button
             onClick={copyToClipboard}
-            className="flex items-center space-x-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded"
+            className="flex items-center space-x-1 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded"
             title="Copy to clipboard"
           >
             <CopyIcon className="w-4 h-4" />
@@ -147,7 +163,7 @@ export default function CodeViewer({
           </button>
           <button
             onClick={downloadCode}
-            className="flex items-center space-x-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded"
+            className="flex items-center space-x-1 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded"
             title="Download code"
           >
             <DownloadIcon className="w-4 h-4" />

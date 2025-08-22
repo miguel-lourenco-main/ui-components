@@ -26,8 +26,8 @@ const Editor = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex items-center justify-center h-[120px] bg-gray-50 rounded border">
-        <div className="flex items-center space-x-2 text-gray-500">
+      <div className="flex items-center justify-center h-[120px] bg-muted rounded border border-border">
+        <div className="flex items-center space-x-2 text-muted-foreground">
           <Loader2 className="w-4 h-4 animate-spin" />
           <span className="text-sm">
             {isMonacoPreloaded() ? 'Initializing editor...' : 'Loading editor...'}
@@ -54,6 +54,9 @@ export default function FunctionPropEditor({
   onToggleExpansion,
 }: FunctionPropEditorProps) {
   const [functionBody, setFunctionBody] = useState('');
+  const editorRef = useRef<any>(null);
+  const monacoRef = useRef<any>(null);
+  const observerRef = useRef<MutationObserver | null>(null);
   const [validationResult, setValidationResult] = useState<ValidationResult>({ 
     isValid: true, 
     errors: [], 
@@ -204,48 +207,48 @@ export default function FunctionPropEditor({
 
   return (
     <div
-      className="border border-gray-200 rounded-lg"
+      className="border border-border rounded-lg"
       data-testid={`prop-control-${prop.name}`}
     >
       <div
-        className="flex items-center justify-between p-3 bg-gray-50 cursor-pointer"
+        className="flex items-center justify-between bg-muted p-3 cursor-pointer"
       >
         <div className="flex items-center space-x-2">
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-foreground">
             {prop.name}
-            {prop.required && <span className="text-red-500 ml-1">*</span>}
+            {prop.required && <span className="text-destructive ml-1">*</span>}
             {prop.functionSignature && (
-              <span className="ml-2 text-xs text-blue-600 bg-blue-50 px-1 rounded">
+              <span className="ml-2 text-xs text-primary bg-primary/10 px-1 rounded">
                 typed
               </span>
             )}
           </label>
           <div className="flex items-center space-x-2">
-            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded font-mono max-w-xs truncate" title={functionPreview}>
+            <span className="text-xs text-muted-foreground px-2 py-1 rounded font-mono max-w-xs truncate" title={functionPreview}>
               {functionPreview}
             </span>
             {isValidating ? (
-              <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
+              <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />
             ) : validationResult.isValid ? (
-              <CheckIcon className="w-4 h-4 text-green-500" />
+              <CheckIcon className="w-4 h-4 text-foreground" />
             ) : (
-              <AlertTriangleIcon className="w-4 h-4 text-red-500" />
+              <AlertTriangleIcon className="w-4 h-4 text-destructive" />
             )}
           </div>
         </div>
       </div>
 
-      <div className="border border-gray-300 rounded-lg overflow-hidden">
-        <div className="flex items-center justify-between p-3 bg-gray-50 border-b border-gray-200">
+      <div className="border border-input overflow-hidden">
+        <div className="flex items-center justify-between p-3 border-b border-border">
           <div className="flex items-center space-x-2">
-            <CodeIcon className="w-4 h-4 text-gray-600" />
-            <span className="text-sm font-medium text-gray-700">Function Editor</span>
+            <CodeIcon className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm font-medium text-foreground">Function Editor</span>
           </div>
           <div className="flex items-center space-x-2">
             {functionBody.trim() && (
               <button
                 onClick={handleClearFunction}
-                className="text-xs text-red-600 hover:text-red-800 flex items-center space-x-1 px-2 py-1 rounded hover:bg-red-50 transition-colors"
+                className="text-xs text-destructive hover:text-destructive/90 flex items-center space-x-1 px-2 py-1 rounded hover:bg-destructive/10 transition-colors"
                 title="Clear function"
               >
                 <Trash2Icon className="w-3 h-3" />
@@ -254,7 +257,7 @@ export default function FunctionPropEditor({
             )}
             <button
               onClick={onToggleExpansion}
-              className="text-xs text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50 transition-colors"
+              className="text-xs text-primary hover:text-primary/90 px-2 py-1 rounded hover:bg-primary/10 transition-colors"
             >
               {isExpanded ? 'Collapse' : 'Expand'}
             </button>
@@ -263,15 +266,15 @@ export default function FunctionPropEditor({
 
         {/* Validation Status and Warnings */}
         {(!validationResult.isValid || (validationResult.warnings && validationResult.warnings.length > 0)) && (
-          <div className="px-3 py-2 bg-yellow-50 border-b border-yellow-200">
+          <div className="px-3 py-2 bg-accent border-b border-border">
             {!validationResult.isValid && (
-              <div className="flex items-center space-x-2 text-red-700 mb-2">
+              <div className="flex items-center space-x-2 text-destructive mb-2">
                 <AlertTriangleIcon className="w-4 h-4" />
                 <span className="text-sm font-medium">Function Invalid</span>
               </div>
             )}
             {!validationResult.isValid && validationResult.errors.length > 0 && (
-              <ul className="text-sm text-red-600 mb-2 list-disc pl-5 space-y-1">
+              <ul className="text-sm text-destructive mb-2 list-disc pl-5 space-y-1">
                 {validationResult.errors.map((error, index) => (
                   <li key={index}>
                     {error.message} (line: {error.line})
@@ -281,11 +284,11 @@ export default function FunctionPropEditor({
             )}
             {validationResult.warnings && validationResult.warnings.length > 0 && (
               <div>
-                <div className="flex items-center space-x-2 text-yellow-800 mb-1">
+                <div className="flex items-center space-x-2 text-accent-foreground mb-1">
                   <AlertTriangleIcon className="w-4 h-4" />
                   <span className="text-sm font-medium">Warnings</span>
                 </div>
-                <ul className="text-sm text-yellow-700 list-disc pl-5 space-y-1">
+                <ul className="text-sm text-accent-foreground list-disc pl-5 space-y-1">
                   {validationResult.warnings.map((warning, index) => (
                     <li key={index}>
                       {warning.message} (line: {warning.line})
@@ -338,47 +341,68 @@ export default function FunctionPropEditor({
                 strict: false,
               });
 
-              // Define custom theme
-              monaco.editor.defineTheme('function-editor', {
+              // Define light and dark themes
+              monaco.editor.defineTheme('function-editor-light', {
                 base: 'vs',
                 inherit: true,
                 rules: [],
                 colors: {
-                  'editor.background': '#fefefe',
-                  'editor.lineHighlightBackground': '#f8fafc',
+                  'editor.background': '#f8fafc',
+                  'editor.lineHighlightBackground': '#f1f5f9',
                   'editorLineNumber.foreground': '#94a3b8',
                 },
               });
-
-              monaco.editor.setTheme('function-editor');
+              monaco.editor.defineTheme('function-editor-dark', {
+                base: 'vs-dark',
+                inherit: true,
+                rules: [],
+                colors: {
+                  'editor.background': '#0b0f19',
+                  'editor.lineHighlightBackground': '#111827',
+                  'editorLineNumber.foreground': '#6b7280',
+                },
+              });
+            }}
+            onMount={(editor, monaco) => {
+              editorRef.current = editor;
+              monacoRef.current = monaco;
+              const applyTheme = () => {
+                const isDark = document.documentElement.classList.contains('dark');
+                monaco.editor.setTheme(isDark ? 'function-editor-dark' : 'function-editor-light');
+              };
+              applyTheme();
+              // Observe dark mode class changes
+              const observer = new MutationObserver(applyTheme);
+              observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+              observerRef.current = observer;
             }}
           />
         </div>
 
         {/* Status Footer */}
-        <div className="px-3 py-2 bg-gray-50 border-t border-gray-200">
+        <div className="px-3 py-2 border-t border-border">
           <div className="flex items-center justify-between text-xs">
-            <div className="text-gray-500" data-testid="function-prop-status">
+            <div className="text-muted-foreground" data-testid="function-prop-status">
               Status: {isUserTyping ? (
-                <span className="text-blue-600 font-medium">✏️ Typing... (validation paused)</span>
+                <span className="text-primary font-medium">✏️ Typing... (validation paused)</span>
               ) : validationResult.isValid ? (
                 functionBody.trim() ? (
                   validationResult.warnings && validationResult.warnings.length > 0 ? (
-                    <span className="text-yellow-600 font-medium">⚠️ Valid with warnings - will appear in generated code</span>
+                    <span className="text-accent-foreground font-medium">⚠️ Valid with warnings - will appear in generated code</span>
                   ) : (
-                    <span className="text-green-600 font-medium">✅ Valid function - will appear in generated code</span>
+                    <span className="text-foreground font-medium">✅ Valid function - will appear in generated code</span>
                   )
                 ) : (
-                  <span className="text-gray-500 font-medium">📝 Empty function - will not appear in generated code</span>
+                  <span className="text-muted-foreground font-medium">📝 Empty function - will not appear in generated code</span>
                 )
               ) : (
-                <span className="text-red-600 font-medium">❌ Invalid function - will not appear in generated code</span>
+                <span className="text-destructive font-medium">❌ Invalid function - will not appear in generated code</span>
               )}
             </div>
-            <div className="text-gray-400">
+            <div className="text-muted-foreground">
               {functionBody.split('\n').length} lines
               {validationResult.warnings && validationResult.warnings.length > 0 && (
-                <span className="ml-2 text-yellow-600">({validationResult.warnings.length} warning{validationResult.warnings.length > 1 ? 's' : ''})</span>
+                <span className="ml-2 text-accent-foreground">({validationResult.warnings.length} warning{validationResult.warnings.length > 1 ? 's' : ''})</span>
               )}
             </div>
           </div>
@@ -386,7 +410,7 @@ export default function FunctionPropEditor({
       </div>
 
       {(prop.description || prop.functionSignature) && (
-        <div className="text-xs text-gray-500 bg-blue-50 p-2 rounded space-y-1">
+        <div className="text-xs text-muted-foreground p-2 rounded space-y-1">
           {prop.description && (
             <div>
               <strong>Description:</strong> {prop.description}
@@ -395,7 +419,7 @@ export default function FunctionPropEditor({
           {prop.functionSignature && (
             <div>
               <strong>Function Signature:</strong>
-              <div className="font-mono text-xs mt-1 p-2 bg-white rounded border">
+              <div className="font-mono text-xs mt-1 p-2 bg-card rounded border border-border">
                 ({prop.functionSignature.params}) =&gt; {prop.functionSignature.returnType}
               </div>
             </div>
@@ -404,20 +428,20 @@ export default function FunctionPropEditor({
       )}
 
       {isExpanded && (
-        <div className="p-3 border-t border-gray-200">
+        <div className="p-3 border-t border-border">
           <div
-            className="text-xs text-gray-500 mb-2"
+            className="text-xs text-muted-foreground mb-2"
           >
             {validationResult.isValid ? (
-              <span className="text-green-600 font-medium">✅ Valid function</span>
+              <span className="text-foreground font-medium">✅ Valid function</span>
             ) : (
-              <span className="text-red-600 font-medium">❌ Invalid function</span>
+              <span className="text-destructive font-medium">❌ Invalid function</span>
             )}
           </div>
-          <div className="text-gray-400">
+          <div className="text-muted-foreground">
             {functionBody.split('\n').length} lines
             {validationResult.warnings && validationResult.warnings.length > 0 && (
-              <span className="ml-2 text-yellow-600">({validationResult.warnings.length} warning{validationResult.warnings.length > 1 ? 's' : ''})</span>
+              <span className="ml-2 text-accent-foreground">({validationResult.warnings.length} warning{validationResult.warnings.length > 1 ? 's' : ''})</span>
             )}
           </div>
         </div>

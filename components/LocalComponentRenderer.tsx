@@ -157,13 +157,13 @@ export default function LocalComponentRenderer({
     // Show loading state
     if (loading) {
       return (
-        <div className="border-2 border-dashed border-blue-300 rounded-lg p-8">
+        <div className="border-2 border-dashed border-primary/40 rounded-lg p-8 bg-card">
           <div className="text-center">
-            <LoaderIcon className="w-12 h-12 text-blue-500 mx-auto mb-4 animate-spin" />
-            <h3 className="text-lg font-semibold text-blue-700 mb-2">
+            <LoaderIcon className="w-12 h-12 text-primary mx-auto mb-4 animate-spin" />
+            <h3 className="text-lg font-semibold text-primary mb-2">
               Loading Component
             </h3>
-            <p className="text-blue-600">
+            <p className="text-primary">
               Loading {component.name}...
             </p>
           </div>
@@ -174,16 +174,16 @@ export default function LocalComponentRenderer({
     // Show import errors
     if (error) {
       return (
-        <div className="border-2 border-dashed border-red-300 rounded-lg p-8">
+        <div className="border-2 border-dashed border-destructive/40 rounded-lg p-8 bg-card">
           <div className="text-center">
-            <AlertTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-red-700 mb-2">Component Load Error</h3>
-            <p className="text-red-600 text-sm font-mono bg-red-50 p-2 rounded mb-4">
+            <AlertTriangleIcon className="w-12 h-12 text-destructive mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-destructive mb-2">Component Load Error</h3>
+            <p className="text-destructive text-sm font-mono bg-destructive/10 p-2 rounded mb-4">
               {error}
             </p>
             <button
               onClick={onRetry}
-              className="mt-4 inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              className="mt-4 inline-flex items-center px-4 py-2 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90"
             >
               <RefreshCwIcon className="w-4 h-4 mr-2" />
               Retry Load
@@ -196,16 +196,16 @@ export default function LocalComponentRenderer({
     // Show message if no component loaded
     if (!ComponentToRender) {
       return (
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8">
+        <div className="border-2 border-dashed border-border rounded-lg p-8 bg-card">
           <div className="text-center">
-            <div className="bg-gray-100 w-16 h-16 rounded-lg mx-auto mb-4 flex items-center justify-center">
+            <div className="bg-muted w-16 h-16 rounded-lg mx-auto mb-4 flex items-center justify-center">
               <span className="text-2xl">🧩</span>
             </div>
             <h3 className="font-semibold mb-2">{component.name}</h3>
-            <p className="text-sm text-gray-600 mb-4">{component.description}</p>
+            <p className="text-sm text-muted-foreground mb-4">{component.description}</p>
             <button
               onClick={onRetry}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
             >
               <RefreshCwIcon className="w-4 h-4 mr-2" />
               Load Component
@@ -234,18 +234,18 @@ export default function LocalComponentRenderer({
     } catch (renderError) {
       console.error('Component render error:', renderError);
       return (
-        <div className="border-2 border-dashed border-red-300 rounded-lg p-8">
+        <div className="border-2 border-dashed border-destructive/40 rounded-lg p-8 bg-card">
           <div className="text-center">
-            <AlertTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-red-700 mb-2">
+            <AlertTriangleIcon className="w-12 h-12 text-destructive mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-destructive mb-2">
               Render Error
             </h3>
-            <p className="text-red-600 mb-4">
+            <p className="text-destructive mb-4">
               {renderError instanceof Error ? renderError.message : 'Failed to render the component with current props'}
             </p>
             <button
               onClick={onRetry}
-              className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              className="inline-flex items-center px-4 py-2 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90"
             >
               <RefreshCwIcon className="w-4 h-4 mr-2" />
               Retry
@@ -261,7 +261,7 @@ export default function LocalComponentRenderer({
       {/* Viewport Frame */}
       <div 
         style={getViewportStyles()}
-        className="size-full flex items-center justify-center p-6 bg-white rounded-lg border transition-all duration-300 border-gray-200 overflow-hidden"
+        className="size-full flex items-center justify-center p-6 bg-card rounded-lg border transition-all duration-300 border-border overflow-hidden"
       >
         <ComponentErrorBoundary onRetry={onRetry}>
             {renderContent()}

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useTheme } from 'next-themes';
 import { useSearchParams } from 'next/navigation';
 import ComponentSelector from '@/components/ComponentSelector';
 import LocalComponentRenderer from '@/components/LocalComponentRenderer';
@@ -10,7 +12,7 @@ import ViewportControls from '@/components/ViewportControls';
 import CodeButtons from '@/components/code-buttons';
 
 import { useLocalComponentState } from '@/lib/hooks/useLocalComponentState';
-import { PlayIcon, EyeOffIcon, EyeIcon } from 'lucide-react';
+import { PlayIcon, EyeOffIcon, EyeIcon, ArrowLeft, Sun, Moon } from 'lucide-react';
 import { getMonacoPreloadStatus } from '@/lib/monaco-preloader';
 import {
   ResizablePanelGroup,
@@ -18,6 +20,8 @@ import {
   ResizableHandle,
 } from "@/components/ui/resizable"
 import { FullComponentInfo } from '@/lib/interfaces';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface ComponentPreviewProps {
   selectedComponent: FullComponentInfo | null;
@@ -39,7 +43,7 @@ function ComponentPreview({
   rendererButtons 
 }: ComponentPreviewProps) {
   return (
-    <div className="h-full bg-gray-50 flex flex-col">
+    <div className="h-full bg-muted flex flex-col">
       <div className="w-full flex items-center justify-between p-4 pb-0">
         {rendererButtons}
       </div>
@@ -53,9 +57,9 @@ function ComponentPreview({
             onPropChange={onPropChange}
           />
         ) : (
-          <div className="h-full flex items-center justify-center text-gray-500">
+          <div className="h-full flex items-center justify-center text-muted-foreground">
             <div className="text-center">
-              <PlayIcon className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+              <PlayIcon className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
               <p className="text-lg">Select a component to get started</p>
             </div>
           </div>
@@ -83,6 +87,8 @@ export default function PlaygroundPage() {
     setSearchQuery,
     handlePropChange,
   } = useLocalComponentState();
+
+  const { setTheme } = useTheme();
 
   const searchParams = useSearchParams();
 
@@ -142,8 +148,8 @@ export default function PlaygroundPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-600">Loading components...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-lg text-muted-foreground">Loading components...</p>
         </div>
       </div>
     );
@@ -153,13 +159,13 @@ export default function PlaygroundPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded mb-4">
             <p className="font-bold">Error</p>
             <p>{error}</p>
           </div>
           <button
             onClick={loadComponents}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90"
           >
             Retry
           </button>
@@ -169,43 +175,67 @@ export default function PlaygroundPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
-      <div className="bg-white border-b border-gray-200 p-4 flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+    <div className="h-screen flex flex-col bg-background">
+      <div className="bg-card border-b border-border px-4 py-3 flex-shrink-0">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
             <h1 className="text-xl font-semibold flex items-center">
-              <PlayIcon className="w-6 h-6 mr-2 text-blue-600" />
+              <PlayIcon className="w-6 h-6 mr-2 text-primary" />
               Components Playground
             </h1>
             {playgroundState.selectedComponent && (
-              <span className="text-lg font-medium text-gray-700">
+              <span className="text-lg font-medium text-muted-foreground">
                 {playgroundState.selectedComponent.name}
               </span>
             )}
           </div>
-          {playgroundState.selectedComponent && (
-            <div 
-              key={`header-controls-${playgroundState.selectedComponent?.name}`}
-              className="flex items-center space-x-2 slide-in-left"
-            >
-              <button
-                onClick={() => togglePropsPanel()}
-                className={`p-2 rounded transition-colors duration-200 ${playgroundState.showProps ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'}`}
-                title={`${playgroundState.showProps ? 'Hide' : 'Show'} Props Panel`}
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/components" className="flex items-center">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Components
+              </Link>
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="ml-1">
+                  <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                  <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                  <span className="sr-only">Toggle theme</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setTheme('light')}>Light</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme('dark')}>Dark</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme('system')}>System</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {playgroundState.selectedComponent && (
+              <div 
+                key={`header-controls-${playgroundState.selectedComponent?.name}`}
+                className="flex items-center space-x-2 slide-in-left"
               >
-                {playgroundState.showProps ? <EyeOffIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
-              </button>
-            </div>
-          )}
+                <button
+                  onClick={() => togglePropsPanel()}
+                  className={`p-2 rounded transition-colors duration-200 ${playgroundState.showProps ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}
+                  title={`${playgroundState.showProps ? 'Hide' : 'Show'} Props Panel`}
+                >
+                  {playgroundState.showProps ? <EyeOffIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       <div className="flex-1 overflow-hidden">
         <ResizablePanelGroup direction="horizontal" className="h-full">
-          <ResizablePanel defaultSize={playgroundState.showProps ? 25 : 35} minSize={15} className="bg-white border-r border-gray-200">
+          <ResizablePanel defaultSize={playgroundState.showProps ? 25 : 35} minSize={15} className="bg-card border-r border-border">
             <div className="h-full flex flex-col">
-              <div className="p-4 border-b border-gray-200 flex-shrink-0">
-                <h2 className="text-lg font-semibold text-gray-800">Components</h2>
+                <div className="p-4 border-b border-border flex-shrink-0">
+                <h2 className="text-lg font-semibold text-foreground">Components</h2>
               </div>
               <div className="flex-1 overflow-hidden">
                 <ComponentSelector
@@ -224,7 +254,7 @@ export default function PlaygroundPage() {
           <ResizablePanel defaultSize={playgroundState.showProps ? 50 : 65} minSize={20}>
             {playgroundState.showCode && playgroundState.selectedComponent ? (
               <ResizablePanelGroup direction="vertical" className="h-full">
-                <ResizablePanel defaultSize={60} minSize={30} className="bg-gray-50 flex flex-col">
+                <ResizablePanel defaultSize={60} minSize={30} className="bg-muted flex flex-col">
                   <ComponentPreview
                     selectedComponent={playgroundState.selectedComponent}
                     currentProps={playgroundState.currentProps}
@@ -242,9 +272,9 @@ export default function PlaygroundPage() {
 
                 <ResizableHandle withHandle />
 
-                <ResizablePanel defaultSize={40} minSize={20} className="bg-white border-t border-gray-200">
+                <ResizablePanel defaultSize={40} minSize={20} className="bg-card border-t border-border">
                   <div className="h-full flex flex-col">
-                    <div className="p-4 border-b border-gray-200 flex items-center justify-start flex-shrink-0">
+                    <div className="p-4 border-b border-border flex items-center justify-start flex-shrink-0">
                       <h3 className="font-semibold">Generated Code</h3>
                     </div>
                     <div className="flex-1 overflow-hidden">
@@ -273,9 +303,9 @@ export default function PlaygroundPage() {
           {playgroundState.showProps && playgroundState.selectedComponent && (
             <>
               <ResizableHandle withHandle />
-              <ResizablePanel key={`props-panel-${playgroundState.selectedComponent.name}-${playgroundState.showProps}`} defaultSize={25} minSize={15} className="bg-white border-l border-gray-200">
+              <ResizablePanel key={`props-panel-${playgroundState.selectedComponent.name}-${playgroundState.showProps}`} defaultSize={25} minSize={15} className="bg-card border-l border-border">
                 <div className="h-full flex flex-col slide-in-right" data-testid="props-panel">
-                  <div className="p-4 border-b border-gray-200 flex items-center justify-start flex-shrink-0">
+                  <div className="p-4 border-b border-border flex items-center justify-start flex-shrink-0">
                     <h3 className="font-semibold">Props</h3>
                   </div>
                   <div className="flex-1 overflow-hidden">

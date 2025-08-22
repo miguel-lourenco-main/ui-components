@@ -83,12 +83,12 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-semibold">Props Configuration</h3>
           <button
             onClick={resetToDefaults}
-            className="flex items-center text-sm text-gray-600 hover:text-gray-900"
+            className="flex items-center text-sm text-muted-foreground hover:text-foreground"
             title="Reset to defaults"
           >
             <RefreshCwIcon className="w-4 h-4 mr-1" />
@@ -96,7 +96,7 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
           </button>
         </div>
         
-        <div className="flex items-center justify-start text-sm text-gray-600">
+        <div className="flex items-center justify-start text-sm text-muted-foreground">
           <span>
             {component.props.length} props total
           </span>
@@ -127,9 +127,9 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
 
             {/* Examples Panel */}
             <ResizablePanel defaultSize={30} minSize={20}>
-              <div className="h-full overflow-y-auto border-t border-gray-200" data-testid="examples-panel">
+              <div className="h-full overflow-y-auto border-t border-border" data-testid="examples-panel">
                 <div className="p-4">
-                  <h4 className="font-medium text-gray-900 mb-3">Examples</h4>
+                  <h4 className="font-medium text-foreground mb-3">Examples</h4>
                   <div className="space-y-2">
                     {component.examples.map((example, index) => {
                       const isSelected = selectedExampleIndex === index;
@@ -147,18 +147,18 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
                           }}
                           className={`w-full text-left p-3 rounded-lg border transition-colors ${
                             isSelected
-                              ? 'bg-blue-50 border-blue-200 ring-2 ring-blue-500'
-                              : 'bg-gray-50 hover:bg-gray-100 border-gray-200'
+                              ? 'bg-primary/5 border-primary/30 ring-2 ring-primary/50'
+                              : 'bg-muted hover:bg-muted/80 border-border'
                           }`}
                         >
                           <div className="font-medium text-sm">{example.name}</div>
                           {example.description && (
-                            <div className="text-xs text-gray-600 mt-1">
+                            <div className="text-xs text-muted-foreground mt-1">
                               {example.description}
                             </div>
                           )}
                           {isSelected && (
-                            <div className="text-xs text-blue-600 mt-1 font-medium">
+                            <div className="text-xs text-primary mt-1 font-medium">
                               ✓ Currently selected
                             </div>
                           )}
@@ -217,11 +217,11 @@ function PropsList({
       {/* Required Props */}
       {requiredProps.length > 0 && (
         <div>
-          <div className="bg-red-50 border-l-4 border-red-400 p-3 mb-4 rounded-r-lg">
-            <h4 className="text-lg font-bold text-red-800 flex items-center">
+          <div className="bg-destructive/10 border-l-4 border-destructive p-3 mb-4 rounded-r-lg">
+            <h4 className="text-lg font-bold text-destructive flex items-center">
               <span className="mr-2">🔴</span>
               Required Props
-              <span className="ml-3 text-sm bg-red-100 text-red-700 px-3 py-1 rounded-full font-medium">
+              <span className="ml-3 text-sm bg-destructive/10 text-destructive px-3 py-1 rounded-full font-medium">
                 {requiredProps.length}
               </span>
             </h4>
@@ -255,20 +255,20 @@ function PropsList({
       {/* Optional Props */}
       {optionalProps.length > 0 && (
         <div>
-          <div className="bg-blue-50 border-l-4 border-blue-400 p-3 mb-4 rounded-r-lg">
+          <div className="bg-primary/5 border-l-4 border-primary/40 p-3 mb-4 rounded-r-lg">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="text-lg font-bold text-blue-800 flex items-center">
+                <h4 className="text-lg font-bold text-primary flex items-center">
                   <span className="mr-2">🔵</span>
                   Optional Props
-                  <span className="ml-3 text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">
+                  <span className="ml-3 text-sm bg-primary/10 text-primary px-3 py-1 rounded-full font-medium">
                     {optionalProps.length}
                   </span>
                 </h4>
               </div>
               <button
                 onClick={onToggleOptionalProps}
-                className="flex items-center text-sm text-blue-700 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-3 py-1 rounded-lg transition-colors"
+                className="flex items-center text-sm text-primary hover:text-primary/90 bg-primary/10 hover:bg-primary/20 px-3 py-1 rounded-lg transition-colors"
                 title={showOptionalProps ? "Hide optional props" : "Show optional props"}
               >
                 {showOptionalProps ? (
@@ -349,7 +349,7 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
               name={`prop-${prop.name}`}
               checked={value || false}
               onChange={(e) => onChange(e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="rounded border-input text-primary focus:ring-primary"
             />
             <span className="ml-2 text-sm">{value ? 'true' : 'false'}</span>
           </label>
@@ -363,7 +363,7 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
             name={`prop-${prop.name}`}
             value={value || ''}
             onChange={(e) => onChange(e.target.value ? Number(e.target.value) : undefined)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background border-input text-foreground"
           />
         );
 
@@ -373,7 +373,7 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
           <select
             value={value || ''}
             onChange={(e) => onChange(e.target.value || undefined)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background border-input text-foreground"
           >
             <option value="">Select...</option>
             {prop.options?.map(option => (
@@ -394,7 +394,7 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
               data-testid={`prop-control-${prop.name}-color`}
               value={value || '#000000'}
               onChange={(e) => onChange(e.target.value)}
-              className="w-12 h-8 border border-gray-300 rounded"
+              className="w-12 h-8 border border-input rounded bg-background"
             />
             <input
               type="text"
@@ -404,7 +404,7 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
               value={value || ''}
               onChange={(e) => onChange(e.target.value || undefined)}
               placeholder="#000000"
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background border-input text-foreground"
             />
           </div>
         );
@@ -425,14 +425,14 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
 
         return (
           <div>
-            <div className="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg">
+            <div className="w-full p-3 bg-muted border border-input rounded-lg">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-700 font-mono">
+                <span className="text-sm text-muted-foreground font-mono">
                   {displayValue()}
                 </span>
                 <button
                   onClick={onToggleExpansion}
-                  className="text-xs text-blue-600 hover:text-blue-800"
+                  className="text-xs text-primary hover:text-primary/80"
                 >
                   {isExpanded ? 'Hide details' : 'Show details'}
                 </button>
@@ -440,7 +440,7 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
             </div>
             {isExpanded && (
               <div className="mt-2">
-                <div className="text-xs text-gray-500 mb-1">JSON Editor:</div>
+                <div className="text-xs text-muted-foreground mb-1">JSON Editor:</div>
                 <textarea
                   id={`prop-${prop.name}`}
                   name={`prop-${prop.name}`}
@@ -481,16 +481,16 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
                     }
                   }}
                   rows={6}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono text-sm ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono text-sm bg-background ${
                     jsonValidationError 
-                      ? 'border-red-300 focus:ring-red-500 bg-red-50' 
-                      : 'border-gray-300 focus:ring-blue-500'
+                      ? 'border-destructive focus:ring-destructive bg-destructive/10' 
+                      : 'border-input focus:ring-primary'
                   }`}
                   placeholder={prop.type === 'array' ? '[]' : '{}'}
                 />
                 {jsonValidationError && (
                   <div 
-                    className="mt-1 text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1"
+                    className="mt-1 text-xs text-destructive bg-destructive/10 border border-destructive/30 rounded px-2 py-1"
                     data-testid={`prop-control-${prop.name}-error`}
                   >
                     <span className="font-medium">Validation Error:</span> {jsonValidationError}
@@ -509,7 +509,7 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
             name={`prop-${prop.name}`}
             value={value || ''}
             onChange={(e) => onChange(e.target.value || undefined)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background border-input text-foreground"
             placeholder={prop.name === 'className' ? 'e.g. bg-blue-500 text-white p-4' : 'Enter value'}
           />
         );
@@ -522,31 +522,31 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
   return (
     <div className="space-y-2" data-testid={`prop-control-${prop.name}`}>
       <div className="flex items-center justify-between">
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-foreground">
           {prop.name}
-          {prop.required && <span className="text-red-500 ml-1">*</span>}
+          {prop.required && <span className="text-destructive ml-1">*</span>}
           {isClassNameProp && (
             <TooltipComponent
               trigger={
-                <span className="ml-2 text-xs text-cyan-600 bg-cyan-50 px-1 underline hover:no-underline rounded cursor-help">
+                <span className="ml-2 text-xs text-primary bg-primary/10 px-1 underline hover:no-underline rounded cursor-help">
                   Tailwind CSS
                 </span>
               }
               content={
-                <div className="space-y-3 bg-blue-50 p-2 rounded-lg border">
-                  <div className="flex items-center text-blue-700">
+                <div className="space-y-3 bg-primary/5 p-2 rounded-lg border border-primary/30">
+                  <div className="flex items-center text-primary">
                     <span className="mr-1">🎨</span>
                     <strong>Tailwind CSS Styling</strong>
                   </div>
-                  <div className="text-blue-600 space-y-2">
+                  <div className="text-primary space-y-2">
                     <p>This component uses <a href="https://tailwindcss.com" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:no-underline">Tailwind CSS</a> utility classes for styling.</p>
                     <div>
                       <p><strong>✅ Standard classes work:</strong></p>
-                      <code className="block bg-gray-100 px-2 py-1 rounded text-xs mt-1">bg-red-500 text-white p-4 w-full rounded-lg</code>
+                      <code className="block bg-muted px-2 py-1 rounded text-xs mt-1">bg-primary text-primary-foreground p-4 w-full rounded-lg</code>
                     </div>
                     <div>
                       <p><strong>✅ Predefined scales:</strong></p>
-                      <code className="block bg-gray-100 px-2 py-1 rounded text-xs mt-1">w-64 w-80 w-96 h-32 p-8 text-xl</code>
+                      <code className="block bg-muted px-2 py-1 rounded text-xs mt-1">w-64 w-80 w-96 h-32 p-8 text-xl</code>
                     </div>
                   </div>
                   <div className="bg-amber-50 border border-amber-200 rounded p-2 text-amber-700">
@@ -564,12 +564,12 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
           )}
         </label>
         <div className="flex items-center space-x-2">
-          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+          <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
             {prop.type}
           </span>
           {prop.description && (
             <InfoIcon 
-              className="w-4 h-4 text-gray-400 cursor-help" 
+              className="w-4 h-4 text-muted-foreground cursor-help" 
             />
           )}
         </div>
@@ -578,7 +578,7 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
       {renderControl()}
       
       {prop.defaultValue !== undefined && (
-        <div className="text-xs text-gray-500">
+        <div className="text-xs text-muted-foreground">
           Default: {String(prop.defaultValue)}
         </div>
       )}

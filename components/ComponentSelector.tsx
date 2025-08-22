@@ -48,9 +48,9 @@ export default function ComponentSelector({
   return (
     <div className="flex flex-col h-full">
       {/* Search */}
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-4 border-b border-border">
         <div className="relative">
-          <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <input
             id="component-search"
             name="component-search"
@@ -58,14 +58,14 @@ export default function ComponentSelector({
             placeholder="Search components..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background border-input text-foreground placeholder:text-muted-foreground"
           />
         </div>
         
         <div className="flex items-center justify-between mt-3 ml-2">
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center text-sm text-gray-600 hover:text-gray-900"
+            className="flex items-center text-sm text-muted-foreground hover:text-foreground"
           >
             <FilterIcon className="w-4 h-4 mr-1" />
             Filters
@@ -73,7 +73,7 @@ export default function ComponentSelector({
           {selectedTag && (
             <button
               onClick={() => setSelectedTag(null)}
-              className="text-sm text-blue-600 hover:text-blue-800"
+              className="text-sm text-primary hover:text-primary/80"
             >
               Clear filters
             </button>
@@ -89,13 +89,13 @@ export default function ComponentSelector({
                 onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
                 className={`w-full text-left px-3 py-2 rounded text-sm flex items-center ${
                   selectedTag === tag 
-                    ? 'bg-blue-100 text-blue-800' 
-                    : 'hover:bg-gray-100'
+                    ? 'bg-primary/10 text-primary' 
+                    : 'hover:bg-muted'
                 }`}
               >
-                <TagIcon className="w-4 h-4 mr-2 text-gray-500" />
+                <TagIcon className="w-4 h-4 mr-2 text-muted-foreground" />
                 {tag}
-                <span className="ml-auto text-xs text-gray-500">
+                <span className="ml-auto text-xs text-muted-foreground">
                   {tagCounts[tag] || 0}
                 </span>
               </button>
@@ -120,8 +120,8 @@ export default function ComponentSelector({
         </div>
         
         {filteredComponents.length === 0 && (
-          <div className="p-8 text-center text-gray-500">
-            <SearchIcon className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+          <div className="p-8 text-center text-muted-foreground">
+            <SearchIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
             <p>No components found</p>
             <p className="text-sm">Try adjusting your search or filters</p>
           </div>
@@ -143,37 +143,37 @@ function ComponentItem({ component, isSelected, onSelect }: ComponentItemProps) 
       onClick={() => onSelect(component)}
       className={`w-full overflow-hidden text-left p-3 rounded-lg border transition-colors ${
         isSelected 
-          ? 'bg-blue-50 border-blue-200 ring-2 ring-blue-500' 
-          : 'bg-white border-gray-200 hover:bg-gray-50'
+          ? 'bg-primary/5 border-primary/30 ring-2 ring-primary/50' 
+          : 'bg-card border-border hover:bg-muted'
       }`}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center">
-            <h4 className="font-medium text-gray-900">{component.name}</h4>
+            <h4 className="font-medium text-foreground">{component.name}</h4>
             {component.version && (
-              <span className="text-xs text-gray-500 ml-2">
+              <span className="text-xs text-muted-foreground ml-2">
                 v{component.version}
               </span>
             )}
           </div>
-          <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
             {component.description}
           </p>
           {component.tags && component.tags.length > 0 && (
             <div className="flex items-center mt-2 space-x-1">
-              <TagIcon className="w-3 h-3 text-gray-400" />
+              <TagIcon className="w-3 h-3 text-muted-foreground" />
               <div className="flex items-center flex-wrap gap-1">
                 {component.tags.slice(0, 3).map(tag => (
                   <span
                     key={tag}
-                    className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"
+                    className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded"
                   >
                     {tag}
                   </span>
                 ))}
                 {component.tags.length > 3 && (
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-muted-foreground">
                     +{component.tags.length - 3}
                   </span>
                 )}
