@@ -10,6 +10,10 @@ import { COMPONENTS_INDEX } from '@/lib/componentsIndex'
 import type { FullComponentInfo } from '@/lib/interfaces'
 import ImprovedDynamicComponent from '@/components/improved-dynamic-component'
 import indexJson from '@/components/display-components/index.json'
+import ComponentPreview from '@/components/component-preview'
+import { PageTransition } from '@/components/page-transition'
+import { ComponentNavigation } from '@/components/component-navigation'
+import { useRef } from 'react'
 
 export default function ComponentsPage() {
   const [components, setComponents] = useState<FullComponentInfo[]>(COMPONENTS_INDEX)
@@ -20,6 +24,7 @@ export default function ComponentsPage() {
     ? COMPONENTS_INDEX.find(c => c.id.toLowerCase() === componentParam.toLowerCase() || c.name.toLowerCase() === componentParam.toLowerCase())
     : undefined
   const blacklist = (indexJson.blacklist || []) as string[]
+  const navRef = useRef<HTMLDivElement | null>(null)
 
   if (selected) {
     if (blacklist.includes(selected.id)) {
@@ -35,7 +40,12 @@ export default function ComponentsPage() {
     return (
       <div className="container px-4 py-8">
         <div className="max-w-6xl mx-auto">
-          <ImprovedDynamicComponent componentId={selected.id} />
+          <div ref={navRef}>
+            <ComponentNavigation currentComponent={selected.id} />
+          </div>
+          <PageTransition>
+            <ImprovedDynamicComponent componentId={selected.id} navRef={navRef} />
+          </PageTransition>
         </div>
       </div>
     )
@@ -65,8 +75,8 @@ export default function ComponentsPage() {
                         {component.description}
                       </CardDescription>
                     </CardHeader>
-                    <CardContent>
-                      <div className="flex flex-wrap gap-1 mb-3">
+                    <CardContent className="flex flex-col gap-y-3">
+                      <div className="flex flex-wrap gap-1">
                         {component.tags?.slice(0, 3).map((tag) => (
                           <Badge key={tag} variant="secondary" className="text-xs">
                             {tag}
@@ -77,6 +87,9 @@ export default function ComponentsPage() {
                             +{component.tags.length - 3}
                           </Badge>
                         )}
+                      </div>
+                      <div className="h-28 border rounded-md flex items-center justify-center bg-muted/30">
+                        <ComponentPreview componentId={component.preview} context="carousel" />
                       </div>
                       <div className="text-xs text-muted-foreground">
                         Version {component.version} • by {component.author}

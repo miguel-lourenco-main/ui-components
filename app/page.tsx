@@ -1,12 +1,15 @@
 import Link from "next/link"
 import dynamic from "next/dynamic"
-const PopularComponentsGrid = dynamic(() => import('@/components/PopularComponentsGrid'), { ssr: false })
 import { ArrowRight, Code, Palette, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
+import { PopularComponentsGridSkeleton } from "@/components/PopularComponentsGrid"
+
+const PopularComponentsGrid = dynamic(() => import('@/components/PopularComponentsGrid'), { ssr: false, loading: () => <PopularComponentsGridSkeleton /> })
+
 
 export default function HomePage() {
   return (
@@ -97,7 +100,7 @@ export default function HomePage() {
 
             <div className="text-center mt-12">
               <Button size="lg" variant="outline" asChild>
-                <Link href="/display-components">View All Components <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                <Link href="/components">View All Components <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
             </div>
           </div>

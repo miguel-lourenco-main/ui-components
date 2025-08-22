@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Copy, Check, AlertCircle, RefreshCw, Pencil } from "lucide-react"
 import { CodeBlock } from "@/components/code-block"
-import { ComponentNavigation } from "@/components/component-navigation"
 import { ComponentThemeList } from "@/components/component-theme-list"
 import { ComponentSidebar } from "@/components/component-sidebar"
 import { SectionHeader } from "@/components/section-header"
@@ -17,13 +16,13 @@ import { ComponentPreview } from "@/components/component-preview"
 
 interface ImprovedDynamicComponentProps {
   componentId: string
+  navRef: React.RefObject<HTMLDivElement>
 }
 
-export default function ImprovedDynamicComponent({ componentId }: ImprovedDynamicComponentProps) {
+export default function ImprovedDynamicComponent({ componentId, navRef }: ImprovedDynamicComponentProps) {
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
   const [showStickySidebar, setShowStickySidebar] = useState(false)
   const [tocPosition, setTocPosition] = useState<'absolute' | 'fixed'>('absolute')
-  const navRef = useRef<HTMLDivElement | null>(null)
   const tocRef = useRef<HTMLDivElement | null>(null)
   const [variantRevealMap, setVariantRevealMap] = useState<Record<string, boolean>>({})
   
@@ -70,7 +69,7 @@ export default function ImprovedDynamicComponent({ componentId }: ImprovedDynami
 
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [tocPosition])
+  }, [tocPosition, navRef])
 
   // IntersectionObserver to toggle sidebar when the top carousel is fully gone
   useEffect(() => {
@@ -87,7 +86,7 @@ export default function ImprovedDynamicComponent({ componentId }: ImprovedDynami
     )
     observer.observe(target)
     return () => observer.disconnect()
-  }, [])
+  }, [navRef])
 
   // Error component for individual sections
   const ErrorSection = ({ 
@@ -128,11 +127,6 @@ export default function ImprovedDynamicComponent({ componentId }: ImprovedDynami
   return (
     <div className="container px-4 py-8">
       <div className="relative max-w-6xl mx-auto">
-        {/* Component Navigation (observed for sidebar visibility) */}
-        <div ref={navRef}>
-          <ComponentNavigation currentComponent={componentId} />
-        </div>
-
         <div className="mb-8">
           {/* Header Section */}
           {loading.meta ? (

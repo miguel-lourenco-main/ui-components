@@ -18,7 +18,7 @@ function generateComponentNavigation() {
   
   return filteredComponents.map(component => ({
     name: component.name || component.id.charAt(0).toUpperCase() + component.id.slice(1).replace('-', ' '),
-    href: `/components/${component.id}`,
+    href: `/components/?component=${component.id}`,
     id: component.id,
     preview: component.id
   }));

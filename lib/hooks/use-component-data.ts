@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ComponentMeta, ComponentVariant } from '@/lib/componentTypes'
 import indexJson from '@/components/display-components/index.json'
 import { COMPONENTS_INDEX } from '@/lib/componentsIndex'
@@ -25,6 +25,9 @@ interface ComponentDataState {
 }
 
 export function useComponentData(componentId: string) {
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const prevComponentIdRef = useRef<string>();
+
   const [state, setState] = useState<ComponentDataState>({
     meta: null,
     componentCode: null,
@@ -306,6 +309,21 @@ export function useComponentData(componentId: string) {
     loadThemes()
   }, [componentId])
 
+  useEffect(() => {
+    if (prevComponentIdRef.current && prevComponentIdRef.current !== componentId) {
+      setIsTransitioning(true);
+      const timer = setTimeout(() => {
+          setIsTransitioning(false);
+      }, 400);
+
+      return () => clearTimeout(timer);
+    }
+  }, [componentId]);
+
+  useEffect(() => {
+    prevComponentIdRef.current = componentId;
+  });
+
   // Utility functions for retrying individual data loads
   const retry = {
     meta: loadMeta,
@@ -320,8 +338,16 @@ export function useComponentData(componentId: string) {
   // Helper to check if any data has errors
   const hasErrors = Object.values(state.errors).some(Boolean)
 
+  const combinedLoading = {
+    meta: isTransitioning || state.loading.meta,
+    componentCode: isTransitioning || state.loading.componentCode,
+    variants: isTransitioning || state.loading.variants,
+    themes: isTransitioning || state.loading.themes,
+  };
+
   return {
     ...state,
+    loading: combinedLoading,
     retry,
     isAllLoaded,
     hasErrors,
