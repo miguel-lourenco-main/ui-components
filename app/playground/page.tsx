@@ -87,7 +87,7 @@ export default function PlaygroundPage() {
   } = useLocalComponentState();
 
   const propsPanelRef = useRef<ImperativePanelHandle | null>(null);
-  const [propsCollapsed, setPropsCollapsed] = useState<boolean>(false);
+  const propsOpen = playgroundState.showProps;
 
   const searchParams = useSearchParams();
 
@@ -102,9 +102,18 @@ export default function PlaygroundPage() {
     );
     if (!target) return;
     const exIdx = exampleParam ? Math.max(0, parseInt(exampleParam, 10) || 0) : 0;
+    // Avoid redundant reselection that can cause remounts/state resets
+    if (playgroundState.selectedComponent?.id === target.id && selectedExampleIndex === exIdx) return;
     selectComponent(target, exIdx);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [components, searchParams]);
+
+  // Keep the resizable panel in sync with the single source of truth
+  useEffect(() => {
+    const ref = propsPanelRef.current;
+    if (!ref) return;
+    if (propsOpen) ref.expand?.(); else ref.collapse?.();
+  }, [propsOpen]);
 
   const [monacoStatus, setMonacoStatus] = useState(() => getMonacoPreloadStatus());
   useEffect(() => {
@@ -250,33 +259,24 @@ export default function PlaygroundPage() {
               <ResizableHandle withHandle />
               <ResizablePanel
                 ref={propsPanelRef}
-                key={`props-panel-${playgroundState.selectedComponent.name}`}
-                defaultSize={playgroundState.showProps ? 25 : 3}
+                defaultSize={propsOpen ? 25 : 3}
                 minSize={3}
                 collapsible
                 collapsedSize={3}
                 className="bg-card border-l border-border"
               >
                 <div className="h-full flex flex-col" data-testid="props-panel">
-                  <div className="p-2 border-b border-border flex items-center justify-between flex-shrink-0">
-                    <h3 className={`font-semibold transition-opacity ${propsCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>Props</h3>
+                  <div className={`p-2 border-b border-border flex items-center flex-shrink-0 ${propsOpen ? ' pl-4 justify-between' : 'justify-end'}`}>
+                    <h3 className={`font-semibold transition-opacity ${propsOpen ? '' : 'hidden'}`}>Props</h3>
                     <button
-                      onClick={() => {
-                        if (propsPanelRef.current?.isCollapsed()) {
-                          propsPanelRef.current?.expand();
-                          setPropsCollapsed(false);
-                        } else {
-                          propsPanelRef.current?.collapse();
-                          setPropsCollapsed(true);
-                        }
-                      }}
-                      className={`p-1.5 rounded transition-colors duration-200 ${propsCollapsed ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}
-                      title={`${propsCollapsed ? 'Expand' : 'Minimize'} Props Panel`}
+                      onClick={togglePropsPanel}
+                      className={`p-1.5 rounded transition-colors duration-200 ${propsOpen ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-primary'}`}
+                      title={`${propsOpen ? 'Minimize' : 'Expand'} Props Panel`}
                     >
-                      {propsCollapsed ? <EyeIcon className="w-4 h-4" /> : <EyeOffIcon className="w-4 h-4" />}
+                      {propsOpen ? <EyeOffIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
                     </button>
                   </div>
-                  <div className={`flex-1 overflow-hidden ${propsCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                  <div className={`flex-1 overflow-hidden ${propsOpen ? '' : 'hidden'}`}>
                     <PropsPanel
                       component={playgroundState.selectedComponent}
                       values={playgroundState.currentProps}
