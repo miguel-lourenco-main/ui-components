@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { themes } from "@/lib/themes"
 import ThemedPreviewSurface from "@/components/themed-preview-surface"
-import { ComponentPreview } from "@/components/component-preview"
 import { SectionHeader } from "@/components/section-header"
 import { Palette } from "lucide-react"
 import { ComponentType } from "@/lib/componentTypes"
@@ -24,7 +23,7 @@ export function ComponentThemeList({ componentType, componentName }: ComponentTh
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {themes.map((theme) => (
-          <Link key={theme.id} href={`/themes/${theme.id}?component=${componentType}`}>
+          <Link key={theme.id} href={`/themes?theme=${theme.id}`}>
             <Card className="hover:shadow-md transition-all duration-200 cursor-pointer group">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm group-hover:text-primary transition-colors flex items-center justify-between">
@@ -37,9 +36,12 @@ export function ComponentThemeList({ componentType, componentName }: ComponentTh
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="h-32 border rounded-md flex items-center justify-center mb-1">
-                  <ComponentPreview componentId={componentType} context="themes" themeId={theme.id} />
-                </div>
+                <ThemedPreviewSurface
+                  themeId={theme.id}
+                  component={componentType}
+                  size="large"
+                  showModeToggle={false}
+                />
                 <div className="flex gap-1">
                   <Badge variant="outline" className="text-xs">
                     {theme.styles.borderRadius}

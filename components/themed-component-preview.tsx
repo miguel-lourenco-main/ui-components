@@ -1,6 +1,10 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Slider } from "@/components/ui/slider"
+import { Switch } from "@/components/ui/switch"
+import { Textarea } from "@/components/ui/textarea"
+import { Toggle } from "@/components/ui/toggle"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { getTheme } from "@/lib/themes"
@@ -8,7 +12,18 @@ import { cn } from "@/lib/utils"
 
 interface ThemedComponentPreviewProps {
   themeId: string
-  component: "button" | "card" | "form" | "alert" | "badge" | "mixed"
+  component:
+    | "button"
+    | "card"
+    | "input"
+    | "slider"
+    | "switch"
+    | "textarea"
+    | "toggle"
+    | "form"
+    | "alert"
+    | "badge"
+    | "mixed"
   size?: "small" | "medium" | "large"
   mode?: "light" | "dark"
   seamless?: boolean
@@ -78,6 +93,41 @@ export function ThemedComponentPreview({
               <div className="h-1 bg-current opacity-15 rounded w-3/4"></div>
             </CardContent>
           </Card>
+        )
+
+      case "input":
+        return (
+          <div className={`space-y-2 ${getScale()} origin-center`}>
+            <Input placeholder="Input" className={cn("h-7 text-xs w-24", themeComponents.form?.input || "")} />
+          </div>
+        )
+
+      case "slider":
+        return (
+          <div className={`w-28 ${getScale()} origin-center`}>
+            <Slider defaultValue={[50]} max={100} step={1} />
+          </div>
+        )
+
+      case "switch":
+        return (
+          <div className={`flex items-center ${getScale()} origin-center`}>
+            <Switch defaultChecked />
+          </div>
+        )
+
+      case "textarea":
+        return (
+          <div className={`space-y-2 ${getScale()} origin-center`}>
+            <Textarea placeholder="Message" className={cn("h-12 text-xs w-28", themeComponents.form?.input || "")} />
+          </div>
+        )
+
+      case "toggle":
+        return (
+          <div className={`flex gap-2 ${getScale()} origin-center`}>
+            <Toggle size="sm">Toggle</Toggle>
+          </div>
         )
 
       case "form":

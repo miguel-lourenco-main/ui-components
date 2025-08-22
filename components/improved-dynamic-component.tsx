@@ -43,13 +43,6 @@ export default function ImprovedDynamicComponent({ componentId, navRef }: Improv
     setTimeout(() => setCopiedCode(null), 2000)
   }
 
-  const toggleVariantReveal = (id: string) => {
-    setVariantRevealMap((prev) => ({ ...prev, [id]: !prev[id] }))
-  }
-
-  // (Props panel removed)
-
-  // Scroll handler for TOC positioning
   useEffect(() => {
     const handleScroll = () => {
       if (!navRef.current || !tocRef.current) return

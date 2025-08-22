@@ -599,9 +599,11 @@ export function getTheme(themeId: string): Theme | undefined {
   return themes.find((theme) => theme.id === themeId)
 }
 
+type ThemeComponentKey = keyof Theme["components"]["light"]
+
 export function getThemeClasses(
   themeId: string,
-  component: Exclude<import("@/lib/componentTypes").ComponentType, "mixed">,
+  component: ThemeComponentKey,
   variant = "primary",
   mode: "light" | "dark" = "light",
 ): string {

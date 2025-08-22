@@ -1,4 +1,15 @@
-export type ComponentType = "button" | "card" | "form" | "alert" | "badge" | "mixed"
+export type ComponentType =
+  | "button"
+  | "card"
+  | "input"
+  | "slider"
+  | "switch"
+  | "textarea"
+  | "toggle"
+  | "form"
+  | "alert"
+  | "badge"
+  | "mixed"
 
 export interface ComponentMeta {
   id: string;

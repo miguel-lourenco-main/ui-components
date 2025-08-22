@@ -180,14 +180,7 @@ export function useComponentData(componentId: string) {
           variants = examplesModule.cardVariants || null
         } else if (componentId === 'input') {
           const examplesModule = await import('@/components/display-components/forms/Input/Input.examples')
-          variants = examplesModule.inputVariants || (examplesModule.inputExamples || []).map((ex: any, idx: number) => ({
-            id: `ex-${idx}`,
-            name: ex.name,
-            description: ex.description || '',
-            theme: 'modern',
-            preview: null,
-            code: ex.code || ''
-          }))
+          variants = examplesModule.inputVariants || null
         } else if (componentId === 'slider') {
           const examplesModule = await import('@/components/display-components/forms/Slider/Slider.examples')
           variants = examplesModule.sliderVariants || (examplesModule.sliderExamples || []).map((ex: any, idx: number) => ({
