@@ -83,6 +83,9 @@ export interface Theme {
   }
 }
 
+export type ThemeMode = "light" | "dark"
+export type ThemeComponentKey = keyof Theme["components"]["light"]
+
 export const themes: Theme[] = [
   {
     id: "minimal",
@@ -599,21 +602,14 @@ export function getTheme(themeId: string): Theme | undefined {
   return themes.find((theme) => theme.id === themeId)
 }
 
-type ThemeComponentKey = keyof Theme["components"]["light"]
-
 export function getThemeClasses(
   themeId: string,
   component: ThemeComponentKey,
   variant = "primary",
-  mode: "light" | "dark" = "light",
+  mode: ThemeMode = "light",
 ): string {
-  const theme = getTheme(themeId)
-  if (!theme) return ""
-
-  // Both light and dark share the same component keys; pick from 'light' for typing
-  const componentKey: keyof Theme["components"]["light"] = component
-  const componentStyles = theme.components[mode][componentKey] as Record<string, string>
-  if (!componentStyles) return ""
-
-  return componentStyles[variant] || ""
+  const componentStyles = getTheme(themeId)?.components[mode]?.[component] as
+    | Record<string, string>
+    | undefined
+  return componentStyles?.[variant] ?? ""
 }

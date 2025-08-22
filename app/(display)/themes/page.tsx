@@ -126,34 +126,39 @@ export default function ThemesPage() {
                 return uniqueOrdered.map((id: string) => ({ id, name: componentMap[id] }))
               }
             )().map((componentType) => (
-              <Card key={componentType.id}>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    {componentType.name}
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span>{selectedTheme.name}</span>
-                      <span>•</span>
-                      <span className="flex items-center">
-                        {colorMode === "light" ? <Sun className="h-3 w-3 mr-1" /> : <Moon className="h-3 w-3 mr-1" />}
-                        {colorMode}
-                      </span>
-                    </div>
-                  </CardTitle>
-                  <CardDescription>
-                    {componentType.name} styled with the {selectedTheme.name} theme in {colorMode} mode
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ThemedPreviewSurface
-                    themeId={selectedTheme.id}
-                    component={componentType.id as any}
-                    size="large"
-                    mode={colorMode}
-                    showModeToggle={false}
-                    surfaceClassName="p-8"
-                  />
-                </CardContent>
-              </Card>
+              <Link href={`/components/?component=${componentType.id}`}>
+                <Card
+                  key={componentType.id}
+                  className={`transition-all duration-200 cursor-pointer group hover:shadow-lg dark:hover:shadow-[0_14px_24px_-6px_rgba(255,255,255,0.18),_0_6px_10px_-4px_rgba(255,255,255,0.12),_0_0_0_1px_rgba(255,255,255,0.06)]`}
+                >
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      {componentType.name}
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span>{selectedTheme.name}</span>
+                        <span>•</span>
+                        <span className="flex items-center">
+                          {colorMode === "light" ? <Sun className="h-3 w-3 mr-1" /> : <Moon className="h-3 w-3 mr-1" />}
+                          {colorMode}
+                        </span>
+                      </div>
+                    </CardTitle>
+                    <CardDescription>
+                      {componentType.name} styled with the {selectedTheme.name} theme in {colorMode} mode
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ThemedPreviewSurface
+                        themeId={selectedTheme.id}
+                        component={componentType.id as any}
+                        size="large"
+                        mode={colorMode}
+                        showModeToggle={false}
+                        surfaceClassName="p-8"
+                      />
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
 
@@ -266,7 +271,9 @@ export default function ThemesPage() {
               const cssVars = computeThemeCssVars(theme, localMode)
               return (
               <Link key={theme.id} href={`/themes?theme=${theme.id}`}>
-                <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer group">
+                <Card
+                  className={`transition-all duration-200 cursor-pointer group hover:shadow-lg dark:hover:shadow-[0_14px_24px_-6px_rgba(255,255,255,0.18),_0_6px_10px_-4px_rgba(255,255,255,0.12),_0_0_0_1px_rgba(255,255,255,0.06)]`}
+                >
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="group-hover:text-primary transition-colors flex items-center gap-2">
