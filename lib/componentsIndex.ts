@@ -3,6 +3,14 @@ import indexJsonInfo from '@/components/display-components/index.json';
 import { FullComponentInfo } from './interfaces';
 import { ComponentMetadata } from './types';
 
+// Normalize meta prop types (e.g., "number[]") to internal PropType values used by the PropsPanel
+function normalizePropType(type: string) {
+  if (!type) return 'string';
+  // Treat any array-like meta type as an array so the PropsPanel renders a JSON editor
+  if (typeof type === 'string' && type.endsWith('[]')) return 'array';
+  return type;
+}
+
 const getComponentsIndex = (): FullComponentInfo[] => {
   const info = indexJsonInfo.components.filter((component) => !indexJsonInfo.blacklist.includes(component.id));
 
@@ -30,7 +38,9 @@ const getComponentsIndex = (): FullComponentInfo[] => {
       id: component.id,
       name: component.name,
       description: meta.description || '',
-      props: (meta as any).props || [],
+      props: (meta as any).props
+        ? (meta as any).props.map((p: any) => ({ ...p, type: normalizePropType(p.type) }))
+        : [],
       tags: meta.tags || [],
       version: meta.version || '1.0.0',
       author: meta.author || 'Unknown',

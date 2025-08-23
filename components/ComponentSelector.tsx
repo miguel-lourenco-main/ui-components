@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import { FullComponentInfo } from '@/lib/interfaces';
-import { SearchIcon, FilterIcon, TagIcon } from 'lucide-react';
+import { SearchIcon, FilterIcon, TagIcon, X } from 'lucide-react';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
 
 interface ComponentSelectorProps {
   components: FullComponentInfo[];
@@ -49,35 +51,35 @@ export default function ComponentSelector({
     <div className="flex flex-col h-full">
       {/* Search */}
       <div className="p-4 border-b border-border">
-        <div className="relative">
-          <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-          <input
+        <div className="flex items-center justify-between">
+          <Input
             id="component-search"
             name="component-search"
             type="text"
+            icon={<SearchIcon className="w-4 h-4 mr-1" />}
             placeholder="Search components..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background border-input text-foreground placeholder:text-muted-foreground"
           />
-        </div>
-        
-        <div className="flex items-center justify-between mt-3 ml-2">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center text-sm text-muted-foreground hover:text-foreground"
-          >
-            <FilterIcon className="w-4 h-4 mr-1" />
-            Filters
-          </button>
-          {selectedTag && (
-            <button
-              onClick={() => setSelectedTag(null)}
-              className="text-sm text-primary hover:text-primary/80"
+          <div className="flex items-center justify-between ml-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center text-sm text-muted-foreground hover:text-foreground"
             >
-              Clear filters
-            </button>
-          )}
+              <FilterIcon className="w-4 h-4 mr-1" />
+            </Button>
+            {selectedTag && (
+              <Button
+                variant="outline"
+                onClick={() => setSelectedTag(null)}
+                className="text-sm text-primary hover:text-primary/80"
+              >
+                <X className="w-4 h-4 mr-1" />
+              </Button>
+            )}
+          </div>
         </div>
         
         {/* Tag Filters */}

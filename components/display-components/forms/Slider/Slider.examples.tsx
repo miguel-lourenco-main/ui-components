@@ -23,10 +23,10 @@ export const sliderVariants = [
     theme: 'modern',
     preview: (
       <div className="w-full max-w-md">
-        <Slider defaultValue={[50]} min={0} max={100} step={1} />
+        <Slider defaultValue={[50]} min={0} max={100} step={1} value={[50]} />
       </div>
     ),
-    code: `<Slider defaultValue={[50]} min={0} max={100} step={1} />`,
+    code: `<Slider defaultValue={[50]} min={0} max={100} step={1} value={[50]} />`,
   },
   {
     id: 'stepped',

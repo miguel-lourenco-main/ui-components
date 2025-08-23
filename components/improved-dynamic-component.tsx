@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Copy, Check, AlertCircle, RefreshCw, Pencil } from "lucide-react"
+import { Copy, Check, AlertCircle, RefreshCw, Pencil, Play } from "lucide-react"
 import { CodeBlock } from "@/components/code-block"
 import { ComponentThemeList } from "@/components/component-theme-list"
 import { ComponentSidebar } from "@/components/component-sidebar"
@@ -13,6 +13,8 @@ import { useComponentData } from "@/lib/hooks/use-component-data"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ComponentType } from "@/lib/componentTypes"
 import { ComponentPreview } from "@/components/component-preview"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 interface ImprovedDynamicComponentProps {
   componentId: string
@@ -36,6 +38,8 @@ export default function ImprovedDynamicComponent({ componentId, navRef }: Improv
     retry,
     isAllLoaded
   } = useComponentData(componentId)
+
+  const router = useRouter()
 
   const copyCode = async (code: string, id: string) => {
     await navigator.clipboard.writeText(code)
@@ -115,8 +119,6 @@ export default function ImprovedDynamicComponent({ componentId, navRef }: Improv
     <div className={`animate-pulse bg-gray-200 rounded ${className}`} />
   )
 
-  console.log(variants)
-
   return (
     <div className="container px-4 py-8">
       <div className="relative max-w-6xl mx-auto">
@@ -140,7 +142,15 @@ export default function ImprovedDynamicComponent({ componentId, navRef }: Improv
             />
           ) : meta ? (
             <>
-              <h1 className="text-4xl font-bold mb-4">{meta.name}</h1>
+              <div className="flex w-full justify-between items-center gap-2">
+                <h1 className="text-4xl font-bold mb-4">{meta.name}</h1>
+                <Button variant="secondary" size="sm" onClick={() => {
+                  router.push(`/playground?component=${componentId}&example=0`)
+                }}>
+                  <Play className="h-4 w-4" />
+                  Open in Playground
+                </Button>
+              </div>
               <p className="text-xl text-muted-foreground mb-6">{meta.description}</p>
 
               {/* Component Metadata */}
@@ -297,13 +307,6 @@ export default function ImprovedDynamicComponent({ componentId, navRef }: Improv
             />
           )}
         </div>
-      </div>
-      <div className="max-w-6xl mx-auto mt-6">
-        <Button asChild variant="outline">
-          <a href={`/playground?component=${componentId}&example=0`}>
-            Open in Playground
-          </a>
-        </Button>
       </div>
       {/* Sticky sidebar that shows after carousel disappears */}
       <div

@@ -4,6 +4,7 @@ import { CodeIcon } from 'lucide-react';
 import { Component, FullComponentInfo } from '@/lib/interfaces';
 import Button from '@/components/display-components/buttons/Button/Button';
 import { GitLabIconSingle } from '@/lib/icons';
+import { BASE_REPO_URL } from '@/lib/constants';
 
 interface CodeButtonsProps {
   component: Component | FullComponentInfo;
@@ -15,9 +16,9 @@ export default function CodeButtons({ component, showCode, onToggleCode }: CodeB
 
   const getGitLabUrl = (component: Component | FullComponentInfo) => {
     // Base GitLab repository URL - you can make this configurable
-    const baseRepoUrl = 'https://gitlab.com/personal1625516/ui-components';
     
-   return baseRepoUrl;
+    
+   return BASE_REPO_URL;
   };
 
   const handleGitLabClick = () => {
@@ -44,7 +45,7 @@ export default function CodeButtons({ component, showCode, onToggleCode }: CodeB
         title="View on GitLab"
       >
         <GitLabIconSingle />
-        <span className="text-sm font-medium [@media(max-width:1300px)]:hidden block">
+        <span className="text-sm text-black font-medium [@media(max-width:1300px)]:hidden block">
           GitLab
         </span>
       </Button>

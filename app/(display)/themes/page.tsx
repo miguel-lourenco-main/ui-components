@@ -83,21 +83,47 @@ export default function ThemesPage() {
 
           <Card className="mb-8">
             <CardHeader>
-              <CardTitle>Color Palette - {colorMode === "light" ? "Light" : "Dark"} Mode</CardTitle>
+              <CardTitle>Color Palettes</CardTitle>
               <CardDescription>The color scheme used throughout this theme</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-                {Object.entries(selectedTheme.colors[colorMode]).map(([name, color]) => (
-                  <div key={name} className="text-center">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {(["light", "dark"] as const).map((mode) => {
+                  const isSelected = colorMode === mode
+                  return (
                     <div
-                      className="w-16 h-16 rounded-lg border-2 border-white shadow-sm mx-auto mb-2"
-                      style={{ backgroundColor: color }}
-                    ></div>
-                    <p className="text-sm font-medium capitalize">{name}</p>
-                    <p className="text-xs text-muted-foreground font-mono">{color}</p>
-                  </div>
-                ))}
+                      key={mode}
+                      className={`relative rounded-lg border p-4 transition-all duration-300 transform ${
+                        isSelected
+                          ? "ring-2 ring-primary shadow-xl scale-105"
+                          : "scale-100"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-semibold flex items-center gap-2">
+                          {mode === "light" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                          {mode.charAt(0).toUpperCase() + mode.slice(1)} Mode
+                        </h3>
+                        {isSelected && <Badge variant="secondary">Selected</Badge>}
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                        {Object.entries(selectedTheme.colors[mode]).map(([name, color]) => (
+                          <div key={name} className="text-center">
+                            <div
+                              className="w-16 h-16 rounded-lg border-2 border-white shadow-sm mx-auto mb-2"
+                              style={{ backgroundColor: color }}
+                            ></div>
+                            <p className="text-sm font-medium capitalize">{name}</p>
+                            <p className="text-xs text-muted-foreground font-mono">{color}</p>
+                          </div>
+                        ))}
+                      </div>
+                      {!isSelected && (
+                        <div className="pointer-events-none absolute inset-0 rounded-lg bg-white/50 dark:bg-black/50" />
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </CardContent>
           </Card>
@@ -192,7 +218,10 @@ export default function ThemesPage() {
     <div className="container px-4 py-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Design Themes</h1>
+          <div className="flex w-full items-center justify-center mb-4 space-x-2">
+            <Palette className="h-6 w-6" />
+            <h1 className="text-4xl font-bold">Design Themes</h1>
+          </div>
           <p className="text-xl text-muted-foreground mb-8">
             Explore consistent design themes that span across all components
           </p>

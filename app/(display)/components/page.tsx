@@ -14,6 +14,7 @@ import ComponentPreview from '@/components/component-preview'
 import { PageTransition } from '@/components/page-transition'
 import { ComponentNavigation } from '@/components/component-navigation'
 import { useRef } from 'react'
+import { Blocks } from 'lucide-react'
 
 export default function ComponentsPage() {
   const [components, setComponents] = useState<FullComponentInfo[]>(COMPONENTS_INDEX)
@@ -55,7 +56,10 @@ export default function ComponentsPage() {
     <div className="container px-4 py-8">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Component Library</h1>
+          <div className="flex w-full items-center justify-center mb-4 space-x-2">
+            <Blocks className="h-6 w-6" />
+            <h1 className="text-4xl font-bold">Component Library</h1>
+          </div>
           <p className="text-xl text-muted-foreground mb-8">
             Browse our collection of beautifully designed components
           </p>

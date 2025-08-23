@@ -15,12 +15,14 @@ import FunctionPropEditor from './FunctionPropEditor';
 interface PropsPanelProps {
   component: Component | FullComponentInfo;
   values: Record<string, any>;
+  propsOpen: boolean;
+  togglePropsPanel: () => void;
   onChange: (values: Record<string, any>) => void;
   onSelectExample?: (exampleIndex: number) => void;
   selectedExampleIndex?: number;
 }
 
-export default function PropsPanel({ component, values, onChange, onSelectExample, selectedExampleIndex = -1 }: PropsPanelProps) {
+export default function PropsPanel({ component, values, propsOpen, togglePropsPanel, onChange, onSelectExample, selectedExampleIndex = -1 }: PropsPanelProps) {
   const [expandedProps, setExpandedProps] = useState<Set<string>>(new Set());
   const [showOptionalProps, setShowOptionalProps] = useState<boolean>(true);
 
@@ -80,20 +82,43 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
 
   const hasExamples = component.examples && component.examples.length > 0;
 
+  if (!propsOpen) {
+    return (
+      <div className="h-full flex flex-col pt-2 items-center">
+        <button
+          onClick={togglePropsPanel}
+          className={`p-1.5 size-fit rounded transition-colors duration-200 text-muted-foreground hover:text-foreground`}
+          title={`Expand Props Panel`}
+        >
+          <EyeIcon className="size-6" />
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-border">
+      <div className="p-3 border-b border-border">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-semibold">Props Configuration</h3>
-          <button
-            onClick={resetToDefaults}
-            className="flex items-center text-sm text-muted-foreground hover:text-foreground"
-            title="Reset to defaults"
-          >
-            <RefreshCwIcon className="w-4 h-4 mr-1" />
-            Reset
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={resetToDefaults}
+              className="flex items-center text-sm text-muted-foreground hover:text-foreground"
+              title="Reset to defaults"
+            >
+              <RefreshCwIcon className="size-5 mr-1" />
+              Reset
+            </button>
+            <button
+              onClick={togglePropsPanel}
+              className={`p-1.5 rounded transition-colors duration-200 text-muted-foreground hover:text-foreground`}
+              title={`Minimize Props Panel`}
+            >
+              <EyeOffIcon className="size-5" />
+            </button>
+          </div>
         </div>
         
         <div className="flex items-center justify-start text-sm text-muted-foreground">
@@ -411,91 +436,63 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
 
       case 'array':
       case 'object':
-        const displayValue = () => {
-          if (!value) return `${prop.type === 'array' ? '[]' : '{}'}`;
-          if (Array.isArray(value)) {
-            return `Array (${value.length} items)`;
-          }
-          if (typeof value === 'object') {
-            const keys = Object.keys(value);
-            return `Object (${keys.length} properties)`;
-          }
-          return String(value);
-        };
 
         return (
-          <div>
-            <div className="w-full p-3 bg-muted border border-input rounded-lg">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground font-mono">
-                  {displayValue()}
-                </span>
-                <button
-                  onClick={onToggleExpansion}
-                  className="text-xs text-primary hover:text-primary/80"
-                >
-                  {isExpanded ? 'Hide details' : 'Show details'}
-                </button>
-              </div>
-            </div>
-            {isExpanded && (
-              <div className="mt-2">
-                <div className="text-xs text-muted-foreground mb-1">JSON Editor:</div>
-                <textarea
-                  id={`prop-${prop.name}`}
-                  name={`prop-${prop.name}`}
-                  value={jsonTextValue}
-                  onChange={(e) => {
-                    const newValue = e.target.value;
-                    setJsonTextValue(newValue);
-                    
-                    // Clear previous validation error
-                    setJsonValidationError(null);
-                    
-                    // If empty, set to undefined and return
-                    if (!newValue.trim()) {
-                      onChange(undefined);
-                      return;
-                    }
-                    
-                    // Validate JSON
-                    try {
-                      const parsed = JSON.parse(newValue);
-                      
-                      // Type-specific validation
-                      if (prop.type === 'array' && !Array.isArray(parsed)) {
-                        setJsonValidationError('Expected an array, but got ' + typeof parsed);
-                        return;
-                      }
-                      
-                      if (prop.type === 'object' && (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed))) {
-                        setJsonValidationError('Expected an object, but got ' + (Array.isArray(parsed) ? 'array' : typeof parsed));
-                        return;
-                      }
-                      
-                      // Valid JSON and correct type
-                      onChange(parsed);
-                    } catch (error) {
-                      const errorMessage = error instanceof Error ? error.message : 'Invalid JSON format';
-                      setJsonValidationError(errorMessage);
-                    }
-                  }}
-                  rows={6}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono text-sm bg-background ${
-                    jsonValidationError 
-                      ? 'border-destructive focus:ring-destructive bg-destructive/10' 
-                      : 'border-input focus:ring-primary'
-                  }`}
-                  placeholder={prop.type === 'array' ? '[]' : '{}'}
-                />
-                {jsonValidationError && (
-                  <div 
-                    className="mt-1 text-xs text-destructive bg-destructive/10 border border-destructive/30 rounded px-2 py-1"
-                    data-testid={`prop-control-${prop.name}-error`}
-                  >
-                    <span className="font-medium">Validation Error:</span> {jsonValidationError}
-                  </div>
-                )}
+          <div className="mt-2">
+            <div className="text-xs text-muted-foreground mb-1">JSON Editor:</div>
+            <textarea
+              id={`prop-${prop.name}`}
+              name={`prop-${prop.name}`}
+              value={jsonTextValue}
+              onChange={(e) => {
+                const newValue = e.target.value;
+                setJsonTextValue(newValue);
+                
+                // Clear previous validation error
+                setJsonValidationError(null);
+                
+                // If empty, set to undefined and return
+                if (!newValue.trim()) {
+                  onChange(undefined);
+                  return;
+                }
+                
+                // Validate JSON
+                try {
+                  const parsed = JSON.parse(newValue);
+                  
+                  // Type-specific validation
+                  if (prop.type === 'array' && !Array.isArray(parsed)) {
+                    setJsonValidationError('Expected an array, but got ' + typeof parsed);
+                    return;
+                  }
+                  
+                  if (prop.type === 'object' && (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed))) {
+                    setJsonValidationError('Expected an object, but got ' + (Array.isArray(parsed) ? 'array' : typeof parsed));
+                    return;
+                  }
+                  
+                  // Valid JSON and correct type
+                  onChange(parsed);
+                } catch (error) {
+                  const errorMessage = error instanceof Error ? error.message : 'Invalid JSON format';
+                  setJsonValidationError(errorMessage);
+                }
+              }}
+              rows={6}
+              className={`w-full max-h-48 mb-2 px-3 py-2 border rounded-lg focus:ring-2 font-mono text-sm bg-background ${
+                jsonValidationError 
+                  ? 'border-destructive focus:ring-destructive bg-destructive/10' 
+                  : 'border-input focus:ring-primary'
+              } max-h-64 overflow-auto`}
+              placeholder={prop.type === 'array' ? '[]' : '{}'}
+            />
+            {jsonValidationError && (
+              <div 
+                className="mt-1 text-xs text-destructive bg-destructive/10 border border-destructive/30 rounded px-2 py-1"
+                data-testid={`prop-control-${prop.name}-error`}
+              >
+                <span className="font-medium">Validation Error:</span> {jsonValidationError}
               </div>
             )}
           </div>

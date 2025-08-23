@@ -29,3 +29,5 @@ export function debugLog(category: DebugCategory, ...args: any[]) {
 // Components blacklist moved to components/display-components/index.json
 // This is kept for backward compatibility but no longer used
 export const COMPONENTS_BLACKLIST: string[] = [];
+
+export const BASE_REPO_URL = 'https://gitlab.com/personal1625516/ui-components';

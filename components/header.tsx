@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
+import { BASE_REPO_URL } from "@/lib/constants"
 
 const navigation = [
   { name: "Components", href: "/components" },
@@ -48,7 +49,7 @@ export function Header() {
 
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" asChild>
-            <Link href="https://github.com" target="_blank" rel="noopener noreferrer">
+            <Link href={BASE_REPO_URL} target="_blank" rel="noopener noreferrer">
               <Github className="h-4 w-4" />
               <span className="sr-only">GitHub</span>
             </Link>

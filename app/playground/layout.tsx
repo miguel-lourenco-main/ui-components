@@ -5,7 +5,7 @@ export default function PlaygroundLayout({ children }: { children: React.ReactNo
   return (
     <div className="flex flex-col justify-center items-center size-full">
       <Header />
-      <div className="w-full px-4 md:px-6 my-4">
+      <div className="w-full px-4 md:px-6 mb-4">
         {children}
       </div>
       <Footer />
