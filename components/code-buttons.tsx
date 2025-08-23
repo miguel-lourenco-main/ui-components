@@ -22,8 +22,7 @@ export default function CodeButtons({ component, showCode, onToggleCode }: CodeB
   };
 
   const handleGitLabClick = () => {
-    const url = getGitLabUrl(component);
-    window.open(url, '_blank', 'noopener,noreferrer');
+    window.open(BASE_REPO_URL, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -40,7 +39,7 @@ export default function CodeButtons({ component, showCode, onToggleCode }: CodeB
       </Button>
       
       <Button
-        onClick={handleGitLabClick}
+        onClick={() => window.open(BASE_REPO_URL, '_blank', 'noopener,noreferrer')}
         className="flex items-center space-x-2 rounded transition-colors text-black! bg-orange-200 hover:bg-orange-300"
         title="View on GitLab"
       >

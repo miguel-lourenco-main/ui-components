@@ -15,14 +15,12 @@ import FunctionPropEditor from './FunctionPropEditor';
 interface PropsPanelProps {
   component: Component | FullComponentInfo;
   values: Record<string, any>;
-  propsOpen: boolean;
-  togglePropsPanel: () => void;
   onChange: (values: Record<string, any>) => void;
   onSelectExample?: (exampleIndex: number) => void;
   selectedExampleIndex?: number;
 }
 
-export default function PropsPanel({ component, values, propsOpen, togglePropsPanel, onChange, onSelectExample, selectedExampleIndex = -1 }: PropsPanelProps) {
+export default function PropsPanel({ component, values, onChange, onSelectExample, selectedExampleIndex = -1 }: PropsPanelProps) {
   const [expandedProps, setExpandedProps] = useState<Set<string>>(new Set());
   const [showOptionalProps, setShowOptionalProps] = useState<boolean>(true);
 
@@ -82,20 +80,6 @@ export default function PropsPanel({ component, values, propsOpen, togglePropsPa
 
   const hasExamples = component.examples && component.examples.length > 0;
 
-  if (!propsOpen) {
-    return (
-      <div className="h-full flex flex-col pt-2 items-center">
-        <button
-          onClick={togglePropsPanel}
-          className={`p-1.5 size-fit rounded transition-colors duration-200 text-muted-foreground hover:text-foreground`}
-          title={`Expand Props Panel`}
-        >
-          <EyeIcon className="size-6" />
-        </button>
-      </div>
-    )
-  }
-
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
@@ -110,13 +94,6 @@ export default function PropsPanel({ component, values, propsOpen, togglePropsPa
             >
               <RefreshCwIcon className="size-5 mr-1" />
               Reset
-            </button>
-            <button
-              onClick={togglePropsPanel}
-              className={`p-1.5 rounded transition-colors duration-200 text-muted-foreground hover:text-foreground`}
-              title={`Minimize Props Panel`}
-            >
-              <EyeOffIcon className="size-5" />
             </button>
           </div>
         </div>

@@ -10,7 +10,7 @@ import ViewportControls from '@/components/ViewportControls';
 import CodeButtons from '@/components/code-buttons';
 
 import { useLocalComponentState } from '@/lib/hooks/useLocalComponentState';
-import { PlayIcon, EyeOffIcon, EyeIcon, Play } from 'lucide-react';
+import { PlayIcon, EyeOffIcon, EyeIcon, Play, CodeIcon } from 'lucide-react';
 import { getMonacoPreloadStatus } from '@/lib/monaco-preloader';
 import {
   ResizablePanelGroup,
@@ -19,6 +19,9 @@ import {
 } from "@/components/ui/resizable"
 import { ImperativePanelHandle } from 'react-resizable-panels'
 import { FullComponentInfo } from '@/lib/interfaces';
+import { Button } from '@/components/ui/button';
+import { BASE_REPO_URL } from '@/lib/constants';
+import { GitLabIconSingle } from '@/lib/icons';
 // Header removed in favor of global site header
 
 interface ComponentPreviewProps {
@@ -88,6 +91,7 @@ export default function PlaygroundPage() {
 
   const propsPanelRef = useRef<ImperativePanelHandle | null>(null);
   const propsOpen = playgroundState.showProps;
+  const propsLastSizeRef = useRef<number>(25);
 
   const searchParams = useSearchParams();
 
@@ -112,7 +116,21 @@ export default function PlaygroundPage() {
   useEffect(() => {
     const ref = propsPanelRef.current;
     if (!ref) return;
-    if (propsOpen) ref.expand?.(); else ref.collapse?.();
+    if (propsOpen) {
+      const currentSize = ref.getSize?.() ?? 0;
+      if (currentSize === 0) {
+        // Expand from collapsed state to last remembered size
+        ref.resize?.(propsLastSizeRef.current || 25);
+      } else {
+        ref.expand?.();
+      }
+    } else {
+      const currentSize = ref.getSize?.();
+      if (typeof currentSize === 'number' && currentSize > 0) {
+        propsLastSizeRef.current = currentSize;
+      }
+      ref.collapse?.();
+    }
   }, [propsOpen]);
 
   const [monacoStatus, setMonacoStatus] = useState(() => getMonacoPreloadStatus());
@@ -138,17 +156,10 @@ export default function PlaygroundPage() {
 
   const rendererButtons = (): React.ReactNode => {
     return playgroundState.selectedComponent ?(
-      <>
-        <ViewportControls
-          viewMode={playgroundState.viewMode}
-          onViewModeChange={setViewMode}
-        />
-        <CodeButtons
-          component={playgroundState.selectedComponent}
-          showCode={playgroundState.showCode}
-          onToggleCode={() => toggleCodePanel()}
-        />
-      </>
+      <ViewportControls
+        viewMode={playgroundState.viewMode}
+        onViewModeChange={setViewMode}
+      />
     ) : null;
   }
 
@@ -184,14 +195,35 @@ export default function PlaygroundPage() {
 
   return (
     <div className="flex flex-col justify-center items-center size-full">
-      <div className="flex flex-col items-center justify-center gap-3 my-8">
+      <div className="flex flex-col items-center justify-center gap-3 my-8 mb-4">
         <div className="flex w-fit items-center space-x-2">
           <Play className="size-6" />
           <h1 className="text-4xl font-bold">Playground</h1>
         </div>
         <p className="text-muted-foreground">Play with components and see how they work</p>
       </div>
-      <div className="min-h-[calc(100vh-14rem)] flex flex-col bg-background justify-center">
+      <div className="relative min-h-[calc(100vh-14rem)] max-w-[calc(100vw-4rem)] flex flex-col bg-background justify-center">
+        <div className="absolute -top-12 right-0 flex w-full flex-row items-center justify-end my-1">
+          <div className={`${playgroundState.selectedComponent ? 'flex' : 'hidden'}`}>
+            <Button
+              onClick={toggleCodePanel}
+              variant="ghost"
+              className="p-2 m-1 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground"
+              title={playgroundState.showCode ? 'Hide Code' : 'Show Code'}
+            >
+              <CodeIcon className="size-5" />
+            </Button>
+          </div>
+          <Button
+            onClick={togglePropsPanel}
+            variant="ghost"
+            className={`p-2 m-1 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground`}
+            title={`Expand Props Panel`}
+            size={'lg'}
+          >
+            {playgroundState.showProps ? <EyeOffIcon className="size-5" /> : <EyeIcon className="size-5" />}
+          </Button>
+        </div>
         <div className="overflow-hidden rounded-lg border-4 border-border bg-card">
           <ResizablePanelGroup direction="horizontal" className="">
             <ResizablePanel defaultSize={playgroundState.showProps ? 25 : 35} minSize={15} className="bg-card border-r border-border">
@@ -257,18 +289,16 @@ export default function PlaygroundPage() {
                 <ResizableHandle withHandle />
                 <ResizablePanel
                   ref={propsPanelRef}
-                  defaultSize={propsOpen ? 25 : 3}
-                  minSize={3}
+                  defaultSize={propsOpen ? (propsLastSizeRef.current || 25) : 0}
+                  minSize={0}
                   collapsible
-                  collapsedSize={3}
+                  collapsedSize={0}
                   className="bg-card border-l border-border"
                 >
                   <div className="h-full flex flex-col" data-testid="props-panel">
                     <PropsPanel
                       component={playgroundState.selectedComponent}
                       values={playgroundState.currentProps}
-                      propsOpen={propsOpen}
-                      togglePropsPanel={togglePropsPanel}
                       onChange={updateProps}
                       onSelectExample={selectExample}
                       selectedExampleIndex={selectedExampleIndex}
