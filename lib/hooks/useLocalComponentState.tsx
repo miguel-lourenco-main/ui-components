@@ -11,6 +11,7 @@ import {
   convertFunctionPropValuesToFunctions,
   setFunctionSource
 } from '@/lib/utils/functionProps';
+import indexJson from '@/components/display-components/index.json'
 
 interface UseLocalComponentStateReturn {
   // State
@@ -48,12 +49,60 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
     currentCode: '',
     viewMode: 'desktop',
     showProps: true,
-    showCode: true,
+    showCode: false,
     searchQuery: '',
   });
 
   // Track which example is currently selected (0 for first example, -1 for none/default)
   const [selectedExampleIndex, setSelectedExampleIndex] = useState<number>(-1);
+  // Build id -> normalized path map from index.json for resolving component source
+  const idToPath: Record<string, string> = (indexJson.components || []).reduce(
+    (acc: Record<string, string>, item: { id: string; path: string }) => {
+      const normalizedPath = (item.path || '').replace(/^\.\/+/, '').replace(/\/+$/, '');
+      acc[item.id] = normalizedPath;
+      return acc;
+    },
+    {}
+  );
+
+  // Cache for component implementation source strings
+  const componentSourceCache: Record<string, string> = {};
+
+  async function loadComponentImplementationSource(component: FullComponentInfo): Promise<string> {
+    try {
+      const compPath = idToPath[component.id];
+      if (!compPath) return '';
+      // 1) Try loading from component meta.json (same as Components page)
+      try {
+        const metaModule: any = await import(`@/components/display-components/${compPath}/${component.name}.meta.json`);
+        const metaData: any = metaModule?.default || metaModule;
+        const metaCode: string | undefined = metaData?.code || metaData?.componentCode;
+        if (metaCode && typeof metaCode === 'string') return metaCode;
+      } catch {}
+      // Prefer importing raw source as a string (original TSX)
+      try {
+        const rawModule: any = await import(`@/components/display-components/${compPath}/${component.name}.tsx?raw`);
+        const raw = (typeof rawModule === 'string' ? rawModule : rawModule?.default) as string | undefined;
+        if (raw) {
+          // Strip HMR/react-refresh blocks or injected dev wrappers if any sneaked in
+          const cleaned = raw
+            .replace(/\n\/\/.*\$RefreshReg\$[\s\S]*?\n/g, '\n')
+            .replace(/\/\*.*\$RefreshReg\$[\s\S]*?\*\//g, '')
+            .replace(/import\s+\{\s*jsxDEV[^}]*\}\s+from\s+"react\/jsx-dev-runtime";?/g, '')
+          return cleaned;
+        }
+      } catch {}
+      // Fallback: stringify the compiled function (may show transpiled output)
+      const mod: any = await import(`@/components/display-components/${compPath}/${component.name}`);
+      const fn: any = mod.default || mod[component.name];
+      if (typeof fn === 'function') return fn.toString();
+      return '';
+    } catch (err) {
+      console.warn('Failed to load component implementation source for', component.name, err);
+      return '';
+    }
+  }
+
   
   // Track whether the last props update came from example selection or manual editing
   // Removed isUpdatingFromExample flag - simpler logic preserves example selection
@@ -72,7 +121,7 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
   /**
    * Generate component code with current props, including validation warnings
    */
-  const generateCodeWithProps = (component: FullComponentInfo, props: Record<string, any>) => {
+  const generateCodeWithProps = async (component: FullComponentInfo, props: Record<string, any>) => {
     debugLog('props', '🏗️ generateCodeWithProps called for:', component.name);
     
     // Convert FunctionPropValues to actual functions for code generation
@@ -211,15 +260,24 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
       ? `/*\n * VALIDATION WARNINGS:\n * ${warnings.join('\n * ')}\n */\n\n`
       : '';
 
-    const usageCode = `${warningsCode}import { ${component.name} } from './components/${component.name}';
-
-export default function Example() {${functionDeclarationsCode}
+    const usageCode = `${warningsCode}export default function Example() {${functionDeclarationsCode}
   return (
     <${component.name}${allPropsString ? '\n' + allPropsString + '\n    ' : ' '}/>
   );
-}`;
+}
+`;
 
-    return usageCode;
+    // Append actual component implementation source below the usage
+    let implSource = componentSourceCache[component.id];
+    if (!implSource) {
+      implSource = await loadComponentImplementationSource(component);
+      componentSourceCache[component.id] = implSource;
+    }
+
+    const implHeader = `\n/* ===== Component Implementation: ${component.name} ===== */\n`;
+    const fullCode = usageCode + implHeader + (implSource || '// Source not available');
+
+    return fullCode;
   };
 
 
@@ -357,8 +415,13 @@ export default function Example() {${functionDeclarationsCode}
         ...prevState,
         selectedComponent: component,
         currentProps: initialProps,
-        currentCode: generateCodeWithProps(component, initialProps),
+        currentCode: prevState.currentCode, // will set after async generation
       };
+    });
+
+    // Generate code asynchronously including implementation
+    generateCodeWithProps(component, initialProps).then(code => {
+      setPlaygroundState(prev => ({ ...prev, currentCode: code }));
     });
     
     setSelectedExampleIndex(selectedExampleIdx);
@@ -463,8 +526,11 @@ export default function Example() {${functionDeclarationsCode}
     setPlaygroundState(prev => ({
       ...prev,
       currentProps: newProps,
-      currentCode: generateCodeWithProps(prev.selectedComponent!, newProps)
     }));
+    // async update code with implementation
+    generateCodeWithProps(playgroundState.selectedComponent!, newProps).then(code => {
+      setPlaygroundState(prev => ({ ...prev, currentCode: code }));
+    });
   }, [playgroundState.selectedComponent, playgroundState.currentProps, generateCodeWithProps, selectedExampleIndex]);
 
 

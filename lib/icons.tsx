@@ -1,5 +1,6 @@
 import React from "react";
 import { cn } from "./utils";
+import { CodeIcon, SlashIcon } from "lucide-react";
 
 export function GitLabIconSingle({
     className,
@@ -35,3 +36,15 @@ export function GitLabIconSingle({
       </svg>
     );
   }
+
+export function CodeOffIcon({
+  className,
+  ...props
+}: React.ComponentProps<'span'>) {
+  return (
+    <span className={cn('relative inline-block align-middle size-4', className)} {...props}>
+      <CodeIcon className="size-full" />
+      <SlashIcon className="size-full absolute inset-0 pointer-events-none rotate-90" strokeWidth={2.6} />
+    </span>
+  );
+}

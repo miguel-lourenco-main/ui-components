@@ -1,8 +1,9 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import type { CSSProperties } from "react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -13,6 +14,8 @@ import ThemedPreviewSurface from "@/components/themed-preview-surface"
 import { computeThemeCssVars } from "@/lib/theme-css-vars"
 import { Palette, Grid3X3, LayoutGrid, Sun, Moon, ArrowLeft } from "lucide-react"
 import { StylishCarousel } from "@/components/ui/stylish-carousel"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { CodeBlock } from "@/components/code-block"
 
 export default function ThemesPage() {
   const searchParams = useSearchParams()
@@ -22,6 +25,8 @@ export default function ThemesPage() {
   const [colorMode, setColorMode] = useState<"light" | "dark">("light")
   const [columns, setColumns] = useState(1)
   const [themeModes, setThemeModes] = useState<Record<string, "light" | "dark">>({})
+
+  const router = useRouter()
 
   // Track responsive grid columns to alternate carousel direction per row
   useEffect(() => {
@@ -40,91 +45,93 @@ export default function ThemesPage() {
     return (
       <div className="container px-4 py-8">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between gap-4 mb-8">
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/themes">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Themes
-              </Link>
-            </Button>
-            <div className="flex flex-col items-center justify-center gap-3">
-              <div className="flex w-fit items-center space-x-2">
-                <Palette className="h-6 w-6" />
-                <h1 className="text-3xl font-bold">{selectedTheme.name} Theme</h1>
-              </div>
-              <p className="text-muted-foreground">{selectedTheme.description}</p>
+          <div className="flex flex-col items-center justify-center gap-3 mb-8">
+            <div className="flex w-fit items-center space-x-2">
+              <Palette className="h-6 w-6" />
+              <h1 className="text-3xl font-bold">{selectedTheme.name} Theme</h1>
             </div>
-            <div className="flex items-center text-sm text-muted-foreground">
-              <span className="mr-2">Mode:</span>
-              <div className="flex border rounded-md overflow-hidden">
-                <button
-                  onClick={() => setColorMode("light")}
-                  className={`px-2 py-1 flex items-center ${
-                    colorMode === "light" ? "bg-muted text-foreground" : "hover:bg-muted/50"
-                  }`}
-                  aria-label="Light mode"
-                >
-                  <Sun className="h-3.5 w-3.5" />
-                  <span className="sr-only">Light mode</span>
-                </button>
-                <button
-                  onClick={() => setColorMode("dark")}
-                  className={`px-2 py-1 flex items-center ${
-                    colorMode === "dark" ? "bg-muted text-foreground" : "hover:bg-muted/50"
-                  }`}
-                  aria-label="Dark mode"
-                >
-                  <Moon className="h-3.5 w-3.5" />
-                  <span className="sr-only">Dark mode</span>
-                </button>
-              </div>
-            </div>
+            <p className="text-muted-foreground">{selectedTheme.description}</p>
           </div>
 
           <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>Color Palettes</CardTitle>
-              <CardDescription>The color scheme used throughout this theme</CardDescription>
-            </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {(["light", "dark"] as const).map((mode) => {
-                  const isSelected = colorMode === mode
-                  return (
-                    <div
-                      key={mode}
-                      className={`relative rounded-lg border p-4 transition-all duration-300 transform ${
-                        isSelected
-                          ? "ring-2 ring-primary shadow-xl scale-105"
-                          : "scale-100"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-semibold flex items-center gap-2">
-                          {mode === "light" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                          {mode.charAt(0).toUpperCase() + mode.slice(1)} Mode
-                        </h3>
-                        {isSelected && <Badge variant="secondary">Selected</Badge>}
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-                        {Object.entries(selectedTheme.colors[mode]).map(([name, color]) => (
-                          <div key={name} className="text-center">
-                            <div
-                              className="w-16 h-16 rounded-lg border-2 border-white shadow-sm mx-auto mb-2"
-                              style={{ backgroundColor: color }}
-                            ></div>
-                            <p className="text-sm font-medium capitalize">{name}</p>
-                            <p className="text-xs text-muted-foreground font-mono">{color}</p>
+              <Tabs defaultValue="preview">
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex flex-col items-start gap-2 py-6">
+                    <CardTitle>Color Palettes</CardTitle>
+                    <CardDescription>The color scheme used throughout this theme</CardDescription>
+                  </div>
+                  <TabsList>
+                    <TabsTrigger value="preview">Preview</TabsTrigger>
+                    <TabsTrigger value="css">CSS</TabsTrigger>
+                  </TabsList>
+                </div>
+
+                <TabsContent value="preview">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {(["light", "dark"] as const).map((mode) => {
+                      const isSelected = colorMode === mode
+                      return (
+                        <div
+                          onClick={() => setColorMode(mode)}
+                          key={mode}
+                          className={`hover:cursor-pointer relative rounded-lg border p-4 transition-all duration-300 transform ${
+                            isSelected
+                              ? "ring-2 ring-primary shadow-xl scale-105"
+                              : "scale-100 hover:scale-[1.03] hover:shadow-lg"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-semibold flex items-center gap-2">
+                              {mode === "light" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                              {mode.charAt(0).toUpperCase() + mode.slice(1)} Mode
+                            </h3>
+                            {isSelected && <Badge variant="secondary">Selected</Badge>}
                           </div>
-                        ))}
+                          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                            {Object.entries(selectedTheme.colors[mode]).map(([name, color]) => (
+                              <div key={name} className="text-center">
+                                <div
+                                  className="w-16 h-16 rounded-lg border-2 border-white shadow-sm mx-auto mb-2"
+                                  style={{ backgroundColor: color }}
+                                ></div>
+                                <p className="text-sm font-medium capitalize">{name}</p>
+                                <p className="text-xs text-muted-foreground font-mono">{color}</p>
+                              </div>
+                            ))}
+                          </div>
+                          {!isSelected && (
+                            <div className="pointer-events-none absolute inset-0 rounded-lg bg-white/50 dark:bg-black/50" />
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="css">
+                  {(() => {
+                    const lightVars = computeThemeCssVars(selectedTheme, "light")
+                    const darkVars = computeThemeCssVars(selectedTheme, "dark")
+                    const toLines = (vars: CSSProperties) =>
+                      Object.entries(vars as Record<string, string | number>)
+                        .map(([k, v]) => `  ${k}: ${String(v)};`)
+                        .join("\n")
+                    const lightCss = `/* Light mode variables for ${selectedTheme.name} */\n:root {\n${toLines(lightVars)}\n}`
+                    const darkCss = `/* Dark mode variables for ${selectedTheme.name} */\n.dark {\n${toLines(darkVars)}\n}`
+                    return (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <CodeBlock code={lightCss} language="css" className="max-h-72 overflow-y-auto"/>
+                        </div>
+                        <div>
+                          <CodeBlock code={darkCss} language="css" className="max-h-72 overflow-y-auto"/>
+                        </div>
                       </div>
-                      {!isSelected && (
-                        <div className="pointer-events-none absolute inset-0 rounded-lg bg-white/50 dark:bg-black/50" />
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
+                    )
+                  })()}
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
 
@@ -300,7 +307,7 @@ export default function ThemesPage() {
               return (
               <Link key={theme.id} href={`/themes?theme=${theme.id}`}>
                 <Card
-                  className={`transition-all duration-200 cursor-pointer group hover:shadow-lg dark:hover:shadow-[0_14px_24px_-6px_rgba(255,255,255,0.18),_0_6px_10px_-4px_rgba(255,255,255,0.12),_0_0_0_1px_rgba(255,255,255,0.06)]`}
+                  className={`transition-all duration-200 border-none cursor-pointer group hover:shadow-lg dark:hover:shadow-[0_14px_24px_-6px_rgba(255,255,255,0.18),_0_6px_10px_-4px_rgba(255,255,255,0.12),_0_0_0_1px_rgba(255,255,255,0.06)]`}
                 >
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -393,14 +400,14 @@ export default function ThemesPage() {
           </div>
         ) : (
           // Gallery Layout
-          <div className="space-y-12">
+          <div className="space-y-4">
             {themes.map((theme, idx) => {
               const localMode = themeModes[theme.id] ?? colorMode
               const bg = theme.colors[localMode].background
               const fg = theme.colors[localMode].foreground
               const cssVars = computeThemeCssVars(theme, localMode)
               return (
-              <section key={theme.id} className="space-y-6">
+              <section onClick={() => router.push(`/themes?theme=${theme.id}`)} key={theme.id} className="hover:cursor-pointer rounded-lg p-6 space-y-6 hover:shadow-lg dark:hover:shadow-[0_14px_24px_-6px_rgba(255,255,255,0.18),_0_6px_10px_-4px_rgba(255,255,255,0.12),_0_0_0_1px_rgba(255,255,255,0.06)]">
                 <header className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
@@ -440,9 +447,6 @@ export default function ThemesPage() {
                         <Moon className="h-3.5 w-3.5" />
                       </button>
                     </div>
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/themes?theme=${theme.id}`}>View Details</Link>
-                    </Button>
                   </div>
                 </header>
 

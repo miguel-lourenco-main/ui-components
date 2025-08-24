@@ -257,25 +257,9 @@ export default function ImprovedDynamicComponent({ componentId, navRef }: Improv
                         </div>
                       </TabsContent>
                       <TabsContent value="code" className="mt-4">
-                        <div className="relative">
-                          {/* Copy button top-right */}
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="absolute right-2 top-2 z-20"
-                            onClick={() => copyCode(variant.code, variant.id)}
-                          >
-                            {copiedCode === variant.id ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                          </Button>
-
-                          <div
-                            className={`max-h-[220px] relative overflow-auto rounded-md border bg-muted/10 transition-all duration-300 ${
-                              variantRevealMap[variant.id] && "ring-1 ring-primary/20"
-                            }`}
-                          >
-                            <CodeBlock code={variant.code} language="tsx" reveal={false} />  
-                          </div>
-                        </div>
+                        <CodeBlock code={variant.code} language="tsx" reveal={false} className={`max-h-[220px] relative overflow-auto rounded-md border transition-all duration-300 ${
+                          variantRevealMap[variant.id] && "ring-1 ring-primary/20"
+                        }`} /> 
                       </TabsContent>
                     </Tabs>
                   </div>

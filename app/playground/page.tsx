@@ -21,7 +21,7 @@ import { ImperativePanelHandle } from 'react-resizable-panels'
 import { FullComponentInfo } from '@/lib/interfaces';
 import { Button } from '@/components/ui/button';
 import { BASE_REPO_URL } from '@/lib/constants';
-import { GitLabIconSingle } from '@/lib/icons';
+import { GitLabIconSingle, CodeOffIcon } from '@/lib/icons';
 // Header removed in favor of global site header
 
 interface ComponentPreviewProps {
@@ -203,25 +203,29 @@ export default function PlaygroundPage() {
         <p className="text-muted-foreground">Play with components and see how they work</p>
       </div>
       <div className="relative min-h-[calc(100vh-14rem)] max-w-[calc(100vw-4rem)] flex flex-col bg-background justify-center">
-        <div className="absolute -top-12 right-0 flex w-full flex-row items-center justify-end my-1">
+        <div className="absolute -top-10 right-2 flex w-full flex-row items-center justify-end mt-1 space-x-2">
           <div className={`${playgroundState.selectedComponent ? 'flex' : 'hidden'}`}>
             <Button
               onClick={toggleCodePanel}
               variant="ghost"
-              className="p-2 m-1 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground"
+              className="p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground"
               title={playgroundState.showCode ? 'Hide Code' : 'Show Code'}
             >
-              <CodeIcon className="size-5" />
+              {playgroundState.showCode ? (
+                <CodeOffIcon className="size-4" />
+              ) : (
+                <CodeIcon className="size-4" />
+              )}
             </Button>
           </div>
           <Button
             onClick={togglePropsPanel}
             variant="ghost"
-            className={`p-2 m-1 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground`}
+            className={`p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground`}
             title={`Expand Props Panel`}
             size={'lg'}
           >
-            {playgroundState.showProps ? <EyeOffIcon className="size-5" /> : <EyeIcon className="size-5" />}
+            {playgroundState.showProps ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
           </Button>
         </div>
         <div className="overflow-hidden rounded-lg border-4 border-border bg-card">

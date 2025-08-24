@@ -1,4 +1,5 @@
 import { AlertTriangleIcon, RefreshCwIcon } from 'lucide-react';
+import { CodeBlock } from '@/components/code-block'
 
 interface ErrorDisplayProps {
   title: string;
@@ -42,9 +43,7 @@ export function ErrorDisplay({
           <summary className={`cursor-pointer text-sm ${colorClasses.split(' ')[4]}`}>
             Show error details
           </summary>
-          <pre className={`mt-2 text-xs bg-${variant === 'error' ? 'red' : 'orange'}-50 p-4 rounded overflow-auto`}>
-            {details}
-          </pre>
+          <CodeBlock code={details} language="text" className="mt-2 text-xs" />
         </details>
       )}
     </div>

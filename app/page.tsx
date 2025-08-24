@@ -89,7 +89,7 @@ export default function HomePage() {
 
         {/* Component Preview Section */}
         <section className="py-20 px-4 bg-muted/20">
-          <div className="container mx-auto max-w-6xl">
+          <div className="container mx-auto max-w-8xl">
             <div className="text-center mb-16">
               <h2 className="text-3xl font-bold mb-4">Popular Components</h2>
               <p className="text-muted-foreground text-lg">Get started with these frequently used components</p>

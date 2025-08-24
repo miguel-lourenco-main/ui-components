@@ -3,6 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ArrowRight } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { COMPONENTS_INDEX } from '@/lib/componentsIndex'
 import indexJson from '@/components/display-components/index.json'
@@ -12,13 +13,13 @@ export default function PopularComponentsGrid() {
   const blacklist = (indexJson.blacklist || []) as string[]
   const items = React.useMemo(() => {
     const comps = COMPONENTS_INDEX.filter(c => !blacklist.includes(c.id))
-      .slice(0, 4)
-      .map(c => ({ name: c.name, href: `/components/${c.id}`, preview: c.preview }))
+      .slice(0, 5)
+      .map(c => ({ name: c.name, href: `/components/?component=${c.id}`, preview: c.preview }))
     return comps
   }, [blacklist])
 
   return (
-    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
       {items.map((component) => (
         <Link key={component.name} href={component.href}>
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
@@ -34,6 +35,23 @@ export default function PopularComponentsGrid() {
           </Card>
         </Link>
       ))}
+      {/* Allude to more components */}
+      <Link href="/components">
+        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              Explore all
+              <ArrowRight className="h-4 w-4" />
+            </CardTitle>
+            <CardDescription>Browse the library</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-28 border border-dashed rounded-md flex items-center justify-center bg-muted/20">
+              <span className="text-sm text-muted-foreground">See all components</span>
+            </div>
+          </CardContent>
+        </Card>
+      </Link>
     </div>
   )
 }

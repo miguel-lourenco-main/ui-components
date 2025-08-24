@@ -161,10 +161,12 @@ const nextConfig = {
     };
 
     // Support importing source files as raw strings using ?raw
+    // Ensure raw source imports (e.g., file.tsx?raw) return the untransformed file contents
     config.module.rules.push({
       test: /\.(ts|tsx|js|jsx)$/,
       resourceQuery: /raw/,
       type: 'asset/source',
+      exclude: /node_modules/,
     });
 
     return config;

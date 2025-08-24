@@ -1,6 +1,7 @@
 'use client';
 
 import React, { Component as ComponentType, useState, useEffect, Suspense } from 'react';
+import { CodeBlock } from '@/components/code-block'
 import { FullComponentInfo } from '@/lib/interfaces';
 import { AlertTriangleIcon, RefreshCwIcon, LoaderIcon } from 'lucide-react';
 import { debugLog } from '@/lib/constants';
@@ -65,9 +66,7 @@ class ComponentErrorBoundary extends ComponentType<
               <summary className="cursor-pointer text-sm text-red-600">
                 Show error details
               </summary>
-              <pre className="mt-2 text-xs bg-red-50 p-4 rounded overflow-auto">
-                {this.state.error.stack}
-              </pre>
+              <CodeBlock code={this.state.error?.stack || ''} language="text" className="mt-2 text-xs" />
             </details>
           )}
         </div>

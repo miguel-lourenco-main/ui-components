@@ -8,7 +8,7 @@ export interface ToggleComponentProps {
   variant?: 'default' | 'outline';
   size?: 'default' | 'sm' | 'lg';
   className?: string;
-  children?: React.ReactNode;
+  children?: React.ReactNode | (() => React.ReactNode);
   'aria-label'?: string;
 }
 
@@ -33,7 +33,7 @@ const ToggleComponent: React.FC<ToggleComponentProps> = ({
       aria-label={ariaLabel}
       data-testid="rendered-component-toggle"
     >
-      {children}
+      {typeof children === 'function' ? (children as () => React.ReactNode)() : children}
     </Toggle>
   );
 };
