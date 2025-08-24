@@ -181,13 +181,13 @@ export default function ThemesPage() {
                   </CardHeader>
                   <CardContent>
                     <ThemedPreviewSurface
-                        themeId={selectedTheme.id}
-                        component={componentType.id as any}
-                        size="large"
-                        mode={colorMode}
-                        showModeToggle={false}
-                        surfaceClassName="p-8"
-                      />
+                      themeId={selectedTheme.id}
+                      component={componentType.id as any}
+                      size="large"
+                      mode={colorMode}
+                      showModeToggle={false}
+                      surfaceClassName="p-8"
+                    />
                   </CardContent>
                 </Card>
               </Link>
@@ -362,7 +362,10 @@ export default function ThemesPage() {
                     </div>
 
                     <div
-                      className="rounded-md"
+                      className="rounded-md pointer-events-none select-none"
+                      aria-disabled={true}
+                      aria-hidden={true}
+                      tabIndex={-1}
                       style={{ ...cssVars, backgroundColor: bg, color: fg }}
                     >
                       <StylishCarousel
@@ -456,7 +459,10 @@ export default function ThemesPage() {
 
                 {/* Seamless wide carousel across components for this theme */}
                 <div
-                  className="rounded-md"
+                  className="rounded-md pointer-events-none select-none"
+                  aria-disabled={true}
+                  aria-hidden={true}
+                  tabIndex={-1}
                   style={{ ...cssVars, backgroundColor: bg, color: fg }}
                 >
                   <StylishCarousel className="py-8" speedMs={65000} reverse={idx % 2 === 1} fadeColor={bg}>

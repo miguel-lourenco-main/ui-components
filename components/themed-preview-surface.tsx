@@ -70,7 +70,10 @@ export function ThemedPreviewSurface({
       )}
 
       <div
-        className={`${computedHeight} border rounded-md flex items-center justify-center mb-1 ${surfaceClassName || ""}`}
+        className={`${computedHeight} border rounded-md flex items-center justify-center mb-1 ${surfaceClassName || ""} pointer-events-none select-none`}
+        aria-disabled={true}
+        aria-hidden={true}
+        tabIndex={-1}
         style={{
           ...cssVars,
           backgroundColor: colors.background,
