@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Component, FullComponentInfo, PropDefinition } from '@/lib/interfaces';
-import { RefreshCwIcon, InfoIcon, EyeIcon, EyeOffIcon } from 'lucide-react';
+import { RefreshCwIcon, InfoIcon, EyeIcon, EyeOffIcon, AlertTriangle, Settings } from 'lucide-react';
 import { debugLog } from '@/lib/constants';
 import TooltipComponent from '@/components/ui/tooltip-component';
 import {
@@ -219,11 +219,11 @@ function PropsList({
       {/* Required Props */}
       {requiredProps.length > 0 && (
         <div>
-          <div className="bg-destructive/10 border-l-4 border-destructive p-3 mb-4 rounded-r-lg">
-            <h4 className="text-lg font-bold text-destructive flex items-center">
-              <span className="mr-2">🔴</span>
+          <div className="bg-destructive/40 border-l-4 border-destructive p-3 mb-4 rounded-r-lg">
+            <h4 className="text-base font-semibold text-foreground flex items-center">
+              <AlertTriangle className="w-4 h-4 mr-2" />
               Required Props
-              <span className="ml-3 text-sm bg-destructive/10 text-destructive px-3 py-1 rounded-full font-medium">
+              <span className="ml-3 text-sm bg-destructive/60 px-3 py-1 rounded-full font-medium">
                 {requiredProps.length}
               </span>
             </h4>
@@ -260,8 +260,8 @@ function PropsList({
           <div className="bg-primary/5 border-l-4 border-primary/40 p-3 mb-4 rounded-r-lg">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="text-lg font-bold text-primary flex items-center">
-                  <span className="mr-2">🔵</span>
+                <h4 className="text-base font-semibold text-primary flex items-center">
+                  <Settings className="w-4 h-4 mr-2" />
                   Optional Props
                   <span className="ml-3 text-sm bg-primary/10 text-primary px-3 py-1 rounded-full font-medium">
                     {optionalProps.length}
