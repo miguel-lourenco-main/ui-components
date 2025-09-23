@@ -260,7 +260,7 @@ export default function LocalComponentRenderer({
       {/* Viewport Frame */}
       <div 
         style={getViewportStyles()}
-        className="size-full flex items-center justify-center p-6 bg-card rounded-lg border transition-all duration-300 border-border overflow-hidden"
+        className="size-full flex items-center justify-center lg:px-24 2xl:px-32 p-6 bg-card rounded-lg border transition-all duration-300 border-border overflow-hidden"
       >
         <ComponentErrorBoundary onRetry={onRetry}>
             {renderContent()}

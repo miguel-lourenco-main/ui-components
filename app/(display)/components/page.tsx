@@ -56,8 +56,8 @@ export default function ComponentsPage() {
     <div className="container px-4 py-8">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
-          <div className="flex w-full items-center justify-center mb-4 space-x-2">
-            <Blocks className="h-6 w-6" />
+          <div className="flex sm:flex-row sm:gap-x-2 gap-y-2 sm:gap-y-0 flex-col w-full items-center justify-center mb-4 space-x-2">
+            <Blocks className="size-9" />
             <h1 className="text-4xl font-bold">Component Library</h1>
           </div>
           <p className="text-xl text-muted-foreground mb-8">

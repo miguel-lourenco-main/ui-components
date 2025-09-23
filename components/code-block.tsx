@@ -23,7 +23,7 @@ export function CodeBlock({ code, language, reveal = false, className }: CodeBlo
   }
 
   return (
-    <div className="relative">
+    <div className="relative w-full min-w-0 overflow-hidden">
       <Button
         type="button"
         size="sm"
@@ -34,7 +34,7 @@ export function CodeBlock({ code, language, reveal = false, className }: CodeBlo
       >
         {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
       </Button>
-      <pre className={`size-full bg-muted p-4 rounded-lg overflow-x-auto text-sm ${className}`}>
+      <pre className={`w-full max-w-full bg-muted p-4 rounded-lg overflow-x-auto text-sm ${className}`}>
         <code className={`language-${language}`}>{code}</code>
       </pre>
     </div>

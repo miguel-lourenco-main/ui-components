@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { BASE_REPO_URL } from "@/lib/constants"
+import { useScrollDirection } from "@/lib/hooks/use-scroll-direction"
 
 const navigation = [
   { name: "Components", href: "/components" },
@@ -19,9 +20,16 @@ const navigation = [
 export function Header() {
   const pathname = usePathname()
   const { setTheme } = useTheme()
+  const { scrollDirection, isScrolled } = useScrollDirection()
+  
+  const isPlayground = pathname.startsWith("/playground")
+  const shouldHide = isPlayground && scrollDirection === 'down' && isScrolled
 
   return (
-    <header className="sticky top-0 z-50 flex justify-center w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className={cn(
+      "sticky top-0 z-50 flex justify-center w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-transform duration-300 ease-in-out",
+      isPlayground && shouldHide && "-translate-y-full",
+    )}>
       <div className="container flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center space-x-2">

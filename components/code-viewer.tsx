@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { CodeIcon, CopyIcon, DownloadIcon, Loader2 } from 'lucide-react';
 import { getPreloadedMonaco, isMonacoPreloaded } from '@/lib/monaco-preloader';
+import { toast } from 'sonner';
 
 // Use preloaded Monaco Editor if available, otherwise load dynamically
 const Editor = dynamic(
@@ -124,7 +125,8 @@ export default function CodeViewer({
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(value);
-      // You might want to show a toast notification here
+      
+      toast.success('Code copied to clipboard');
     } catch (err) {
       console.error('Failed to copy code:', err);
     }

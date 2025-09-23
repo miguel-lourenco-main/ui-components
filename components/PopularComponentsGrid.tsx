@@ -37,7 +37,7 @@ export default function PopularComponentsGrid() {
       ))}
       {/* Allude to more components */}
       <Link href="/components">
-        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+        <Card className="flex flex-col h-full hover:shadow-md transition-shadow cursor-pointer">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               Explore all
@@ -45,9 +45,9 @@ export default function PopularComponentsGrid() {
             </CardTitle>
             <CardDescription>Browse the library</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="h-28 border border-dashed rounded-md flex items-center justify-center bg-muted/20">
-              <span className="text-sm text-muted-foreground">See all components</span>
+          <CardContent className="flex-1">
+            <div className="h-full border border-dashed rounded-md flex items-center justify-center bg-muted/20">
+              <span className="text-sm text-center text-muted-foreground">See all components</span>
             </div>
           </CardContent>
         </Card>

@@ -68,7 +68,7 @@ export default function ThemesPage() {
                 </div>
 
                 <TabsContent value="preview">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="flex flex-col xl:flex-row gap-8">
                     {(["light", "dark"] as const).map((mode) => {
                       const isSelected = colorMode === mode
                       return (
@@ -88,15 +88,15 @@ export default function ThemesPage() {
                             </h3>
                             {isSelected && <Badge variant="secondary">Selected</Badge>}
                           </div>
-                          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                          <div className="grid grid-cols-4 sm:grid-cols-7 gap-4">
                             {Object.entries(selectedTheme.colors[mode]).map(([name, color]) => (
                               <div key={name} className="text-center">
                                 <div
                                   className="w-16 h-16 rounded-lg border-2 border-white shadow-sm mx-auto mb-2"
                                   style={{ backgroundColor: color }}
                                 ></div>
-                                <p className="text-sm font-medium capitalize">{name}</p>
-                                <p className="text-xs text-muted-foreground font-mono">{color}</p>
+                                <p className="lg:block hidden text-sm font-medium capitalize">{name}</p>
+                                <p className="lg:block hidden stext-xs text-muted-foreground font-mono">{color}</p>
                               </div>
                             ))}
                           </div>

@@ -58,7 +58,7 @@ export default function Input({
   return (
     <div className="space-y-1" data-testid="rendered-component-input">
       {label && (
-        <label htmlFor={inputId} className="block text-sm font-medium text-gray-700">
+        <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>

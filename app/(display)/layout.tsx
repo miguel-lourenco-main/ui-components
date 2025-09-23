@@ -1,4 +1,3 @@
-import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 
 export default function DisplayLayout({ children }: { children: React.ReactNode }) {
@@ -6,7 +5,6 @@ export default function DisplayLayout({ children }: { children: React.ReactNode 
     <div className="flex flex-col justify-center items-center size-full">
       <Header />
       {children}
-      <Footer />
     </div>
   );
 }

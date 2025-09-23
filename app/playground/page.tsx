@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import ComponentSelector from '@/components/ComponentSelector';
 import LocalComponentRenderer from '@/components/LocalComponentRenderer';
 import CodeViewer from '@/components/code-viewer';
 import PropsPanel from '@/components/PropsPanel';
 import ViewportControls from '@/components/ViewportControls';
-import CodeButtons from '@/components/code-buttons';
 
 import { useLocalComponentState } from '@/lib/hooks/useLocalComponentState';
 import { PlayIcon, EyeOffIcon, EyeIcon, Play, CodeIcon } from 'lucide-react';
@@ -20,9 +19,8 @@ import {
 import { ImperativePanelHandle } from 'react-resizable-panels'
 import { FullComponentInfo } from '@/lib/interfaces';
 import { Button } from '@/components/ui/button';
-import { BASE_REPO_URL } from '@/lib/constants';
-import { GitLabIconSingle, CodeOffIcon } from '@/lib/icons';
-// Header removed in favor of global site header
+import { CodeOffIcon } from '@/lib/icons';
+import { useScrollDirection } from '@/lib/hooks/use-scroll-direction';
 
 interface ComponentPreviewProps {
   selectedComponent: FullComponentInfo | null;
@@ -95,6 +93,19 @@ export default function PlaygroundPage() {
 
   const searchParams = useSearchParams();
 
+  const { scrollDirection, isScrolled } = useScrollDirection()
+
+  const shouldSnap = useMemo(() => scrollDirection === 'down' && isScrolled, [scrollDirection, isScrolled])
+
+  useEffect(() => {
+    if (shouldSnap) {
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth'
+      })
+    }
+  }, [shouldSnap])
+
   useEffect(() => {
     if (!components || components.length === 0) return;
     const componentParam = searchParams.get('component');
@@ -156,10 +167,35 @@ export default function PlaygroundPage() {
 
   const rendererButtons = (): React.ReactNode => {
     return playgroundState.selectedComponent ?(
-      <ViewportControls
-        viewMode={playgroundState.viewMode}
-        onViewModeChange={setViewMode}
-      />
+      <div className="flex w-full items-center justify-between">
+        <ViewportControls
+          viewMode={playgroundState.viewMode}
+          onViewModeChange={setViewMode}
+        />
+        <div className="flex w-fit items-center justify-end space-x-2">
+          <Button
+            onClick={toggleCodePanel}
+            variant="ghost"
+            className="p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground"
+            title={playgroundState.showCode ? 'Hide Code' : 'Show Code'}
+          >
+            {playgroundState.showCode ? (
+              <CodeOffIcon className="size-4" />
+            ) : (
+              <CodeIcon className="size-4" />
+            )}
+          </Button>
+          <Button
+            onClick={togglePropsPanel}
+            variant="ghost"
+            className={`p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground`}
+            title={`Expand Props Panel`}
+            size={'lg'}
+          >
+            {playgroundState.showProps ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
+          </Button>
+        </div>
+      </div>
     ) : null;
   }
 
@@ -195,43 +231,18 @@ export default function PlaygroundPage() {
 
   return (
     <div className="flex flex-col justify-center items-center size-full">
-      <div className="flex flex-col items-center justify-center gap-3 my-8 mb-4">
+      <div className="flex flex-col items-center justify-center gap-3 my-16">
         <div className="flex w-fit items-center space-x-2">
           <Play className="size-6" />
           <h1 className="text-4xl font-bold">Playground</h1>
         </div>
         <p className="text-muted-foreground">Play with components and see how they work</p>
       </div>
-      <div className="relative min-h-[calc(100vh-14rem)] max-w-[calc(100vw-4rem)] flex flex-col bg-background justify-center">
-        <div className="absolute -top-10 right-2 flex w-full flex-row items-center justify-end mt-1 space-x-2">
-          <div className={`${playgroundState.selectedComponent ? 'flex' : 'hidden'}`}>
-            <Button
-              onClick={toggleCodePanel}
-              variant="ghost"
-              className="p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground"
-              title={playgroundState.showCode ? 'Hide Code' : 'Show Code'}
-            >
-              {playgroundState.showCode ? (
-                <CodeOffIcon className="size-4" />
-              ) : (
-                <CodeIcon className="size-4" />
-              )}
-            </Button>
-          </div>
-          <Button
-            onClick={togglePropsPanel}
-            variant="ghost"
-            className={`p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground`}
-            title={`Expand Props Panel`}
-            size={'lg'}
-          >
-            {playgroundState.showProps ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
-          </Button>
-        </div>
+      <div className="relative h-[calc(100vh-2rem)] w-[calc(100vw-4rem)] flex flex-col bg-background justify-center snap-start">
         <div className="overflow-hidden rounded-lg border-4 border-border bg-card">
           <ResizablePanelGroup direction="horizontal" className="">
             <ResizablePanel defaultSize={playgroundState.showProps ? 25 : 35} minSize={15} className="bg-card border-r border-border">
-              <div className="h-[calc(100vh-16rem)] overflow-hidden">
+              <div className="h-full">
                 <ComponentSelector
                   components={components}
                   selectedComponent={playgroundState.selectedComponent}

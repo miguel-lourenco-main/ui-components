@@ -122,7 +122,7 @@ export default function ImprovedDynamicComponent({ componentId, navRef }: Improv
   return (
     <div className="container px-4 py-8">
       <div className="relative max-w-6xl mx-auto">
-        <div className="mb-8">
+        <div className="mb-8 w-full">
           {/* Header Section */}
           {loading.meta ? (
             <div className="space-y-4 mb-8">
@@ -187,7 +187,7 @@ export default function ImprovedDynamicComponent({ componentId, navRef }: Improv
                   )}
                 </div>
               </TabsContent>
-              <TabsContent value="code" className="mt-4" id="section-code">
+              <TabsContent value="code" className="mt-4 w-full min-w-0" id="section-code">
                 {loading.componentCode ? (
                   <LoadingSkeleton className="h-64 w-full" />
                 ) : errors.componentCode ? (
@@ -197,8 +197,8 @@ export default function ImprovedDynamicComponent({ componentId, navRef }: Improv
                     onRetry={retry.componentCode}
                   />
                 ) : componentCode ? (
-                  <div className="rounded-lg border p-4">
-                    <div className="max-h-[60vh] overflow-auto">
+                  <div className="w-full min-w-0 rounded-lg border p-4">
+                    <div className="max-h-[60vh] min-w-0 overflow-auto">
                       <CodeBlock code={componentCode} language="tsx" reveal={false} />
                     </div>
                   </div>
@@ -234,9 +234,9 @@ export default function ImprovedDynamicComponent({ componentId, navRef }: Improv
                 onRetry={retry.variants}
               />
             ) : variants && variants.length > 0 ? (
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="w-full min-w-0 grid md:grid-cols-2 gap-6">
                 {variants.filter(variant => variant.id !== "preview-small").map((variant) => (
-                  <div key={variant.id} className="rounded-lg border p-4">
+                  <div key={variant.id} className="max-w-full min-w-0 rounded-lg border p-4">
                     <div className="mb-3">
                       <h3 className="font-medium flex items-center gap-2">
                         {variant.name}
@@ -249,15 +249,15 @@ export default function ImprovedDynamicComponent({ componentId, navRef }: Improv
                         <TabsTrigger value="preview">Preview</TabsTrigger>
                         <TabsTrigger value="code">Code</TabsTrigger>
                       </TabsList>
-                      <TabsContent value="preview" className="mt-4">
+                      <TabsContent value="preview" className="mt-4 min-w-0">
                         <div className="p-4 border rounded-lg bg-background">
                           {variant.preview || (
                             <div className="text-muted-foreground text-center py-8">Preview component loading...</div>
                           )}
                         </div>
                       </TabsContent>
-                      <TabsContent value="code" className="mt-4">
-                        <CodeBlock code={variant.code} language="tsx" reveal={false} className={`max-h-[220px] relative overflow-auto rounded-md border transition-all duration-300 ${
+                      <TabsContent value="code" className="mt-4 w-full min-w-0 overflow-hidden">
+                        <CodeBlock code={variant.code} language="tsx" reveal={false} className={`max-h-[220px] max-w-full relative overflow-auto rounded-md border transition-all duration-300 ${
                           variantRevealMap[variant.id] && "ring-1 ring-primary/20"
                         }`} /> 
                       </TabsContent>

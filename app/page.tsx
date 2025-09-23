@@ -4,7 +4,6 @@ import { ArrowRight, Code, Palette, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
 import { PopularComponentsGridSkeleton } from "@/components/PopularComponentsGrid"
 
@@ -32,8 +31,8 @@ export default function HomePage() {
               Discover a curated collection of components crafted in various design styles. Copy the code you need and
               build faster.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" asChild>
+            <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+              <Button size="lg" asChild className="w-fit">
                 <Link href="/components">
                   Browse Components <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -106,7 +105,6 @@ export default function HomePage() {
           </div>
         </section>
       </div>
-      <Footer/>
     </div>
   )
 }
