@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { CodeOffIcon } from '@/lib/icons';
 import { useScrollDirection } from '@/lib/hooks/use-scroll-direction';
 import { useIsMobile } from '@/components/ui/use-mobile';
+import { cn } from '@/lib/utils';
 
 interface ComponentPreviewProps {
   selectedComponent: FullComponentInfo | null;
@@ -93,6 +94,12 @@ export default function PlaygroundPage() {
   const propsPanelRef = useRef<ImperativePanelHandle | null>(null);
   const propsOpen = playgroundState.showProps;
   const propsLastSizeRef = useRef<number>(25);
+  const codePanelRef = useRef<ImperativePanelHandle | null>(null);
+  const codeLastSizeRef = useRef<number>(40);
+  const examplesPanelRef = useRef<ImperativePanelHandle | null>(null);
+  const examplesLastSizeRef = useRef<number>(25);
+  const searchPanelRef = useRef<ImperativePanelHandle | null>(null);
+  const searchLastSizeRef = useRef<number>(45);
 
   const searchParams = useSearchParams();
 
@@ -203,7 +210,7 @@ export default function PlaygroundPage() {
             <Button
               onClick={triggerSearchButton}
               variant="ghost"
-              className="p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground"
+              className={cn("p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground", playgroundState.showSearch && "bg-primary/5 border-primary/30 ring-2 ring-primary/50")}
               title={'Show Search'}
             >
               <SearchIcon className="size-4" />
@@ -211,28 +218,24 @@ export default function PlaygroundPage() {
             <Button
               onClick={triggerCodeButton}
               variant="ghost"
-              className="p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground"
+              className={cn("p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground", playgroundState.showCode && "bg-primary/5 border-primary/30 ring-2 ring-primary/50")}
               title={playgroundState.showCode ? 'Hide Code' : 'Show Code'}
             >
-              {playgroundState.showCode ? (
-                <CodeOffIcon className="size-4" />
-              ) : (
-                <CodeIcon className="size-4" />
-              )}
+              <CodeIcon className="size-4" />
             </Button>
             <Button
               onClick={triggerPropsButton}
               variant="ghost"
-              className={`p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground`}
+              className={cn("p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground", playgroundState.showProps && "bg-primary/5 border-primary/30 ring-2 ring-primary/50")}
               title={`Expand Props Panel`}
               size={'lg'}
             >
-              {playgroundState.showProps ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
+              <EyeIcon className="size-4" />
             </Button>
             <Button
               onClick={triggerExamplesButton}
               variant="ghost"
-              className="p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground"
+              className={cn("p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground", playgroundState.showExamples && "bg-primary/5 border-primary/30 ring-2 ring-primary/50")}
               title={'Show Examples'}
             >
               <List className="size-4" />
@@ -329,7 +332,7 @@ export default function PlaygroundPage() {
             <div className="flex flex-col h-full size-full">
               <MobileTopPanelToolbar />
               <ResizablePanelGroup direction="vertical" className="size-full">
-                <ResizablePanel defaultSize={45} minSize={30} className="bg-card border-b border-border">
+                <ResizablePanel id="search-mobile" defaultSize={45} minSize={30} className="bg-card border-b border-border">
                   <div className="size-full flex flex-col">
                     {activeTopPanel === 'search' && (
                       <ComponentSelector
@@ -405,7 +408,7 @@ export default function PlaygroundPage() {
                   </div>
                 </ResizablePanel>
                 <ResizableHandle withHandle />
-                <ResizablePanel defaultSize={55} minSize={30} className="bg-muted flex flex-col">
+                <ResizablePanel id="preview-mobile" defaultSize={55} minSize={30} className="bg-muted flex flex-col">
                   <ComponentPreview
                     selectedComponent={playgroundState.selectedComponent}
                     currentProps={playgroundState.currentProps}
@@ -424,24 +427,20 @@ export default function PlaygroundPage() {
             </div>
           ) : (
             <ResizablePanelGroup direction="horizontal" className="">
-              {playgroundState.showSearch && (
-                <>
-                  <ResizablePanel defaultSize={25} minSize={15} maxSize={40} className="bg-card border-r border-border">
-                    <div className="h-full">
-                      <ComponentSelector
-                        components={components}
-                        selectedComponent={playgroundState.selectedComponent}
-                        onSelect={selectComponent}
-                        searchQuery={playgroundState.searchQuery}
-                        onSearchChange={setSearchQuery}
-                      />
-                    </div>
-                  </ResizablePanel>
-                  <ResizableHandle withHandle />
-                </>
-              )}
+              <ResizablePanel id="search-desktop" ref={searchPanelRef} defaultSize={playgroundState.showSearch ? (searchLastSizeRef.current || 25) : 0} minSize={0} maxSize={playgroundState.showSearch ? 40 : 0} className="bg-card border-r border-border">
+                <div className="h-full">
+                  <ComponentSelector
+                    components={components}
+                    selectedComponent={playgroundState.selectedComponent}
+                    onSelect={selectComponent}
+                    searchQuery={playgroundState.searchQuery}
+                    onSearchChange={setSearchQuery}
+                  />
+                </div>
+              </ResizablePanel>
+              <ResizableHandle withHandle />
 
-              <ResizablePanel 
+              <ResizablePanel id="center"
                 defaultSize={
                   playgroundState.showSearch && playgroundState.showProps 
                     ? 50 
@@ -451,126 +450,104 @@ export default function PlaygroundPage() {
                 } 
                 minSize={20}
               >
-                {playgroundState.showCode && playgroundState.selectedComponent ? (
-                  <ResizablePanelGroup direction="vertical" className="h-full">
-                    <ResizablePanel defaultSize={60} minSize={30} className="bg-muted flex flex-col">
-                      <ComponentPreview
-                        selectedComponent={playgroundState.selectedComponent}
-                        currentProps={playgroundState.currentProps}
-                        viewMode={playgroundState.viewMode}
-                        selectedExampleIndex={selectedExampleIndex}
-                        onRetry={() => {
-                          if (playgroundState.selectedComponent) {
-                            selectComponent(playgroundState.selectedComponent, selectedExampleIndex);
-                          }
-                        }}
-                        onPropChange={handlePropChange}
-                        rendererButtons={rendererButtons()}
-                      />
-                    </ResizablePanel>
+                <ResizablePanelGroup direction="vertical" className="h-full">
+                  <ResizablePanel id="preview" defaultSize={60} minSize={30} className="bg-muted flex flex-col">
+                    <ComponentPreview
+                      selectedComponent={playgroundState.selectedComponent}
+                      currentProps={playgroundState.currentProps}
+                      viewMode={playgroundState.viewMode}
+                      selectedExampleIndex={selectedExampleIndex}
+                      onRetry={() => {
+                        if (playgroundState.selectedComponent) {
+                          selectComponent(playgroundState.selectedComponent, selectedExampleIndex);
+                        }
+                      }}
+                      onPropChange={handlePropChange}
+                      rendererButtons={rendererButtons()}
+                    />
+                  </ResizablePanel>
 
-                    <ResizableHandle withHandle />
+                  <ResizableHandle withHandle />
 
-                    <ResizablePanel defaultSize={40} minSize={20} className="bg-card border-t border-border">
-                      <div className="h-full flex flex-col">
-                        <CodeViewer value={playgroundState.currentCode} language="typescript" title="Component Code" />
-                      </div>
-                    </ResizablePanel>
-                  </ResizablePanelGroup>
-                ) : (
-                  <ComponentPreview
-                    selectedComponent={playgroundState.selectedComponent}
-                    currentProps={playgroundState.currentProps}
-                    viewMode={playgroundState.viewMode}
-                    selectedExampleIndex={selectedExampleIndex}
-                    onRetry={() => {
-                      if (playgroundState.selectedComponent) {
-                        selectComponent(playgroundState.selectedComponent, selectedExampleIndex);
-                      }
-                    }}
-                    onPropChange={handlePropChange}
-                    rendererButtons={rendererButtons()}
-                  />
-                )}
+                  <ResizablePanel id="code-desktop" ref={codePanelRef} defaultSize={playgroundState.showCode ? codeLastSizeRef.current || 40 : 0} minSize={0} maxSize={playgroundState.showCode ? 40 : 0} className="bg-card border-t border-border">
+                    <div className="h-full flex flex-col">
+                      <CodeViewer value={playgroundState.currentCode} language="typescript" title="Component Code" />
+                    </div>
+                  </ResizablePanel>
+                </ResizablePanelGroup>
               </ResizablePanel>
 
-              {playgroundState.selectedComponent && (
-                <>
-                  <ResizableHandle withHandle />
-                  <ResizablePanel
-                    ref={propsPanelRef}
-                    defaultSize={propsOpen ? (propsLastSizeRef.current || 25) : 0}
-                    minSize={0}
-                    collapsible
-                    collapsedSize={0}
-                    className="bg-card border-l border-border"
-                  >
-                    <div className="h-full flex flex-col" data-testid="props-panel">
-                      <PropsPanel
-                        component={playgroundState.selectedComponent}
-                        values={playgroundState.currentProps}
-                        onChange={updateProps}
-                        onSelectExample={selectExample}
-                        selectedExampleIndex={selectedExampleIndex}
-                      />
-                    </div>
-                  </ResizablePanel>
-                </>
-              )}
+              <ResizableHandle withHandle />
+              <ResizablePanel id="props-desktop"
+                ref={propsPanelRef}
+                defaultSize={playgroundState.showProps ? (propsLastSizeRef.current || 25) : 0}
+                minSize={0}
+                maxSize={playgroundState.showProps ? 40 : 0}
+                className="bg-card border-l border-border"
+              >
+                <div className="h-full flex flex-col" data-testid="props-panel">
+                  {playgroundState.showProps && playgroundState.selectedComponent && (
+                    <PropsPanel
+                      component={playgroundState.selectedComponent}
+                      values={playgroundState.currentProps}
+                      onChange={updateProps}
+                      onSelectExample={selectExample}
+                      selectedExampleIndex={selectedExampleIndex}
+                    />
+                  )}
+                </div>
+              </ResizablePanel>
 
-              {playgroundState.showExamples && playgroundState.selectedComponent && (
-                <>
-                  <ResizableHandle withHandle />
-                  <ResizablePanel
-                    defaultSize={25}
-                    minSize={15}
-                    maxSize={40}
-                    className="bg-card border-l border-border"
-                  >
-                    <div className="h-full flex flex-col overflow-y-auto" data-testid="examples-panel-desktop">
-                      <div className="p-4 border-b border-border">
-                        <h4 className="font-medium text-foreground">Examples</h4>
-                      </div>
-                      <div className="p-4">
-                        <div className="space-y-2">
-                          {playgroundState.selectedComponent.examples?.map((example, index) => {
-                            const isSelected = selectedExampleIndex === index;
-                            return (
-                              <button
-                                key={index}
-                                onClick={() => {
-                                  if (selectExample) {
-                                    selectExample(index);
-                                  } else if (updateProps) {
-                                    updateProps(example.props);
-                                  }
-                                }}
-                                className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                                  isSelected
-                                    ? 'bg-primary/5 border-primary/30 ring-2 ring-primary/50'
-                                    : 'bg-muted hover:bg-muted/80 border-border'
-                                }`}
-                              >
-                                <div className="font-medium text-sm">{example.name}</div>
-                                {example.description && (
-                                  <div className="text-xs text-muted-foreground mt-1">
-                                    {example.description}
-                                  </div>
-                                )}
-                                {isSelected && (
-                                  <div className="text-xs text-primary mt-1 font-medium">
-                                    ✓ Currently selected
-                                  </div>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
+              <ResizableHandle withHandle />
+                <ResizablePanel id="examples-desktop"
+                  ref={examplesPanelRef}
+                  defaultSize={playgroundState.showExamples ? (examplesLastSizeRef.current || 25) : 0}
+                  minSize={0}
+                  maxSize={playgroundState.showExamples ? 40 : 0}
+                  className="bg-card border-l border-border"
+                >
+                  <div className="h-full flex flex-col overflow-y-auto" data-testid="examples-panel-desktop">
+                    <div className="p-4 border-b border-border">
+                      <h4 className="font-medium text-foreground">Examples</h4>
+                    </div>
+                    <div className="p-4">
+                      <div className="space-y-2">
+                        {playgroundState.selectedComponent && playgroundState.showExamples && playgroundState.selectedComponent.examples?.map((example, index) => {
+                          const isSelected = selectedExampleIndex === index;
+                          return (
+                            <button
+                              key={index}
+                              onClick={() => {
+                                if (selectExample) {
+                                  selectExample(index);
+                                } else if (updateProps) {
+                                  updateProps(example.props);
+                                }
+                              }}
+                              className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                                isSelected
+                                  ? 'bg-primary/5 border-primary/30 ring-2 ring-primary/50'
+                                  : 'bg-muted hover:bg-muted/80 border-border'
+                              }`}
+                            >
+                              <div className="font-medium text-sm">{example.name}</div>
+                              {example.description && (
+                                <div className="text-xs text-muted-foreground mt-1">
+                                  {example.description}
+                                </div>
+                              )}
+                              {isSelected && (
+                                <div className="text-xs text-primary mt-1 font-medium">
+                                  ✓ Currently selected
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
-                  </ResizablePanel>
-                </>
-              )}
+                  </div>
+                </ResizablePanel>
             </ResizablePanelGroup>
           )}
         </div>
@@ -578,7 +555,3 @@ export default function PlaygroundPage() {
     </div>
   );
 }
-
-
-
-

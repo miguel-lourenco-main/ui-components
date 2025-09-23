@@ -50,9 +50,9 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
     currentProps: {},
     currentCode: '',
     viewMode: 'desktop',
-    showProps: true,
+    showProps: false,
     showCode: false,
-    showExamples: true,
+    showExamples: false,
     showSearch: true,
     searchQuery: '',
   });
