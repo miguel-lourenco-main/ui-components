@@ -85,7 +85,10 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
       {/* Header */}
       <div className="p-3 border-b border-border">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold">Props Configuration</h3>
+          <div className="flex items-center space-x-2">
+            <EyeIcon className="size-5 mr-1" />
+            <h3 className="font-semibold">Props Configuration</h3>
+          </div>
           <div className="flex items-center space-x-2">
             <button
               onClick={resetToDefaults}

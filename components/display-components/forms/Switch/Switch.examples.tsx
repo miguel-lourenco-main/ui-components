@@ -1,5 +1,6 @@
 import type { ComponentExample } from '@/lib/interfaces';
 import Switch from './Switch';
+import { useState } from 'react';
 
 // Unified preview components
 export const SmallPreview = () => (
@@ -8,11 +9,15 @@ export const SmallPreview = () => (
   </div>
 )
 
-export const MediumPreview = () => (
-  <div className="w-[220px]">
-    <Switch checked label="Enable feature" />
-  </div>
-)
+export const MediumPreview = () => {
+  const [checked, setChecked] = useState(false)
+
+  return (
+    <div className="w-[220px]">
+      <Switch onCheckedChange={setChecked} checked={checked} label="Enable feature" />
+    </div>
+  )
+}
 
 // Variants aligned to Button/Card structure
 export const switchVariants = [

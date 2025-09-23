@@ -298,16 +298,16 @@ export default function ThemesPage() {
 
         {viewMode === "grid" ? (
           // Grid Layout
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
             {themes.map((theme, idx) => {
               const localMode = themeModes[theme.id] ?? colorMode
               const bg = theme.colors[localMode].background
               const fg = theme.colors[localMode].foreground
               const cssVars = computeThemeCssVars(theme, localMode)
               return (
-              <Link key={theme.id} href={`/themes?theme=${theme.id}`}>
+              <Link className="block" key={theme.id} href={`/themes?theme=${theme.id}`}>
                 <Card
-                  className={`transition-all duration-200 border-none cursor-pointer group hover:shadow-lg dark:hover:shadow-[0_14px_24px_-6px_rgba(255,255,255,0.18),_0_6px_10px_-4px_rgba(255,255,255,0.12),_0_0_0_1px_rgba(255,255,255,0.06)]`}
+                  className={`transition-all duration-200 border-none cursor-pointer group hover:shadow-lg dark:hover:shadow-[0_14px_24px_-6px_rgba(255,255,255,0.18),_0_6px_10px_-4px_rgba(255,255,255,0.12),_0_0_0_1px_rgba(255,255,255,0.06)] w-full`}
                 >
                   <CardHeader>
                     <div className="flex items-center justify-between">
