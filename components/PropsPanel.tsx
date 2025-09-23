@@ -110,86 +110,18 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
 
       {/* Resizable Content Area */}
       <div className="flex-1 overflow-hidden">
-        {hasExamples ? (
-          <ResizablePanelGroup direction="vertical" className="h-full">
-            {/* Props List Panel */}
-            <ResizablePanel defaultSize={70} minSize={30}>
-              <div className="h-full overflow-y-auto">
-                <PropsList
-                  requiredProps={requiredProps}
-                  optionalProps={optionalProps}
-                  values={values}
-                  expandedProps={expandedProps}
-                  showOptionalProps={showOptionalProps}
-                  onPropChange={handlePropChange}
-                  onToggleExpansion={togglePropExpansion}
-                  onToggleOptionalProps={() => setShowOptionalProps(!showOptionalProps)}
-                />
-              </div>
-            </ResizablePanel>
-
-            <ResizableHandle withHandle />
-
-            {/* Examples Panel */}
-            <ResizablePanel defaultSize={30} minSize={20}>
-              <div className="h-full overflow-y-auto border-t border-border" data-testid="examples-panel">
-                <div className="p-4">
-                  <h4 className="font-medium text-foreground mb-3">Examples</h4>
-                  <div className="space-y-2">
-                    {component.examples.map((example, index) => {
-                      const isSelected = selectedExampleIndex === index;
-                      return (
-                        <button
-                          key={index}
-                          onClick={() => {
-                            debugLog('state', '🎛️ PropsPanel example button clicked:', {
-                              exampleIndex: index,
-                              exampleName: example.name,
-                              hasOnSelectExample: !!onSelectExample,
-                              selectedExampleIndex: selectedExampleIndex
-                            });
-                            onSelectExample ? onSelectExample(index) : onChange(example.props);
-                          }}
-                          className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                            isSelected
-                              ? 'bg-primary/5 border-primary/30 ring-2 ring-primary/50'
-                              : 'bg-muted hover:bg-muted/80 border-border'
-                          }`}
-                        >
-                          <div className="font-medium text-sm">{example.name}</div>
-                          {example.description && (
-                            <div className="text-xs text-muted-foreground mt-1">
-                              {example.description}
-                            </div>
-                          )}
-                          {isSelected && (
-                            <div className="text-xs text-primary mt-1 font-medium">
-                              ✓ Currently selected
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        ) : (
-          /* Props List - Full Height when no examples */
-          <div className="h-full overflow-y-auto">
-            <PropsList
-              requiredProps={requiredProps}
-              optionalProps={optionalProps}
-              values={values}
-              expandedProps={expandedProps}
-              showOptionalProps={showOptionalProps}
-              onPropChange={handlePropChange}
-              onToggleExpansion={togglePropExpansion}
-              onToggleOptionalProps={() => setShowOptionalProps(!showOptionalProps)}
-            />
-          </div>
-        )}
+        <div className="h-full overflow-y-auto">
+          <PropsList
+            requiredProps={requiredProps}
+            optionalProps={optionalProps}
+            values={values}
+            expandedProps={expandedProps}
+            showOptionalProps={showOptionalProps}
+            onPropChange={handlePropChange}
+            onToggleExpansion={togglePropExpansion}
+            onToggleOptionalProps={() => setShowOptionalProps(!showOptionalProps)}
+          />
+        </div>
       </div>
     </div>
   );

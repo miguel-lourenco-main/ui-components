@@ -115,6 +115,8 @@ export interface PlaygroundState {
   viewMode: 'desktop' | 'tablet' | 'mobile';
   showProps: boolean;
   showCode: boolean;
+  showExamples: boolean;
+  showSearch: boolean;
   searchQuery: string;
 }
 

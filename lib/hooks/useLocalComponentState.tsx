@@ -32,6 +32,8 @@ interface UseLocalComponentStateReturn {
   setViewMode: (mode: 'desktop' | 'tablet' | 'mobile') => void;
   togglePropsPanel: () => void;
   toggleCodePanel: () => void;
+  toggleExamplesPanel: () => void;
+  toggleSearchPanel: () => void;
   setSearchQuery: (query: string) => void;
   
   // New handlePropChange action
@@ -50,8 +52,16 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
     viewMode: 'desktop',
     showProps: true,
     showCode: false,
+    showExamples: true,
+    showSearch: true,
     searchQuery: '',
   });
+
+  useEffect(() => {
+    if (playgroundState.selectedComponent) {
+      setPlaygroundState(prevState => ({ ...prevState, showSearch: true }));
+    }
+  }, [playgroundState.selectedComponent]);
 
   // Track which example is currently selected (0 for first example, -1 for none/default)
   const [selectedExampleIndex, setSelectedExampleIndex] = useState<number>(-1);
@@ -600,6 +610,14 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
     setPlaygroundState(prev => ({ ...prev, showCode: !prev.showCode }));
   }, []);
 
+  const toggleExamplesPanel = useCallback(() => {
+    setPlaygroundState(prev => ({ ...prev, showExamples: !prev.showExamples }));
+  }, []);
+
+  const toggleSearchPanel = useCallback(() => {
+    setPlaygroundState(prev => ({ ...prev, showSearch: !prev.showSearch }));
+  }, []);
+
   /**
    * Set search query
    */
@@ -654,6 +672,8 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
     setViewMode,
     togglePropsPanel,
     toggleCodePanel,
+    toggleExamplesPanel,
+    toggleSearchPanel,
     setSearchQuery,
     handlePropChange,
   };

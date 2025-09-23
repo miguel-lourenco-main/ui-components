@@ -9,7 +9,7 @@ import PropsPanel from '@/components/PropsPanel';
 import ViewportControls from '@/components/ViewportControls';
 
 import { useLocalComponentState } from '@/lib/hooks/useLocalComponentState';
-import { PlayIcon, EyeOffIcon, EyeIcon, Play, CodeIcon, Search as SearchIcon } from 'lucide-react';
+import { PlayIcon, EyeOffIcon, EyeIcon, Play, CodeIcon, Search as SearchIcon, List } from 'lucide-react';
 import { getMonacoPreloadStatus } from '@/lib/monaco-preloader';
 import {
   ResizablePanelGroup,
@@ -83,7 +83,9 @@ export default function PlaygroundPage() {
     resetToDefaults,
     setViewMode,
     togglePropsPanel,
-    toggleCodePanel,
+    toggleCodePanel,  
+    toggleExamplesPanel,
+    toggleSearchPanel,
     setSearchQuery,
     handlePropChange,
   } = useLocalComponentState();
@@ -167,7 +169,28 @@ export default function PlaygroundPage() {
   }, []);
 
   const isMobile = useIsMobile();
-  const [activeTopPanel, setActiveTopPanel] = useState<'search' | 'props' | 'code'>('search');
+  const [activeTopPanel, setActiveTopPanel] = useState<'search' | 'props' | 'code' | 'examples'>('search');
+  
+  const triggerSearchButton = () => {
+    if (isMobile) setActiveTopPanel('search');
+    else toggleSearchPanel();
+  }
+
+  const triggerPropsButton = () => {
+    if (isMobile) setActiveTopPanel('props');
+    else togglePropsPanel();
+  }
+
+  const triggerCodeButton = () => {
+    if (isMobile) setActiveTopPanel('code');
+    else toggleCodePanel();
+  }
+
+  const triggerExamplesButton = () => {
+    if (isMobile) setActiveTopPanel('examples');
+    else toggleExamplesPanel();
+  }
+
   const rendererButtons = (): React.ReactNode => {
     return playgroundState.selectedComponent ? (
       <div className="flex w-full items-center justify-between">
@@ -178,7 +201,15 @@ export default function PlaygroundPage() {
         {!isMobile && (
           <div className="flex w-fit items-center justify-end space-x-2">
             <Button
-              onClick={toggleCodePanel}
+              onClick={triggerSearchButton}
+              variant="ghost"
+              className="p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground"
+              title={'Show Search'}
+            >
+              <SearchIcon className="size-4" />
+            </Button>
+            <Button
+              onClick={triggerCodeButton}
               variant="ghost"
               className="p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground"
               title={playgroundState.showCode ? 'Hide Code' : 'Show Code'}
@@ -190,13 +221,21 @@ export default function PlaygroundPage() {
               )}
             </Button>
             <Button
-              onClick={togglePropsPanel}
+              onClick={triggerPropsButton}
               variant="ghost"
               className={`p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground`}
               title={`Expand Props Panel`}
               size={'lg'}
             >
               {playgroundState.showProps ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
+            </Button>
+            <Button
+              onClick={triggerExamplesButton}
+              variant="ghost"
+              className="p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground"
+              title={'Show Examples'}
+            >
+              <List className="size-4" />
             </Button>
           </div>
         )}
@@ -237,7 +276,7 @@ export default function PlaygroundPage() {
   const MobileTopPanelToolbar = () => (
     <div className="w-full flex items-center justify-end gap-2 p-2 border-b border-border bg-muted/30">
       <Button
-        onClick={() => setActiveTopPanel('search')}
+        onClick={triggerSearchButton}
         variant={activeTopPanel === 'search' ? 'secondary' : 'ghost'}
         className="p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground"
         aria-pressed={activeTopPanel === 'search'}
@@ -246,7 +285,7 @@ export default function PlaygroundPage() {
         <SearchIcon className="size-4" />
       </Button>
       <Button
-        onClick={() => setActiveTopPanel('props')}
+        onClick={triggerPropsButton}
         variant={activeTopPanel === 'props' ? 'secondary' : 'ghost'}
         className="p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground"
         aria-pressed={activeTopPanel === 'props'}
@@ -255,13 +294,22 @@ export default function PlaygroundPage() {
         <EyeIcon className="size-4" />
       </Button>
       <Button
-        onClick={() => setActiveTopPanel('code')}
+        onClick={triggerCodeButton}
         variant={activeTopPanel === 'code' ? 'secondary' : 'ghost'}
         className="p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground"
         aria-pressed={activeTopPanel === 'code'}
         title="Show Code"
       >
         <CodeIcon className="size-4" />
+      </Button>
+      <Button
+        onClick={triggerExamplesButton}
+        variant={activeTopPanel === 'examples' ? 'secondary' : 'ghost'}
+        className="p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground"
+        aria-pressed={activeTopPanel === 'examples'}
+        title="Show Examples"
+      >
+        <List className="size-4" />
       </Button>
     </div>
   );
@@ -308,6 +356,47 @@ export default function PlaygroundPage() {
                         <CodeViewer value={playgroundState.currentCode} language="typescript" title="Component Code" />
                       </div>
                     )}
+                    {activeTopPanel === 'examples' && playgroundState.selectedComponent && (
+                      <div className="h-full flex flex-col overflow-y-auto" data-testid="examples-panel-mobile">
+                        <div className="p-4">
+                          <h4 className="font-medium text-foreground mb-3">Examples</h4>
+                          <div className="space-y-2">
+                            {playgroundState.selectedComponent.examples?.map((example, index) => {
+                              const isSelected = selectedExampleIndex === index;
+                              return (
+                                <button
+                                  key={index}
+                                  onClick={() => {
+                                    if (selectExample) {
+                                      selectExample(index);
+                                    } else if (updateProps) {
+                                      updateProps(example.props);
+                                    }
+                                  }}
+                                  className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                                    isSelected
+                                      ? 'bg-primary/5 border-primary/30 ring-2 ring-primary/50'
+                                      : 'bg-muted hover:bg-muted/80 border-border'
+                                  }`}
+                                >
+                                  <div className="font-medium text-sm">{example.name}</div>
+                                  {example.description && (
+                                    <div className="text-xs text-muted-foreground mt-1">
+                                      {example.description}
+                                    </div>
+                                  )}
+                                  {isSelected && (
+                                    <div className="text-xs text-primary mt-1 font-medium">
+                                      ✓ Currently selected
+                                    </div>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     {activeTopPanel !== 'search' && !playgroundState.selectedComponent && (
                       <div className="h-full flex items-center justify-center text-muted-foreground p-4">
                         Select a component to view {activeTopPanel}.
@@ -335,21 +424,33 @@ export default function PlaygroundPage() {
             </div>
           ) : (
             <ResizablePanelGroup direction="horizontal" className="">
-              <ResizablePanel defaultSize={playgroundState.showProps ? 25 : 35} minSize={15} className="bg-card border-r border-border">
-                <div className="h-full">
-                  <ComponentSelector
-                    components={components}
-                    selectedComponent={playgroundState.selectedComponent}
-                    onSelect={selectComponent}
-                    searchQuery={playgroundState.searchQuery}
-                    onSearchChange={setSearchQuery}
-                  />
-                </div>
-              </ResizablePanel>
+              {playgroundState.showSearch && (
+                <>
+                  <ResizablePanel defaultSize={25} minSize={15} maxSize={40} className="bg-card border-r border-border">
+                    <div className="h-full">
+                      <ComponentSelector
+                        components={components}
+                        selectedComponent={playgroundState.selectedComponent}
+                        onSelect={selectComponent}
+                        searchQuery={playgroundState.searchQuery}
+                        onSearchChange={setSearchQuery}
+                      />
+                    </div>
+                  </ResizablePanel>
+                  <ResizableHandle withHandle />
+                </>
+              )}
 
-              <ResizableHandle withHandle />
-
-              <ResizablePanel defaultSize={playgroundState.showProps ? 50 : 65} minSize={20}>
+              <ResizablePanel 
+                defaultSize={
+                  playgroundState.showSearch && playgroundState.showProps 
+                    ? 50 
+                    : playgroundState.showSearch || playgroundState.showProps 
+                      ? 65 
+                      : 80
+                } 
+                minSize={20}
+              >
                 {playgroundState.showCode && playgroundState.selectedComponent ? (
                   <ResizablePanelGroup direction="vertical" className="h-full">
                     <ResizablePanel defaultSize={60} minSize={30} className="bg-muted flex flex-col">
@@ -412,6 +513,60 @@ export default function PlaygroundPage() {
                         onSelectExample={selectExample}
                         selectedExampleIndex={selectedExampleIndex}
                       />
+                    </div>
+                  </ResizablePanel>
+                </>
+              )}
+
+              {playgroundState.showExamples && playgroundState.selectedComponent && (
+                <>
+                  <ResizableHandle withHandle />
+                  <ResizablePanel
+                    defaultSize={25}
+                    minSize={15}
+                    maxSize={40}
+                    className="bg-card border-l border-border"
+                  >
+                    <div className="h-full flex flex-col overflow-y-auto" data-testid="examples-panel-desktop">
+                      <div className="p-4 border-b border-border">
+                        <h4 className="font-medium text-foreground">Examples</h4>
+                      </div>
+                      <div className="p-4">
+                        <div className="space-y-2">
+                          {playgroundState.selectedComponent.examples?.map((example, index) => {
+                            const isSelected = selectedExampleIndex === index;
+                            return (
+                              <button
+                                key={index}
+                                onClick={() => {
+                                  if (selectExample) {
+                                    selectExample(index);
+                                  } else if (updateProps) {
+                                    updateProps(example.props);
+                                  }
+                                }}
+                                className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                                  isSelected
+                                    ? 'bg-primary/5 border-primary/30 ring-2 ring-primary/50'
+                                    : 'bg-muted hover:bg-muted/80 border-border'
+                                }`}
+                              >
+                                <div className="font-medium text-sm">{example.name}</div>
+                                {example.description && (
+                                  <div className="text-xs text-muted-foreground mt-1">
+                                    {example.description}
+                                  </div>
+                                )}
+                                {isSelected && (
+                                  <div className="text-xs text-primary mt-1 font-medium">
+                                    ✓ Currently selected
+                                  </div>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
                     </div>
                   </ResizablePanel>
                 </>
