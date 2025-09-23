@@ -9,7 +9,7 @@ import PropsPanel from '@/components/PropsPanel';
 import ViewportControls from '@/components/ViewportControls';
 
 import { useLocalComponentState } from '@/lib/hooks/useLocalComponentState';
-import { PlayIcon, EyeOffIcon, EyeIcon, Play, CodeIcon } from 'lucide-react';
+import { PlayIcon, EyeOffIcon, EyeIcon, Play, CodeIcon, Search as SearchIcon } from 'lucide-react';
 import { getMonacoPreloadStatus } from '@/lib/monaco-preloader';
 import {
   ResizablePanelGroup,
@@ -21,6 +21,7 @@ import { FullComponentInfo } from '@/lib/interfaces';
 import { Button } from '@/components/ui/button';
 import { CodeOffIcon } from '@/lib/icons';
 import { useScrollDirection } from '@/lib/hooks/use-scroll-direction';
+import { useIsMobile } from '@/components/ui/use-mobile';
 
 interface ComponentPreviewProps {
   selectedComponent: FullComponentInfo | null;
@@ -165,36 +166,40 @@ export default function PlaygroundPage() {
     return () => clearInterval(interval);
   }, []);
 
+  const isMobile = useIsMobile();
+  const [activeTopPanel, setActiveTopPanel] = useState<'search' | 'props' | 'code'>('search');
   const rendererButtons = (): React.ReactNode => {
-    return playgroundState.selectedComponent ?(
+    return playgroundState.selectedComponent ? (
       <div className="flex w-full items-center justify-between">
         <ViewportControls
           viewMode={playgroundState.viewMode}
           onViewModeChange={setViewMode}
         />
-        <div className="flex w-fit items-center justify-end space-x-2">
-          <Button
-            onClick={toggleCodePanel}
-            variant="ghost"
-            className="p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground"
-            title={playgroundState.showCode ? 'Hide Code' : 'Show Code'}
-          >
-            {playgroundState.showCode ? (
-              <CodeOffIcon className="size-4" />
-            ) : (
-              <CodeIcon className="size-4" />
-            )}
-          </Button>
-          <Button
-            onClick={togglePropsPanel}
-            variant="ghost"
-            className={`p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground`}
-            title={`Expand Props Panel`}
-            size={'lg'}
-          >
-            {playgroundState.showProps ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
-          </Button>
-        </div>
+        {!isMobile && (
+          <div className="flex w-fit items-center justify-end space-x-2">
+            <Button
+              onClick={toggleCodePanel}
+              variant="ghost"
+              className="p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground"
+              title={playgroundState.showCode ? 'Hide Code' : 'Show Code'}
+            >
+              {playgroundState.showCode ? (
+                <CodeOffIcon className="size-4" />
+              ) : (
+                <CodeIcon className="size-4" />
+              )}
+            </Button>
+            <Button
+              onClick={togglePropsPanel}
+              variant="ghost"
+              className={`p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground`}
+              title={`Expand Props Panel`}
+              size={'lg'}
+            >
+              {playgroundState.showProps ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
+            </Button>
+          </div>
+        )}
       </div>
     ) : null;
   }
@@ -229,6 +234,38 @@ export default function PlaygroundPage() {
     );
   }
 
+  const MobileTopPanelToolbar = () => (
+    <div className="w-full flex items-center justify-end gap-2 p-2 border-b border-border bg-muted/30">
+      <Button
+        onClick={() => setActiveTopPanel('search')}
+        variant={activeTopPanel === 'search' ? 'secondary' : 'ghost'}
+        className="p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground"
+        aria-pressed={activeTopPanel === 'search'}
+        title="Show Search"
+      >
+        <SearchIcon className="size-4" />
+      </Button>
+      <Button
+        onClick={() => setActiveTopPanel('props')}
+        variant={activeTopPanel === 'props' ? 'secondary' : 'ghost'}
+        className="p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground"
+        aria-pressed={activeTopPanel === 'props'}
+        title="Show Props"
+      >
+        <EyeIcon className="size-4" />
+      </Button>
+      <Button
+        onClick={() => setActiveTopPanel('code')}
+        variant={activeTopPanel === 'code' ? 'secondary' : 'ghost'}
+        className="p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground"
+        aria-pressed={activeTopPanel === 'code'}
+        title="Show Code"
+      >
+        <CodeIcon className="size-4" />
+      </Button>
+    </div>
+  );
+
   return (
     <div className="flex flex-col justify-center items-center size-full">
       <div className="flex flex-col items-center justify-center gap-3 my-16">
@@ -239,90 +276,148 @@ export default function PlaygroundPage() {
         <p className="text-muted-foreground">Play with components and see how they work</p>
       </div>
       <div className="relative h-[calc(100vh-2rem)] w-[calc(100vw-4rem)] flex flex-col bg-background justify-center snap-start">
-        <div className="overflow-hidden rounded-lg border-4 border-border bg-card">
-          <ResizablePanelGroup direction="horizontal" className="">
-            <ResizablePanel defaultSize={playgroundState.showProps ? 25 : 35} minSize={15} className="bg-card border-r border-border">
-              <div className="h-full">
-                <ComponentSelector
-                  components={components}
-                  selectedComponent={playgroundState.selectedComponent}
-                  onSelect={selectComponent}
-                  searchQuery={playgroundState.searchQuery}
-                  onSearchChange={setSearchQuery}
-                />
-              </div>
-            </ResizablePanel>
-
-            <ResizableHandle withHandle />
-
-            <ResizablePanel defaultSize={playgroundState.showProps ? 50 : 65} minSize={20}>
-              {playgroundState.showCode && playgroundState.selectedComponent ? (
-                <ResizablePanelGroup direction="vertical" className="h-full">
-                  <ResizablePanel defaultSize={60} minSize={30} className="bg-muted flex flex-col">
-                    <ComponentPreview
-                      selectedComponent={playgroundState.selectedComponent}
-                      currentProps={playgroundState.currentProps}
-                      viewMode={playgroundState.viewMode}
-                      selectedExampleIndex={selectedExampleIndex}
-                      onRetry={() => {
-                        if (playgroundState.selectedComponent) {
-                          selectComponent(playgroundState.selectedComponent, selectedExampleIndex);
-                        }
-                      }}
-                      onPropChange={handlePropChange}
-                      rendererButtons={rendererButtons()}
-                    />
-                  </ResizablePanel>
-
-                  <ResizableHandle withHandle />
-
-                  <ResizablePanel defaultSize={40} minSize={20} className="bg-card border-t border-border">
-                    <div className="h-full flex flex-col">
-                      <CodeViewer value={playgroundState.currentCode} language="typescript" title="Component Code" />
-                    </div>
-                  </ResizablePanel>
-                </ResizablePanelGroup>
-              ) : (
-                <ComponentPreview
-                  selectedComponent={playgroundState.selectedComponent}
-                  currentProps={playgroundState.currentProps}
-                  viewMode={playgroundState.viewMode}
-                  selectedExampleIndex={selectedExampleIndex}
-                  onRetry={() => {
-                    if (playgroundState.selectedComponent) {
-                      selectComponent(playgroundState.selectedComponent, selectedExampleIndex);
-                    }
-                  }}
-                  onPropChange={handlePropChange}
-                  rendererButtons={rendererButtons()}
-                />
-              )}
-            </ResizablePanel>
-
-            {playgroundState.selectedComponent && (
-              <>
-                <ResizableHandle withHandle />
-                <ResizablePanel
-                  ref={propsPanelRef}
-                  defaultSize={propsOpen ? (propsLastSizeRef.current || 25) : 0}
-                  minSize={0}
-                  collapsible
-                  collapsedSize={0}
-                  className="bg-card border-l border-border"
-                >
-                  <div className="h-full flex flex-col" data-testid="props-panel">
-                    <PropsPanel
-                      component={playgroundState.selectedComponent}
-                      values={playgroundState.currentProps}
-                      onChange={updateProps}
-                      onSelectExample={selectExample}
-                      selectedExampleIndex={selectedExampleIndex}
-                    />
+        <div className="size-full overflow-hidden rounded-lg border-4 border-border bg-card">
+          {isMobile ? (
+            <div className="flex flex-col h-full size-full">
+              <MobileTopPanelToolbar />
+              <ResizablePanelGroup direction="vertical" className="size-full">
+                <ResizablePanel defaultSize={45} minSize={30} className="bg-card border-b border-border">
+                  <div className="size-full flex flex-col">
+                    {activeTopPanel === 'search' && (
+                      <ComponentSelector
+                        components={components}
+                        selectedComponent={playgroundState.selectedComponent}
+                        onSelect={selectComponent}
+                        searchQuery={playgroundState.searchQuery}
+                        onSearchChange={setSearchQuery}
+                      />
+                    )}
+                    {activeTopPanel === 'props' && playgroundState.selectedComponent && (
+                      <div className="h-full flex flex-col" data-testid="props-panel">
+                        <PropsPanel
+                          component={playgroundState.selectedComponent}
+                          values={playgroundState.currentProps}
+                          onChange={updateProps}
+                          onSelectExample={selectExample}
+                          selectedExampleIndex={selectedExampleIndex}
+                        />
+                      </div>
+                    )}
+                    {activeTopPanel === 'code' && playgroundState.selectedComponent && (
+                      <div className="h-full flex flex-col">
+                        <CodeViewer value={playgroundState.currentCode} language="typescript" title="Component Code" />
+                      </div>
+                    )}
+                    {activeTopPanel !== 'search' && !playgroundState.selectedComponent && (
+                      <div className="h-full flex items-center justify-center text-muted-foreground p-4">
+                        Select a component to view {activeTopPanel}.
+                      </div>
+                    )}
                   </div>
                 </ResizablePanel>
-              </>
-            )}
-          </ResizablePanelGroup>
+                <ResizableHandle withHandle />
+                <ResizablePanel defaultSize={55} minSize={30} className="bg-muted flex flex-col">
+                  <ComponentPreview
+                    selectedComponent={playgroundState.selectedComponent}
+                    currentProps={playgroundState.currentProps}
+                    viewMode={playgroundState.viewMode}
+                    selectedExampleIndex={selectedExampleIndex}
+                    onRetry={() => {
+                      if (playgroundState.selectedComponent) {
+                        selectComponent(playgroundState.selectedComponent, selectedExampleIndex);
+                      }
+                    }}
+                    onPropChange={handlePropChange}
+                    rendererButtons={rendererButtons()}
+                  />
+                </ResizablePanel>
+              </ResizablePanelGroup>
+            </div>
+          ) : (
+            <ResizablePanelGroup direction="horizontal" className="">
+              <ResizablePanel defaultSize={playgroundState.showProps ? 25 : 35} minSize={15} className="bg-card border-r border-border">
+                <div className="h-full">
+                  <ComponentSelector
+                    components={components}
+                    selectedComponent={playgroundState.selectedComponent}
+                    onSelect={selectComponent}
+                    searchQuery={playgroundState.searchQuery}
+                    onSearchChange={setSearchQuery}
+                  />
+                </div>
+              </ResizablePanel>
+
+              <ResizableHandle withHandle />
+
+              <ResizablePanel defaultSize={playgroundState.showProps ? 50 : 65} minSize={20}>
+                {playgroundState.showCode && playgroundState.selectedComponent ? (
+                  <ResizablePanelGroup direction="vertical" className="h-full">
+                    <ResizablePanel defaultSize={60} minSize={30} className="bg-muted flex flex-col">
+                      <ComponentPreview
+                        selectedComponent={playgroundState.selectedComponent}
+                        currentProps={playgroundState.currentProps}
+                        viewMode={playgroundState.viewMode}
+                        selectedExampleIndex={selectedExampleIndex}
+                        onRetry={() => {
+                          if (playgroundState.selectedComponent) {
+                            selectComponent(playgroundState.selectedComponent, selectedExampleIndex);
+                          }
+                        }}
+                        onPropChange={handlePropChange}
+                        rendererButtons={rendererButtons()}
+                      />
+                    </ResizablePanel>
+
+                    <ResizableHandle withHandle />
+
+                    <ResizablePanel defaultSize={40} minSize={20} className="bg-card border-t border-border">
+                      <div className="h-full flex flex-col">
+                        <CodeViewer value={playgroundState.currentCode} language="typescript" title="Component Code" />
+                      </div>
+                    </ResizablePanel>
+                  </ResizablePanelGroup>
+                ) : (
+                  <ComponentPreview
+                    selectedComponent={playgroundState.selectedComponent}
+                    currentProps={playgroundState.currentProps}
+                    viewMode={playgroundState.viewMode}
+                    selectedExampleIndex={selectedExampleIndex}
+                    onRetry={() => {
+                      if (playgroundState.selectedComponent) {
+                        selectComponent(playgroundState.selectedComponent, selectedExampleIndex);
+                      }
+                    }}
+                    onPropChange={handlePropChange}
+                    rendererButtons={rendererButtons()}
+                  />
+                )}
+              </ResizablePanel>
+
+              {playgroundState.selectedComponent && (
+                <>
+                  <ResizableHandle withHandle />
+                  <ResizablePanel
+                    ref={propsPanelRef}
+                    defaultSize={propsOpen ? (propsLastSizeRef.current || 25) : 0}
+                    minSize={0}
+                    collapsible
+                    collapsedSize={0}
+                    className="bg-card border-l border-border"
+                  >
+                    <div className="h-full flex flex-col" data-testid="props-panel">
+                      <PropsPanel
+                        component={playgroundState.selectedComponent}
+                        values={playgroundState.currentProps}
+                        onChange={updateProps}
+                        onSelectExample={selectExample}
+                        selectedExampleIndex={selectedExampleIndex}
+                      />
+                    </div>
+                  </ResizablePanel>
+                </>
+              )}
+            </ResizablePanelGroup>
+          )}
         </div>
       </div>
     </div>
