@@ -92,7 +92,6 @@ export default function PlaygroundPage() {
   } = useLocalComponentState();
 
   const propsPanelRef = useRef<ImperativePanelHandle | null>(null);
-  const propsOpen = playgroundState.showProps;
   const propsLastSizeRef = useRef<number>(25);
   const codePanelRef = useRef<ImperativePanelHandle | null>(null);
   const codeLastSizeRef = useRef<number>(40);
@@ -100,6 +99,7 @@ export default function PlaygroundPage() {
   const examplesLastSizeRef = useRef<number>(25);
   const searchPanelRef = useRef<ImperativePanelHandle | null>(null);
   const searchLastSizeRef = useRef<number>(45);
+  const centerPanelRef = useRef<ImperativePanelHandle | null>(null);
 
   const searchParams = useSearchParams();
 
@@ -135,45 +135,86 @@ export default function PlaygroundPage() {
 
   // Keep the resizable panel in sync with the single source of truth
   useEffect(() => {
-    const ref = propsPanelRef.current;
-    if (!ref) return;
-    if (propsOpen) {
-      const currentSize = ref.getSize?.() ?? 0;
-      if (currentSize === 0) {
-        // Expand from collapsed state to last remembered size
-        ref.resize?.(propsLastSizeRef.current || 25);
-      } else {
-        ref.expand?.();
+    const propsRef = propsPanelRef.current;
+    const centerRef = centerPanelRef.current;
+    if (!propsRef) return;
+    if (playgroundState.showProps) {
+      const target = propsLastSizeRef.current || 25;
+      const current = propsRef.getSize?.() ?? 0;
+      if (current === 0 && centerRef) {
+        const centerSize = centerRef.getSize?.() ?? 0;
+        const desiredCenter = Math.max(20, centerSize - target);
+        if (desiredCenter !== centerSize) centerRef.resize?.(desiredCenter);
       }
+      propsRef.resize?.(target);
     } else {
-      const currentSize = ref.getSize?.();
+      const currentSize = propsRef.getSize?.();
       if (typeof currentSize === 'number' && currentSize > 0) {
         propsLastSizeRef.current = currentSize;
+        if (centerRef) {
+          const centerSize = centerRef.getSize?.() ?? 0;
+          const desiredCenter = Math.max(20, centerSize + currentSize);
+          if (desiredCenter !== centerSize) centerRef.resize?.(desiredCenter);
+        }
       }
-      ref.collapse?.();
+      propsRef.resize?.(0);
     }
-  }, [propsOpen]);
+  }, [playgroundState.showProps]);
 
-  const [monacoStatus, setMonacoStatus] = useState(() => getMonacoPreloadStatus());
   useEffect(() => {
-    if (process.env.NODE_ENV !== 'development') return;
-    const shallowEqual = (a: any, b: any) => {
-      if (a === b) return true;
-      if (!a || !b) return false;
-      const aKeys = Object.keys(a);
-      const bKeys = Object.keys(b);
-      if (aKeys.length !== bKeys.length) return false;
-      for (const key of aKeys) {
-        if (a[key] !== b[key]) return false;
+    const codeRef = codePanelRef.current;
+    if (!codeRef) return;
+    if (playgroundState.showCode) {
+      codeRef.resize?.(codeLastSizeRef.current || 40);
+    } else {
+      const currentSize = codeRef.getSize?.();
+      if (typeof currentSize === 'number' && currentSize > 0) {
+        codeLastSizeRef.current = currentSize;
       }
-      return true;
-    };
-    const interval = setInterval(() => {
-      const next = getMonacoPreloadStatus();
-      setMonacoStatus(prev => (shallowEqual(prev, next) ? prev : next));
-    }, 1500);
-    return () => clearInterval(interval);
-  }, []);
+      codeRef.resize?.(0);
+    }
+  }, [playgroundState.showCode]);
+
+  useEffect(() => {
+    const examplesRef = examplesPanelRef.current;
+    const centerRef = centerPanelRef.current;
+    if (!examplesRef) return;
+    if (playgroundState.showExamples) {
+      const target = examplesLastSizeRef.current || 25;
+      const current = examplesRef.getSize?.() ?? 0;
+      if (current === 0 && centerRef) {
+        const centerSize = centerRef.getSize?.() ?? 0;
+        const desiredCenter = Math.max(20, centerSize - target);
+        if (desiredCenter !== centerSize) centerRef.resize?.(desiredCenter);
+      }
+      examplesRef.resize?.(target);
+    } else {
+      const currentSize = examplesRef.getSize?.();
+      if (typeof currentSize === 'number' && currentSize > 0) {
+        examplesLastSizeRef.current = currentSize;
+        if (centerRef) {
+          const centerSize = centerRef.getSize?.() ?? 0;
+          const desiredCenter = Math.max(20, centerSize + currentSize);
+          if (desiredCenter !== centerSize) centerRef.resize?.(desiredCenter);
+        }
+      }
+      examplesRef.resize?.(0);
+    }
+  }, [playgroundState.showExamples]);
+
+  useEffect(() => {
+    const searchRef = searchPanelRef.current;
+    if (!searchRef) return;
+    if (playgroundState.showSearch) {
+      searchRef.resize?.(searchLastSizeRef.current || 45);
+    } else {
+      const currentSize = searchRef.getSize?.();
+      if (typeof currentSize === 'number' && currentSize > 0) {
+        searchLastSizeRef.current = currentSize;
+      }
+      searchRef.resize?.(0);
+    }
+  }, [playgroundState.showSearch]);
 
   const isMobile = useIsMobile();
   const [activeTopPanel, setActiveTopPanel] = useState<'search' | 'props' | 'code' | 'examples'>('search');
@@ -317,6 +358,7 @@ export default function PlaygroundPage() {
     </div>
   );
 
+  
   return (
     <div className="flex flex-col justify-center items-center size-full">
       <div className="flex flex-col items-center justify-center gap-3 my-16">
@@ -427,7 +469,7 @@ export default function PlaygroundPage() {
             </div>
           ) : (
             <ResizablePanelGroup direction="horizontal" className="">
-              <ResizablePanel id="search-desktop" ref={searchPanelRef} defaultSize={playgroundState.showSearch ? (searchLastSizeRef.current || 25) : 0} minSize={0} maxSize={playgroundState.showSearch ? 40 : 0} className="bg-card border-r border-border">
+              <ResizablePanel id="search-desktop" collapsible collapsedSize={0} ref={searchPanelRef} defaultSize={playgroundState.showSearch ? 25 : 0} minSize={0} maxSize={playgroundState.showSearch ? 40 : 0} className="bg-card border-r border-border">
                 <div className="h-full">
                   <ComponentSelector
                     components={components}
@@ -441,13 +483,7 @@ export default function PlaygroundPage() {
               <ResizableHandle withHandle />
 
               <ResizablePanel id="center"
-                defaultSize={
-                  playgroundState.showSearch && playgroundState.showProps 
-                    ? 50 
-                    : playgroundState.showSearch || playgroundState.showProps 
-                      ? 65 
-                      : 80
-                } 
+                ref={centerPanelRef}
                 minSize={20}
               >
                 <ResizablePanelGroup direction="vertical" className="h-full">
@@ -469,7 +505,7 @@ export default function PlaygroundPage() {
 
                   <ResizableHandle withHandle />
 
-                  <ResizablePanel id="code-desktop" ref={codePanelRef} defaultSize={playgroundState.showCode ? codeLastSizeRef.current || 40 : 0} minSize={0} maxSize={playgroundState.showCode ? 40 : 0} className="bg-card border-t border-border">
+                  <ResizablePanel id="code-desktop" collapsible collapsedSize={0} ref={codePanelRef} defaultSize={playgroundState.showCode ? 40 : 0} minSize={0} maxSize={playgroundState.showCode ? 40 : 0} className="bg-card border-t border-border">
                     <div className="h-full flex flex-col">
                       <CodeViewer value={playgroundState.currentCode} language="typescript" title="Component Code" />
                     </div>
@@ -480,8 +516,10 @@ export default function PlaygroundPage() {
               <ResizableHandle withHandle />
               <ResizablePanel id="props-desktop"
                 ref={propsPanelRef}
-                defaultSize={playgroundState.showProps ? (propsLastSizeRef.current || 25) : 0}
+                collapsedSize={0}
+                defaultSize={playgroundState.showProps ? 25 : 0}
                 minSize={0}
+                collapsible
                 maxSize={playgroundState.showProps ? 40 : 0}
                 className="bg-card border-l border-border"
               >
@@ -499,55 +537,57 @@ export default function PlaygroundPage() {
               </ResizablePanel>
 
               <ResizableHandle withHandle />
-                <ResizablePanel id="examples-desktop"
-                  ref={examplesPanelRef}
-                  defaultSize={playgroundState.showExamples ? (examplesLastSizeRef.current || 25) : 0}
-                  minSize={0}
-                  maxSize={playgroundState.showExamples ? 40 : 0}
-                  className="bg-card border-l border-border"
-                >
-                  <div className="h-full flex flex-col overflow-y-auto" data-testid="examples-panel-desktop">
-                    <div className="p-4 border-b border-border">
-                      <h4 className="font-medium text-foreground">Examples</h4>
-                    </div>
-                    <div className="p-4">
-                      <div className="space-y-2">
-                        {playgroundState.selectedComponent && playgroundState.showExamples && playgroundState.selectedComponent.examples?.map((example, index) => {
-                          const isSelected = selectedExampleIndex === index;
-                          return (
-                            <button
-                              key={index}
-                              onClick={() => {
-                                if (selectExample) {
-                                  selectExample(index);
-                                } else if (updateProps) {
-                                  updateProps(example.props);
-                                }
-                              }}
-                              className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                                isSelected
-                                  ? 'bg-primary/5 border-primary/30 ring-2 ring-primary/50'
-                                  : 'bg-muted hover:bg-muted/80 border-border'
-                              }`}
-                            >
-                              <div className="font-medium text-sm">{example.name}</div>
-                              {example.description && (
-                                <div className="text-xs text-muted-foreground mt-1">
-                                  {example.description}
-                                </div>
-                              )}
-                              {isSelected && (
-                                <div className="text-xs text-primary mt-1 font-medium">
-                                  ✓ Currently selected
-                                </div>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
+              <ResizablePanel id="examples-desktop"
+                ref={examplesPanelRef}
+                collapsible
+                collapsedSize={0}
+                defaultSize={playgroundState.showExamples ? 25 : 0}
+                minSize={0}
+                maxSize={playgroundState.showExamples ? 40 : 0}
+                className="bg-card border-l border-border"
+              >
+                <div className="h-full flex flex-col overflow-y-auto" data-testid="examples-panel-desktop">
+                  <div className="p-4 border-b border-border">
+                    <h4 className="font-medium text-foreground">Examples</h4>
+                  </div>
+                  <div className="p-4">
+                    <div className="space-y-2">
+                      {playgroundState.selectedComponent && playgroundState.showExamples && playgroundState.selectedComponent.examples?.map((example, index) => {
+                        const isSelected = selectedExampleIndex === index;
+                        return (
+                          <button
+                            key={index}
+                            onClick={() => {
+                              if (selectExample) {
+                                selectExample(index);
+                              } else if (updateProps) {
+                                updateProps(example.props);
+                              }
+                            }}
+                            className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                              isSelected
+                                ? 'bg-primary/5 border-primary/30 ring-2 ring-primary/50'
+                                : 'bg-muted hover:bg-muted/80 border-border'
+                            }`}
+                          >
+                            <div className="font-medium text-sm">{example.name}</div>
+                            {example.description && (
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {example.description}
+                              </div>
+                            )}
+                            {isSelected && (
+                              <div className="text-xs text-primary mt-1 font-medium">
+                                ✓ Currently selected
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
-                </ResizablePanel>
+                </div>
+              </ResizablePanel>
             </ResizablePanelGroup>
           )}
         </div>
