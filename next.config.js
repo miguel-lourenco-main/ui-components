@@ -10,7 +10,7 @@ const nextConfig = {
     : '',
   output: 'export',
   images: {
-    domains: ['gitlab.com'],
+    domains: ['gitlab.com', 'api.microlink.io'],
     unoptimized: true, // Required for static export
     loader: 'custom',
     loaderFile: './lib/image-loader.js',

@@ -11,7 +11,6 @@ import indexJson from '@/components/display-components/index.json';
 interface LocalComponentRendererProps {
   component: FullComponentInfo;
   props: Record<string, any>;
-  viewMode: 'desktop' | 'tablet' | 'mobile';
   onRetry: () => void;
   onPropChange?: (propName: string, value: any) => void;
 }
@@ -80,7 +79,6 @@ class ComponentErrorBoundary extends ComponentType<
 export default function LocalComponentRenderer({
   component,
   props,
-  viewMode,
   onRetry,
   onPropChange,
 }: LocalComponentRendererProps) {
@@ -141,16 +139,6 @@ export default function LocalComponentRenderer({
     };
   }, [component.id, component.name]); // Only reload when component changes, not props
 
-  const getViewportStyles = () => {
-    switch (viewMode) {
-      case 'mobile':
-        return { maxWidth: '375px' };
-      case 'tablet':
-        return { maxWidth: '768px' };
-      default:
-        return { maxWidth: '100%' };
-    }
-  };
 
   const renderContent = () => {
     // Show loading state
@@ -257,9 +245,8 @@ export default function LocalComponentRenderer({
 
   return (
     <div className="h-full flex flex-col items-center justify-center">
-      {/* Viewport Frame */}
+      {/* Component Frame */}
       <div 
-        style={getViewportStyles()}
         className="size-full flex items-center justify-center lg:px-24 2xl:px-32 p-6 bg-card rounded-lg border transition-all duration-300 border-border overflow-hidden"
       >
         <ComponentErrorBoundary onRetry={onRetry}>

@@ -2,15 +2,12 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Component, FullComponentInfo, PropDefinition } from '@/lib/interfaces';
-import { RefreshCwIcon, InfoIcon, EyeIcon, EyeOffIcon, AlertTriangle, Settings } from 'lucide-react';
+import { RefreshCwIcon, InfoIcon, EyeIcon, AlertTriangle, Settings, X } from 'lucide-react';
 import { debugLog } from '@/lib/constants';
 import TooltipComponent from '@/components/ui/tooltip-component';
-import {
-  ResizablePanelGroup,
-  ResizablePanel,
-  ResizableHandle,
-} from "@/components/ui/resizable"
 import FunctionPropEditor from './FunctionPropEditor';
+import { LinkPreview } from './link-preview';
+import { cn } from '@/lib/utils';
 
 interface PropsPanelProps {
   component: Component | FullComponentInfo;
@@ -18,9 +15,10 @@ interface PropsPanelProps {
   onChange: (values: Record<string, any>) => void;
   onSelectExample?: (exampleIndex: number) => void;
   selectedExampleIndex?: number;
+  triggerPropsButton?: () => void;
 }
 
-export default function PropsPanel({ component, values, onChange, onSelectExample, selectedExampleIndex = -1 }: PropsPanelProps) {
+export default function PropsPanel({ component, values, onChange, onSelectExample, selectedExampleIndex = -1, triggerPropsButton }: PropsPanelProps) {
   const [expandedProps, setExpandedProps] = useState<Set<string>>(new Set());
   const [showOptionalProps, setShowOptionalProps] = useState<boolean>(true);
 
@@ -78,33 +76,30 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
   const requiredProps = useMemo(() => component.props.filter(prop => prop.required && !shouldHideProp(prop)), [component.props]);
   const optionalProps = useMemo(() => component.props.filter(prop => !prop.required && !shouldHideProp(prop)), [component.props]);
 
-  const hasExamples = component.examples && component.examples.length > 0;
+  
 
   return (
     <div className="h-full flex flex-col">
-      {/* Header */}
-      <div className="p-3 border-b border-border">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-2">
-            <EyeIcon className="size-5 mr-1" />
-            <h3 className="font-semibold">Props Configuration</h3>
-          </div>
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={resetToDefaults}
-              className="flex items-center text-sm text-muted-foreground hover:text-foreground"
-              title="Reset to defaults"
-            >
-              <RefreshCwIcon className="size-5 mr-1" />
-              Reset
-            </button>
-          </div>
+      <div className="flex items-center justify-between p-4 border-b border-border">
+        <div className="flex items-center space-x-2">
+          <EyeIcon className="size-5 mr-1" />
+          <h3 className="font-semibold">Props Configuration</h3>
         </div>
-        
-        <div className="flex items-center justify-start text-sm text-muted-foreground">
-          <span>
-            {component.props.length} props total
-          </span>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={resetToDefaults}
+            className="flex items-center text-sm text-muted-foreground hover:text-foreground"
+            title="Reset to defaults"
+          >
+            <RefreshCwIcon className="size-5 mr-1" />
+          </button>
+          <button
+            onClick={triggerPropsButton}
+            className="flex items-center text-sm text-muted-foreground hover:text-foreground"
+            title="Close"
+          >
+            <X className="size-5 mr-1" />
+          </button>
         </div>
       </div>
 
@@ -154,13 +149,10 @@ function PropsList({
       {/* Required Props */}
       {requiredProps.length > 0 && (
         <div>
-          <div className="bg-destructive/40 border-l-4 border-destructive p-3 mb-4 rounded-r-lg">
+          <div className="bg-destructive/40 p-3 w-fit mb-4 rounded-r-lg">
             <h4 className="text-base font-semibold text-foreground flex items-center">
-              <AlertTriangle className="w-4 h-4 mr-2" />
+              <AlertTriangle className="size-5 mr-2" />
               Required Props
-              <span className="ml-3 text-sm bg-destructive/60 px-3 py-1 rounded-full font-medium">
-                {requiredProps.length}
-              </span>
             </h4>
           </div>
           <div className="space-y-4 ml-2">
@@ -192,34 +184,14 @@ function PropsList({
       {/* Optional Props */}
       {optionalProps.length > 0 && (
         <div>
-          <div className="bg-primary/5 border-l-4 border-primary/40 p-3 mb-4 rounded-r-lg">
-            <div className="flex items-center justify-between">
+          <div onClick={onToggleOptionalProps} className={cn("bg-primary/5 w-fit p-3 mb-4 rounded-r-lg cursor-pointer hover:bg-primary/10", showOptionalProps && "bg-primary/10 hover:bg-primary/20")}>
+            <div className="flex gap-8 items-center justify-between">
               <div>
                 <h4 className="text-base font-semibold text-primary flex items-center">
-                  <Settings className="w-4 h-4 mr-2" />
+                  <Settings className="size-5 mr-2" />
                   Optional Props
-                  <span className="ml-3 text-sm bg-primary/10 text-primary px-3 py-1 rounded-full font-medium">
-                    {optionalProps.length}
-                  </span>
                 </h4>
               </div>
-              <button
-                onClick={onToggleOptionalProps}
-                className="flex items-center text-sm text-primary hover:text-primary/90 bg-primary/10 hover:bg-primary/20 px-3 py-1 rounded-lg transition-colors"
-                title={showOptionalProps ? "Hide optional props" : "Show optional props"}
-              >
-                {showOptionalProps ? (
-                  <>
-                    <EyeOffIcon className="w-4 h-4 mr-1" />
-                    Hide
-                  </>
-                ) : (
-                  <>
-                    <EyeIcon className="w-4 h-4 mr-1" />
-                    Show
-                  </>
-                )}
-              </button>
             </div>
           </div>
           {showOptionalProps && (
@@ -437,18 +409,18 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
           {isClassNameProp && (
             <TooltipComponent
               trigger={
-                <span className="ml-2 text-xs text-primary bg-primary/10 px-1 underline hover:no-underline rounded cursor-help">
+                <span className="ml-2 text-xs text-primary bg-transparent px-1 underline hover:no-underline rounded cursor-help">
                   Tailwind CSS
                 </span>
               }
               content={
-                <div className="space-y-3 bg-primary/5 p-2 rounded-lg border border-primary/30">
+                <div className="space-y-3 bg-background/85 p-2 rounded-lg border border-background/30">
                   <div className="flex items-center text-primary">
                     <span className="mr-1">🎨</span>
                     <strong>Tailwind CSS Styling</strong>
                   </div>
                   <div className="text-primary space-y-2">
-                    <p>This component uses <a href="https://tailwindcss.com" target="_blank" rel="noopener noreferrer" className="underline font-medium hover:no-underline">Tailwind CSS</a> utility classes for styling.</p>
+                    <p>This component uses {" "}<LinkPreview url="https://tailwindcss.com" className="underline font-medium hover:no-underline">Tailwind CSS</LinkPreview>{" "}utility classes for styling.</p>
                     <div>
                       <p><strong>✅ Standard classes work:</strong></p>
                       <code className="block bg-muted px-2 py-1 rounded text-xs mt-1">bg-primary text-primary-foreground p-4 w-full rounded-lg</code>
@@ -472,13 +444,22 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
             />
           )}
         </label>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-x-2">
           <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
             {prop.type}
           </span>
           {prop.description && (
-            <InfoIcon 
-              className="w-4 h-4 text-muted-foreground cursor-help" 
+            <TooltipComponent
+              trigger={
+                <InfoIcon 
+                  className="w-4 h-4 text-muted-foreground cursor-help" 
+                />
+              }
+              content={
+                <div className="space-y-3 bg-background/85 p-2 rounded-lg border border-background/30">
+                  <div className="text-primary">{prop.description}</div>
+                </div>
+              }
             />
           )}
         </div>

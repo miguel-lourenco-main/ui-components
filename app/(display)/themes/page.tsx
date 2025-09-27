@@ -309,7 +309,7 @@ export default function ThemesPage() {
                 <Card
                   className={`transition-all duration-200 border-none cursor-pointer group hover:shadow-lg dark:hover:shadow-[0_14px_24px_-6px_rgba(255,255,255,0.18),_0_6px_10px_-4px_rgba(255,255,255,0.12),_0_0_0_1px_rgba(255,255,255,0.06)] w-full`}
                 >
-                  <CardHeader>
+                  <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
                       <CardTitle className="group-hover:text-primary transition-colors flex items-center gap-2">
                         <Palette className="h-5 w-5" />
@@ -336,14 +336,14 @@ export default function ThemesPage() {
                   </CardHeader>
                   <CardContent>
                     {/* Per-theme light/dark toggle */}
-                    <div className="flex items-center justify-end mb-1 gap-1 text-xs text-muted-foreground">
+                    <div className="flex items-center justify-end mb-4 gap-2 text-xs text-muted-foreground">
                       <button
                         onClick={(e) => {
                           e.preventDefault()
                           e.stopPropagation()
                           setThemeModes((prev) => ({ ...prev, [theme.id]: "light" }))
                         }}
-                        className={`px-2 py-0.5 rounded border ${localMode === "light" ? "bg-muted" : "hover:bg-muted/50"}`}
+                        className={`px-2 py-1 rounded border ${localMode === "light" ? "bg-muted" : "hover:bg-muted/50"}`}
                         aria-label="Set light mode for theme"
                       >
                         <Sun className="h-3.5 w-3.5" />
@@ -354,7 +354,7 @@ export default function ThemesPage() {
                           e.stopPropagation()
                           setThemeModes((prev) => ({ ...prev, [theme.id]: "dark" }))
                         }}
-                        className={`px-2 py-0.5 rounded border ${localMode === "dark" ? "bg-muted" : "hover:bg-muted/50"}`}
+                        className={`px-2 py-1 rounded border ${localMode === "dark" ? "bg-muted" : "hover:bg-muted/50"}`}
                         aria-label="Set dark mode for theme"
                       >
                         <Moon className="h-3.5 w-3.5" />

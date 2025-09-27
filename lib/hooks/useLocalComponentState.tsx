@@ -28,8 +28,6 @@ interface UseLocalComponentStateReturn {
   updateProps: (props: Record<string, any>) => void;
   resetToDefaults: () => void;
   
-  // UI State Actions
-  setViewMode: (mode: 'desktop' | 'tablet' | 'mobile') => void;
   togglePropsPanel: () => void;
   toggleCodePanel: () => void;
   toggleExamplesPanel: () => void;
@@ -49,7 +47,6 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
     selectedComponent: null,
     currentProps: {},
     currentCode: '',
-    viewMode: 'desktop',
     showProps: false,
     showCode: false,
     showExamples: false,
@@ -589,12 +586,6 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
     updateProps(defaultProps);
   }, [playgroundState.selectedComponent, selectedExampleIndex, selectExample, updateProps]);
 
-  /**
-   * Set viewport mode
-   */
-  const setViewMode = useCallback((mode: 'desktop' | 'tablet' | 'mobile') => {
-    setPlaygroundState(prev => ({ ...prev, viewMode: mode }));
-  }, []);
 
   /**
    * Toggle props panel visibility
@@ -669,7 +660,6 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
     selectExample,
     updateProps,
     resetToDefaults,
-    setViewMode,
     togglePropsPanel,
     toggleCodePanel,
     toggleExamplesPanel,

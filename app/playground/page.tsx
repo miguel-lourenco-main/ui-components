@@ -6,11 +6,9 @@ import ComponentSelector from '@/components/ComponentSelector';
 import LocalComponentRenderer from '@/components/LocalComponentRenderer';
 import CodeViewer from '@/components/code-viewer';
 import PropsPanel from '@/components/PropsPanel';
-import ViewportControls from '@/components/ViewportControls';
 
 import { useLocalComponentState } from '@/lib/hooks/useLocalComponentState';
-import { PlayIcon, EyeOffIcon, EyeIcon, Play, CodeIcon, Search as SearchIcon, List } from 'lucide-react';
-import { getMonacoPreloadStatus } from '@/lib/monaco-preloader';
+import { PlayIcon, EyeIcon, Play, CodeIcon, Search as SearchIcon, List, X } from 'lucide-react';
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -19,7 +17,6 @@ import {
 import { ImperativePanelHandle } from 'react-resizable-panels'
 import { FullComponentInfo } from '@/lib/interfaces';
 import { Button } from '@/components/ui/button';
-import { CodeOffIcon } from '@/lib/icons';
 import { useScrollDirection } from '@/lib/hooks/use-scroll-direction';
 import { useIsMobile } from '@/components/ui/use-mobile';
 import { cn } from '@/lib/utils';
@@ -27,7 +24,6 @@ import { cn } from '@/lib/utils';
 interface ComponentPreviewProps {
   selectedComponent: FullComponentInfo | null;
   currentProps: Record<string, any>;
-  viewMode: 'desktop' | 'tablet' | 'mobile';
   selectedExampleIndex: number;
   onRetry: () => void;
   onPropChange: (propName: string, value: any) => void;
@@ -37,7 +33,6 @@ interface ComponentPreviewProps {
 function ComponentPreview({ 
   selectedComponent, 
   currentProps, 
-  viewMode, 
   selectedExampleIndex, 
   onRetry, 
   onPropChange,
@@ -53,7 +48,6 @@ function ComponentPreview({
           <LocalComponentRenderer
             component={selectedComponent}
             props={currentProps}
-            viewMode={viewMode}
             onRetry={onRetry}
             onPropChange={onPropChange}
           />
@@ -82,7 +76,6 @@ export default function PlaygroundPage() {
     selectExample,
     updateProps,
     resetToDefaults,
-    setViewMode,
     togglePropsPanel,
     toggleCodePanel,  
     toggleExamplesPanel,
@@ -241,11 +234,7 @@ export default function PlaygroundPage() {
 
   const rendererButtons = (): React.ReactNode => {
     return playgroundState.selectedComponent ? (
-      <div className="flex w-full items-center justify-between">
-        <ViewportControls
-          viewMode={playgroundState.viewMode}
-          onViewModeChange={setViewMode}
-        />
+      <div className="flex w-full items-center justify-start">
         {!isMobile && (
           <div className="flex w-fit items-center justify-end space-x-2">
             <Button
@@ -393,6 +382,7 @@ export default function PlaygroundPage() {
                           onChange={updateProps}
                           onSelectExample={selectExample}
                           selectedExampleIndex={selectedExampleIndex}
+                          triggerPropsButton={triggerPropsButton}
                         />
                       </div>
                     )}
@@ -454,7 +444,6 @@ export default function PlaygroundPage() {
                   <ComponentPreview
                     selectedComponent={playgroundState.selectedComponent}
                     currentProps={playgroundState.currentProps}
-                    viewMode={playgroundState.viewMode}
                     selectedExampleIndex={selectedExampleIndex}
                     onRetry={() => {
                       if (playgroundState.selectedComponent) {
@@ -491,7 +480,6 @@ export default function PlaygroundPage() {
                     <ComponentPreview
                       selectedComponent={playgroundState.selectedComponent}
                       currentProps={playgroundState.currentProps}
-                      viewMode={playgroundState.viewMode}
                       selectedExampleIndex={selectedExampleIndex}
                       onRetry={() => {
                         if (playgroundState.selectedComponent) {
@@ -531,6 +519,7 @@ export default function PlaygroundPage() {
                       onChange={updateProps}
                       onSelectExample={selectExample}
                       selectedExampleIndex={selectedExampleIndex}
+                      triggerPropsButton={triggerPropsButton}
                     />
                   )}
                 </div>
@@ -547,8 +536,14 @@ export default function PlaygroundPage() {
                 className="bg-card border-l border-border"
               >
                 <div className="h-full flex flex-col overflow-y-auto" data-testid="examples-panel-desktop">
-                  <div className="p-4 border-b border-border">
-                    <h4 className="font-medium text-foreground">Examples</h4>
+                  <div className="flex w-full items-center justify-between border-b border-border">
+                    <div className="flex items-center gap-2 w-fit p-4">
+                      <List className="size-4" />
+                      <h4 className="font-medium text-foreground">Examples</h4>
+                    </div>
+                    <button onClick={triggerExamplesButton} className="text-muted-foreground hover:text-foreground w-fit p-4">
+                      <X className="size-5" />
+                    </button>
                   </div>
                   <div className="p-4">
                     <div className="space-y-2">

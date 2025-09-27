@@ -112,7 +112,6 @@ export interface PlaygroundState {
   selectedComponent: Component | null;
   currentProps: Record<string, any>;
   currentCode: string;
-  viewMode: 'desktop' | 'tablet' | 'mobile';
   showProps: boolean;
   showCode: boolean;
   showExamples: boolean;

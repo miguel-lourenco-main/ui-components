@@ -30,4 +30,4 @@ export function debugLog(category: DebugCategory, ...args: any[]) {
 // This is kept for backward compatibility but no longer used
 export const COMPONENTS_BLACKLIST: string[] = [];
 
-export const BASE_REPO_URL = 'https://gitlab.com/personal1625516/ui-components';
+export const BASE_REPO_URL = 'https://gitlab.com/miguel-lourenco-main/ui-components';
