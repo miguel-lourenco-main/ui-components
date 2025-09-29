@@ -60,14 +60,24 @@ function hexToHslVarValue(hex: string): string {
   return `${h} ${s}% ${l}%`
 }
 
+function adjustLightness(hex: string, adjustment: number): string {
+  const rgb = hexToRgb(hex)
+  if (!rgb) return hex
+  const { h, s, l } = rgbToHsl(rgb)
+  const newL = clamp01((l + adjustment) / 100) * 100
+  return `hsl(${h}, ${s}%, ${newL}%)`
+}
+
 export function computeThemeCssVars(theme: Theme, mode: "light" | "dark"): CSSProperties {
   const c = theme.colors[mode]
   const vars: CSSProperties = {
     // Core background/text
     ["--background" as any]: hexToHslVarValue(c.background),
     ["--foreground" as any]: hexToHslVarValue(c.foreground),
-    // Cards and popovers follow background by default
-    ["--card" as any]: hexToHslVarValue(c.background),
+    // Cards have subtle separation from background
+    ["--card" as any]: mode === "light" 
+      ? hexToHslVarValue(adjustLightness(c.background, -2))
+      : hexToHslVarValue(adjustLightness(c.background, 2)),
     ["--card-foreground" as any]: hexToHslVarValue(c.foreground),
     ["--popover" as any]: hexToHslVarValue(c.background),
     ["--popover-foreground" as any]: hexToHslVarValue(c.foreground),

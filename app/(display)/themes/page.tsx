@@ -307,7 +307,7 @@ export default function ThemesPage() {
               return (
               <Link className="block" key={theme.id} href={`/themes?theme=${theme.id}`}>
                 <Card
-                  className={`transition-all duration-200 border-none cursor-pointer group hover:shadow-lg dark:hover:shadow-[0_14px_24px_-6px_rgba(255,255,255,0.18),_0_6px_10px_-4px_rgba(255,255,255,0.12),_0_0_0_1px_rgba(255,255,255,0.06)] w-full`}
+                  className={`transition-all duration-200 border border-border cursor-pointer group hover:shadow-lg dark:hover:shadow-[0_14px_24px_-6px_rgba(255,255,255,0.18),_0_6px_10px_-4px_rgba(255,255,255,0.12),_0_0_0_1px_rgba(255,255,255,0.06)] w-full`}
                 >
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
@@ -410,7 +410,7 @@ export default function ThemesPage() {
               const fg = theme.colors[localMode].foreground
               const cssVars = computeThemeCssVars(theme, localMode)
               return (
-              <section onClick={() => router.push(`/themes?theme=${theme.id}`)} key={theme.id} className="hover:cursor-pointer rounded-lg p-6 space-y-6 hover:shadow-lg dark:hover:shadow-[0_14px_24px_-6px_rgba(255,255,255,0.18),_0_6px_10px_-4px_rgba(255,255,255,0.12),_0_0_0_1px_rgba(255,255,255,0.06)]">
+              <section onClick={() => router.push(`/themes?theme=${theme.id}`)} key={theme.id} className="hover:cursor-pointer rounded-lg p-6 space-y-6 bg-card border border-border hover:shadow-lg dark:hover:shadow-[0_14px_24px_-6px_rgba(255,255,255,0.18),_0_6px_10px_-4px_rgba(255,255,255,0.12),_0_0_0_1px_rgba(255,255,255,0.06)] transition-all duration-200">
                 <header className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">

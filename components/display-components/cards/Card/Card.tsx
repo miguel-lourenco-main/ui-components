@@ -20,10 +20,10 @@ export default function Card({
   const baseStyles = 'rounded-lg transition-all duration-200';
   
   const variantStyles = {
-    default: 'bg-white border border-gray-200 shadow-sm',
-    outlined: 'bg-white border-2 border-gray-300',
-    elevated: 'bg-white shadow-lg border border-gray-100',
-    flat: 'bg-gray-50'
+    default: 'bg-card border border-border shadow-sm',
+    outlined: 'bg-card border-2 border-border',
+    elevated: 'bg-card shadow-lg border border-border',
+    flat: 'bg-muted'
   };
   
   const sizeStyles = {
@@ -39,12 +39,12 @@ export default function Card({
       {(title || subtitle) && (
         <div className="mb-4">
           {title && (
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">
+            <h3 className="text-lg font-semibold text-card-foreground mb-1">
               {title}
             </h3>
           )}
           {subtitle && (
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               {subtitle}
             </p>
           )}
