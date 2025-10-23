@@ -84,12 +84,6 @@ The application features an **interactive playground** where users can experimen
 - **Data Tables**: Advanced table components with sorting and pagination
 - **Navigation**: Menu and navigation components
 
-### **Specialized Components**
-- **File Uploader**: Drag-and-drop file upload interface
-- **PDF Viewer**: Document viewing capabilities
-- **Audio Recorder**: Voice recording functionality
-- **Drag & Drop**: Interactive drag-and-drop interfaces
-
 ## 🔮 Future Enhancements
 
 - **AI-Powered Styling**: Automated component customization
