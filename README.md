@@ -86,7 +86,7 @@ The application features an **interactive playground** where users can experimen
 - **Cards**: Flexible container components with headers and content
 - **Buttons**: Multiple variants (primary, secondary, outline, ghost)
 - **Data Tables**: Advanced table components with sorting and pagination
-- **Navigation**: Menu and navigation components
+
 
 ## 🔮 Future Enhancements
 
