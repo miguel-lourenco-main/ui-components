@@ -94,7 +94,6 @@ The application features an **interactive playground** where users can experimen
 - **Component Marketplace**: Community-driven component sharing
 - **Advanced Theming**: CSS-in-JS integration and dynamic theming
 - **Accessibility Improvements**: Enhanced screen reader support
-- **Performance Monitoring**: Real-time performance metrics
 
 ## 🤝 **Contributing**
 
