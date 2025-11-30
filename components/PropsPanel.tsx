@@ -83,7 +83,7 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
       <div className="flex items-center justify-between p-4 border-b border-border">
         <div className="flex items-center space-x-2">
           <EyeIcon className="size-5 mr-1" />
-          <h3 className="font-semibold">Props Configuration</h3>
+          <h3 className="font-semibold">Properties Configuration</h3>
         </div>
         <div className="flex items-center space-x-3">
           <button
@@ -152,7 +152,7 @@ function PropsList({
           <div className="bg-destructive/40 p-3 w-fit mb-4 rounded-r-lg">
             <h4 className="text-base font-semibold text-foreground flex items-center">
               <AlertTriangle className="size-5 mr-2" />
-              Required Props
+              Required Properties
             </h4>
           </div>
           <div className="space-y-4 ml-2">
@@ -189,7 +189,7 @@ function PropsList({
               <div>
                 <h4 className="text-base font-semibold text-primary flex items-center">
                   <Settings className="size-5 mr-2" />
-                  Optional Props
+                  Optional Properties
                 </h4>
               </div>
             </div>

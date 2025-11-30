@@ -211,6 +211,7 @@ export default function PlaygroundPage() {
 
   const isMobile = useIsMobile();
   const [activeTopPanel, setActiveTopPanel] = useState<'search' | 'props' | 'code' | 'examples'>('search');
+  const [hoveredButton, setHoveredButton] = useState<string | null>(null);
   
   const triggerSearchButton = () => {
     if (isMobile) setActiveTopPanel('search');
@@ -237,39 +238,130 @@ export default function PlaygroundPage() {
       <div className="flex w-full items-center justify-start">
         {!isMobile && (
           <div className="flex w-fit items-center justify-end space-x-2">
-            <Button
-              onClick={triggerSearchButton}
-              variant="ghost"
-              className={cn("p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground", playgroundState.showSearch && "bg-primary/5 border-primary/30 ring-2 ring-primary/50")}
-              title={'Show Search'}
+            <div
+              className="relative group"
+              onMouseEnter={() => setHoveredButton('search')}
+              onMouseLeave={() => setHoveredButton(null)}
             >
-              <SearchIcon className="size-4" />
-            </Button>
-            <Button
-              onClick={triggerCodeButton}
-              variant="ghost"
-              className={cn("p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground", playgroundState.showCode && "bg-primary/5 border-primary/30 ring-2 ring-primary/50")}
-              title={playgroundState.showCode ? 'Hide Code' : 'Show Code'}
+              <Button
+                onClick={triggerSearchButton}
+                variant="ghost"
+                className={cn(
+                  "min-w-10 h-10 px-2 m-.5 border rounded-lg text-muted-foreground relative",
+                  "transition-all duration-300 ease-in-out",
+                  "hover:scale-110 hover:shadow-md flex items-center justify-center",
+                  playgroundState.showSearch && "bg-primary/5 border-primary/30 ring-2 ring-primary/50"
+                )}
+                title={'Show Search'}
+              >
+                <div className="flex items-center justify-center">
+                  <SearchIcon className="size-4 flex-shrink-0" />
+                  <span
+                    className={cn(
+                      "text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden",
+                      hoveredButton === 'search'
+                        ? "max-w-[100px] opacity-100 ml-2"
+                        : "w-0 opacity-0"
+                    )}
+                  >
+                    Search
+                  </span>
+                </div>
+              </Button>
+            </div>
+            <div
+              className="relative group"
+              onMouseEnter={() => setHoveredButton('code')}
+              onMouseLeave={() => setHoveredButton(null)}
             >
-              <CodeIcon className="size-4" />
-            </Button>
-            <Button
-              onClick={triggerPropsButton}
-              variant="ghost"
-              className={cn("p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground", playgroundState.showProps && "bg-primary/5 border-primary/30 ring-2 ring-primary/50")}
-              title={`Expand Props Panel`}
-              size={'lg'}
+              <Button
+                onClick={triggerCodeButton}
+                variant="ghost"
+                className={cn(
+                  "min-w-10 h-10 px-2 m-.5 border rounded-lg text-muted-foreground relative",
+                  "transition-all duration-300 ease-in-out",
+                  "hover:scale-110 hover:shadow-md flex items-center justify-center",
+                  playgroundState.showCode && "bg-primary/5 border-primary/30 ring-2 ring-primary/50"
+                )}
+                title={'Code'}
+              >
+                <div className="flex items-center justify-center">
+                  <CodeIcon className="size-4 flex-shrink-0" />
+                  <span
+                    className={cn(
+                      "text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden",
+                      hoveredButton === 'code'
+                        ? "max-w-[100px] opacity-100 ml-2"
+                        : "w-0 opacity-0"
+                    )}
+                  >
+                    Code
+                  </span>
+                </div>
+              </Button>
+            </div>
+            <div
+              className="relative group"
+              onMouseEnter={() => setHoveredButton('props')}
+              onMouseLeave={() => setHoveredButton(null)}
             >
-              <EyeIcon className="size-4" />
-            </Button>
-            <Button
-              onClick={triggerExamplesButton}
-              variant="ghost"
-              className={cn("p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground", playgroundState.showExamples && "bg-primary/5 border-primary/30 ring-2 ring-primary/50")}
-              title={'Show Examples'}
+              <Button
+                onClick={triggerPropsButton}
+                variant="ghost"
+                className={cn(
+                  "min-w-10 h-10 px-2 m-.5 border rounded-lg text-muted-foreground relative",
+                  "transition-all duration-300 ease-in-out",
+                  "hover:scale-110 hover:shadow-md flex items-center justify-center",
+                  playgroundState.showProps && "bg-primary/5 border-primary/30 ring-2 ring-primary/50"
+                )}
+                title={`Expand Properties Panel`}
+              >
+                <div className="flex items-center justify-center">
+                  <EyeIcon className="size-4 flex-shrink-0" />
+                  <span
+                    className={cn(
+                      "text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden",
+                      hoveredButton === 'props'
+                        ? "max-w-[100px] opacity-100 ml-2"
+                        : "w-0 opacity-0"
+                    )}
+                  >
+                    Properties
+                  </span>
+                </div>
+              </Button>
+            </div>
+            <div
+              className="relative group"
+              onMouseEnter={() => setHoveredButton('examples')}
+              onMouseLeave={() => setHoveredButton(null)}
             >
-              <List className="size-4" />
-            </Button>
+              <Button
+                onClick={triggerExamplesButton}
+                variant="ghost"
+                className={cn(
+                  "min-w-10 h-10 px-2 m-.5 border rounded-lg text-muted-foreground relative",
+                  "transition-all duration-300 ease-in-out",
+                  "hover:scale-110 hover:shadow-md flex items-center justify-center",
+                  playgroundState.showExamples && "bg-primary/5 border-primary/30 ring-2 ring-primary/50"
+                )}
+                title={'Show Examples'}
+              >
+                <div className="flex items-center justify-center">
+                  <List className="size-4 flex-shrink-0" />
+                  <span
+                    className={cn(
+                      "text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden",
+                      hoveredButton === 'examples'
+                        ? "max-w-[100px] opacity-100 ml-2"
+                        : "w-0 opacity-0"
+                    )}
+                  >
+                    Examples
+                  </span>
+                </div>
+              </Button>
+            </div>
           </div>
         )}
       </div>
@@ -308,42 +400,130 @@ export default function PlaygroundPage() {
 
   const MobileTopPanelToolbar = () => (
     <div className="w-full flex items-center justify-end gap-2 p-2 border-b border-border bg-muted/30">
-      <Button
-        onClick={triggerSearchButton}
-        variant={activeTopPanel === 'search' ? 'secondary' : 'ghost'}
-        className="p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground"
-        aria-pressed={activeTopPanel === 'search'}
-        title="Show Search"
+      <div
+        className="relative group"
+        onMouseEnter={() => setHoveredButton('search-mobile')}
+        onMouseLeave={() => setHoveredButton(null)}
       >
-        <SearchIcon className="size-4" />
-      </Button>
-      <Button
-        onClick={triggerPropsButton}
-        variant={activeTopPanel === 'props' ? 'secondary' : 'ghost'}
-        className="p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground"
-        aria-pressed={activeTopPanel === 'props'}
-        title="Show Props"
+        <Button
+          onClick={triggerSearchButton}
+          variant={activeTopPanel === 'search' ? 'secondary' : 'ghost'}
+          className={cn(
+            "min-w-10 h-10 px-2 m-.5 border rounded-lg text-muted-foreground relative",
+            "transition-all duration-300 ease-in-out",
+            "hover:scale-110 hover:shadow-md flex items-center justify-center"
+          )}
+          aria-pressed={activeTopPanel === 'search'}
+          title="Show Search"
+        >
+          <div className="flex items-center justify-center">
+            <SearchIcon className="size-4 flex-shrink-0" />
+            <span
+              className={cn(
+                "text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden",
+                hoveredButton === 'search-mobile'
+                  ? "max-w-[100px] opacity-100 ml-2"
+                  : "w-0 opacity-0"
+              )}
+            >
+              Search
+            </span>
+          </div>
+        </Button>
+      </div>
+      <div
+        className="relative group"
+        onMouseEnter={() => setHoveredButton('props-mobile')}
+        onMouseLeave={() => setHoveredButton(null)}
       >
-        <EyeIcon className="size-4" />
-      </Button>
-      <Button
-        onClick={triggerCodeButton}
-        variant={activeTopPanel === 'code' ? 'secondary' : 'ghost'}
-        className="p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground"
-        aria-pressed={activeTopPanel === 'code'}
-        title="Show Code"
+        <Button
+          onClick={triggerPropsButton}
+          variant={activeTopPanel === 'props' ? 'secondary' : 'ghost'}
+          className={cn(
+            "min-w-10 h-10 px-2 m-.5 border rounded-lg text-muted-foreground relative",
+            "transition-all duration-300 ease-in-out",
+            "hover:scale-110 hover:shadow-md flex items-center justify-center"
+          )}
+          aria-pressed={activeTopPanel === 'props'}
+          title="Show Properties"
+        >
+          <div className="flex items-center justify-center">
+            <EyeIcon className="size-4 flex-shrink-0" />
+            <span
+              className={cn(
+                "text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden",
+                hoveredButton === 'props-mobile'
+                  ? "max-w-[100px] opacity-100 ml-2"
+                  : "w-0 opacity-0"
+              )}
+            >
+              Properties
+            </span>
+          </div>
+        </Button>
+      </div>
+      <div
+        className="relative group"
+        onMouseEnter={() => setHoveredButton('code-mobile')}
+        onMouseLeave={() => setHoveredButton(null)}
       >
-        <CodeIcon className="size-4" />
-      </Button>
-      <Button
-        onClick={triggerExamplesButton}
-        variant={activeTopPanel === 'examples' ? 'secondary' : 'ghost'}
-        className="p-2 m-.5 border size-fit rounded-lg transition-colors duration-200 text-muted-foreground"
-        aria-pressed={activeTopPanel === 'examples'}
-        title="Show Examples"
+        <Button
+          onClick={triggerCodeButton}
+          variant={activeTopPanel === 'code' ? 'secondary' : 'ghost'}
+          className={cn(
+            "min-w-10 h-10 px-2 m-.5 border rounded-lg text-muted-foreground relative",
+            "transition-all duration-300 ease-in-out",
+            "hover:scale-110 hover:shadow-md flex items-center justify-center"
+          )}
+          aria-pressed={activeTopPanel === 'code'}
+          title="Show Code"
+        >
+          <div className="flex items-center justify-center">
+            <CodeIcon className="size-4 flex-shrink-0" />
+            <span
+              className={cn(
+                "text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden",
+                hoveredButton === 'code-mobile'
+                  ? "max-w-[100px] opacity-100 ml-2"
+                  : "w-0 opacity-0"
+              )}
+            >
+              Code
+            </span>
+          </div>
+        </Button>
+      </div>
+      <div
+        className="relative group"
+        onMouseEnter={() => setHoveredButton('examples-mobile')}
+        onMouseLeave={() => setHoveredButton(null)}
       >
-        <List className="size-4" />
-      </Button>
+        <Button
+          onClick={triggerExamplesButton}
+          variant={activeTopPanel === 'examples' ? 'secondary' : 'ghost'}
+          className={cn(
+            "min-w-10 h-10 px-2 m-.5 border rounded-lg text-muted-foreground relative",
+            "transition-all duration-300 ease-in-out",
+            "hover:scale-110 hover:shadow-md flex items-center justify-center"
+          )}
+          aria-pressed={activeTopPanel === 'examples'}
+          title="Show Examples"
+        >
+          <div className="flex items-center justify-center">
+            <List className="size-4 flex-shrink-0" />
+            <span
+              className={cn(
+                "text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden",
+                hoveredButton === 'examples-mobile'
+                  ? "max-w-[100px] opacity-100 ml-2"
+                  : "w-0 opacity-0"
+              )}
+            >
+              Examples
+            </span>
+          </div>
+        </Button>
+      </div>
     </div>
   );
 
