@@ -21,10 +21,131 @@ import { useScrollDirection } from '@/lib/hooks/use-scroll-direction';
 import { useIsMobile } from '@/components/ui/use-mobile';
 import { cn } from '@/lib/utils';
 
+interface PanelToggleButtonProps {
+  id: string;
+  icon: React.ReactNode;
+  label: string;
+  isActive: boolean;
+  onClick: () => void;
+  hoveredButton: string | null;
+  setHoveredButton: (key: string | null) => void;
+  variant?: 'desktop' | 'mobile';
+}
+
+function PanelToggleButton({
+  id,
+  icon,
+  label,
+  isActive,
+  onClick,
+  hoveredButton,
+  setHoveredButton,
+  variant = 'desktop',
+}: PanelToggleButtonProps) {
+  const isMobile = variant === 'mobile';
+  const hoverKey = isMobile ? `${id}-mobile` : id;
+
+  return (
+    <div
+      className="relative group"
+      onMouseEnter={() => setHoveredButton(hoverKey)}
+      onMouseLeave={() => setHoveredButton(null)}
+    >
+      <Button
+        onClick={onClick}
+        variant={isMobile ? (isActive ? 'secondary' : 'ghost') : 'ghost'}
+        className={cn(
+          "min-w-10 h-10 px-2 m-.5 border rounded-lg text-muted-foreground relative",
+          "transition-all duration-300 ease-in-out",
+          "hover:scale-110 hover:shadow-md flex items-center justify-center",
+          !isMobile && isActive && "bg-primary/5 border-primary/30 ring-2 ring-primary/50",
+        )}
+        aria-pressed={isMobile ? isActive : undefined}
+        title={label === 'Properties' ? 'Show Properties' : `Show ${label}`}
+      >
+        <div className="flex items-center justify-center">
+          {icon}
+          <span
+            className={cn(
+              "text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden",
+              hoveredButton === hoverKey
+                ? "max-w-[100px] opacity-100 ml-2"
+                : "w-0 opacity-0"
+            )}
+          >
+            {label}
+          </span>
+        </div>
+      </Button>
+    </div>
+  );
+}
+
+function usePanelWithCenter(
+  isOpen: boolean,
+  panelRef: React.MutableRefObject<ImperativePanelHandle | null>,
+  lastSizeRef: React.MutableRefObject<number>,
+  centerPanelRef: React.MutableRefObject<ImperativePanelHandle | null>,
+  defaultSize: number,
+) {
+  useEffect(() => {
+    const panel = panelRef.current;
+    const center = centerPanelRef.current;
+    if (!panel) return;
+
+    if (isOpen) {
+      const target = lastSizeRef.current || defaultSize;
+      const current = panel.getSize?.() ?? 0;
+      if (current === 0 && center) {
+        const centerSize = center.getSize?.() ?? 0;
+        const desiredCenter = Math.max(20, centerSize - target);
+        if (desiredCenter !== centerSize) {
+          center.resize?.(desiredCenter);
+        }
+      }
+      panel.resize?.(target);
+    } else {
+      const currentSize = panel.getSize?.();
+      if (typeof currentSize === 'number' && currentSize > 0) {
+        lastSizeRef.current = currentSize;
+        if (center) {
+          const centerSize = center.getSize?.() ?? 0;
+          const desiredCenter = Math.max(20, centerSize + currentSize);
+          if (desiredCenter !== centerSize) {
+            center.resize?.(desiredCenter);
+          }
+        }
+      }
+      panel.resize?.(0);
+    }
+  }, [isOpen, panelRef, lastSizeRef, centerPanelRef, defaultSize]);
+}
+
+function useSimplePanel(
+  isOpen: boolean,
+  panelRef: React.MutableRefObject<ImperativePanelHandle | null>,
+  lastSizeRef: React.MutableRefObject<number>,
+  defaultSize: number,
+) {
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!panel) return;
+
+    if (isOpen) {
+      panel.resize?.(lastSizeRef.current || defaultSize);
+    } else {
+      const currentSize = panel.getSize?.();
+      if (typeof currentSize === 'number' && currentSize > 0) {
+        lastSizeRef.current = currentSize;
+      }
+      panel.resize?.(0);
+    }
+  }, [isOpen, panelRef, lastSizeRef, defaultSize]);
+}
+
 interface ComponentPreviewProps {
   selectedComponent: FullComponentInfo | null;
   currentProps: Record<string, any>;
-  selectedExampleIndex: number;
   onRetry: () => void;
   onPropChange: (propName: string, value: any) => void;
   rendererButtons: React.ReactNode;
@@ -33,7 +154,6 @@ interface ComponentPreviewProps {
 function ComponentPreview({ 
   selectedComponent, 
   currentProps, 
-  selectedExampleIndex, 
   onRetry, 
   onPropChange,
   rendererButtons 
@@ -126,88 +246,36 @@ export default function PlaygroundPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [components, searchParams]);
 
-  // Keep the resizable panel in sync with the single source of truth
-  useEffect(() => {
-    const propsRef = propsPanelRef.current;
-    const centerRef = centerPanelRef.current;
-    if (!propsRef) return;
-    if (playgroundState.showProps) {
-      const target = propsLastSizeRef.current || 25;
-      const current = propsRef.getSize?.() ?? 0;
-      if (current === 0 && centerRef) {
-        const centerSize = centerRef.getSize?.() ?? 0;
-        const desiredCenter = Math.max(20, centerSize - target);
-        if (desiredCenter !== centerSize) centerRef.resize?.(desiredCenter);
-      }
-      propsRef.resize?.(target);
-    } else {
-      const currentSize = propsRef.getSize?.();
-      if (typeof currentSize === 'number' && currentSize > 0) {
-        propsLastSizeRef.current = currentSize;
-        if (centerRef) {
-          const centerSize = centerRef.getSize?.() ?? 0;
-          const desiredCenter = Math.max(20, centerSize + currentSize);
-          if (desiredCenter !== centerSize) centerRef.resize?.(desiredCenter);
-        }
-      }
-      propsRef.resize?.(0);
-    }
-  }, [playgroundState.showProps]);
+  // Keep the resizable panels in sync with the single source of truth
+  usePanelWithCenter(
+    playgroundState.showProps,
+    propsPanelRef,
+    propsLastSizeRef,
+    centerPanelRef,
+    25,
+  );
 
-  useEffect(() => {
-    const codeRef = codePanelRef.current;
-    if (!codeRef) return;
-    if (playgroundState.showCode) {
-      codeRef.resize?.(codeLastSizeRef.current || 40);
-    } else {
-      const currentSize = codeRef.getSize?.();
-      if (typeof currentSize === 'number' && currentSize > 0) {
-        codeLastSizeRef.current = currentSize;
-      }
-      codeRef.resize?.(0);
-    }
-  }, [playgroundState.showCode]);
+  useSimplePanel(
+    playgroundState.showCode,
+    codePanelRef,
+    codeLastSizeRef,
+    40,
+  );
 
-  useEffect(() => {
-    const examplesRef = examplesPanelRef.current;
-    const centerRef = centerPanelRef.current;
-    if (!examplesRef) return;
-    if (playgroundState.showExamples) {
-      const target = examplesLastSizeRef.current || 25;
-      const current = examplesRef.getSize?.() ?? 0;
-      if (current === 0 && centerRef) {
-        const centerSize = centerRef.getSize?.() ?? 0;
-        const desiredCenter = Math.max(20, centerSize - target);
-        if (desiredCenter !== centerSize) centerRef.resize?.(desiredCenter);
-      }
-      examplesRef.resize?.(target);
-    } else {
-      const currentSize = examplesRef.getSize?.();
-      if (typeof currentSize === 'number' && currentSize > 0) {
-        examplesLastSizeRef.current = currentSize;
-        if (centerRef) {
-          const centerSize = centerRef.getSize?.() ?? 0;
-          const desiredCenter = Math.max(20, centerSize + currentSize);
-          if (desiredCenter !== centerSize) centerRef.resize?.(desiredCenter);
-        }
-      }
-      examplesRef.resize?.(0);
-    }
-  }, [playgroundState.showExamples]);
+  usePanelWithCenter(
+    playgroundState.showExamples,
+    examplesPanelRef,
+    examplesLastSizeRef,
+    centerPanelRef,
+    25,
+  );
 
-  useEffect(() => {
-    const searchRef = searchPanelRef.current;
-    if (!searchRef) return;
-    if (playgroundState.showSearch) {
-      searchRef.resize?.(searchLastSizeRef.current || 45);
-    } else {
-      const currentSize = searchRef.getSize?.();
-      if (typeof currentSize === 'number' && currentSize > 0) {
-        searchLastSizeRef.current = currentSize;
-      }
-      searchRef.resize?.(0);
-    }
-  }, [playgroundState.showSearch]);
+  useSimplePanel(
+    playgroundState.showSearch,
+    searchPanelRef,
+    searchLastSizeRef,
+    45,
+  );
 
   const isMobile = useIsMobile();
   const [activeTopPanel, setActiveTopPanel] = useState<'search' | 'props' | 'code' | 'examples'>('search');
@@ -233,135 +301,59 @@ export default function PlaygroundPage() {
     else toggleExamplesPanel();
   }
 
+  const panelConfigs = [
+    {
+      id: 'search',
+      label: 'Search',
+      Icon: SearchIcon,
+      desktopActive: playgroundState.showSearch,
+      mobileActive: activeTopPanel === 'search',
+      onClick: triggerSearchButton,
+    },
+    {
+      id: 'code',
+      label: 'Code',
+      Icon: CodeIcon,
+      desktopActive: playgroundState.showCode,
+      mobileActive: activeTopPanel === 'code',
+      onClick: triggerCodeButton,
+    },
+    {
+      id: 'props',
+      label: 'Properties',
+      Icon: EyeIcon,
+      desktopActive: playgroundState.showProps,
+      mobileActive: activeTopPanel === 'props',
+      onClick: triggerPropsButton,
+    },
+    {
+      id: 'examples',
+      label: 'Examples',
+      Icon: List,
+      desktopActive: playgroundState.showExamples,
+      mobileActive: activeTopPanel === 'examples',
+      onClick: triggerExamplesButton,
+    },
+  ] as const;
+
   const rendererButtons = (): React.ReactNode => {
     return playgroundState.selectedComponent ? (
       <div className="flex w-full items-center justify-start">
         {!isMobile && (
           <div className="flex w-fit items-center justify-end space-x-2">
-            <div
-              className="relative group"
-              onMouseEnter={() => setHoveredButton('search')}
-              onMouseLeave={() => setHoveredButton(null)}
-            >
-              <Button
-                onClick={triggerSearchButton}
-                variant="ghost"
-                className={cn(
-                  "min-w-10 h-10 px-2 m-.5 border rounded-lg text-muted-foreground relative",
-                  "transition-all duration-300 ease-in-out",
-                  "hover:scale-110 hover:shadow-md flex items-center justify-center",
-                  playgroundState.showSearch && "bg-primary/5 border-primary/30 ring-2 ring-primary/50"
-                )}
-                title={'Show Search'}
-              >
-                <div className="flex items-center justify-center">
-                  <SearchIcon className="size-4 flex-shrink-0" />
-                  <span
-                    className={cn(
-                      "text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden",
-                      hoveredButton === 'search'
-                        ? "max-w-[100px] opacity-100 ml-2"
-                        : "w-0 opacity-0"
-                    )}
-                  >
-                    Search
-                  </span>
-                </div>
-              </Button>
-            </div>
-            <div
-              className="relative group"
-              onMouseEnter={() => setHoveredButton('code')}
-              onMouseLeave={() => setHoveredButton(null)}
-            >
-              <Button
-                onClick={triggerCodeButton}
-                variant="ghost"
-                className={cn(
-                  "min-w-10 h-10 px-2 m-.5 border rounded-lg text-muted-foreground relative",
-                  "transition-all duration-300 ease-in-out",
-                  "hover:scale-110 hover:shadow-md flex items-center justify-center",
-                  playgroundState.showCode && "bg-primary/5 border-primary/30 ring-2 ring-primary/50"
-                )}
-                title={'Code'}
-              >
-                <div className="flex items-center justify-center">
-                  <CodeIcon className="size-4 flex-shrink-0" />
-                  <span
-                    className={cn(
-                      "text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden",
-                      hoveredButton === 'code'
-                        ? "max-w-[100px] opacity-100 ml-2"
-                        : "w-0 opacity-0"
-                    )}
-                  >
-                    Code
-                  </span>
-                </div>
-              </Button>
-            </div>
-            <div
-              className="relative group"
-              onMouseEnter={() => setHoveredButton('props')}
-              onMouseLeave={() => setHoveredButton(null)}
-            >
-              <Button
-                onClick={triggerPropsButton}
-                variant="ghost"
-                className={cn(
-                  "min-w-10 h-10 px-2 m-.5 border rounded-lg text-muted-foreground relative",
-                  "transition-all duration-300 ease-in-out",
-                  "hover:scale-110 hover:shadow-md flex items-center justify-center",
-                  playgroundState.showProps && "bg-primary/5 border-primary/30 ring-2 ring-primary/50"
-                )}
-                title={`Expand Properties Panel`}
-              >
-                <div className="flex items-center justify-center">
-                  <EyeIcon className="size-4 flex-shrink-0" />
-                  <span
-                    className={cn(
-                      "text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden",
-                      hoveredButton === 'props'
-                        ? "max-w-[100px] opacity-100 ml-2"
-                        : "w-0 opacity-0"
-                    )}
-                  >
-                    Properties
-                  </span>
-                </div>
-              </Button>
-            </div>
-            <div
-              className="relative group"
-              onMouseEnter={() => setHoveredButton('examples')}
-              onMouseLeave={() => setHoveredButton(null)}
-            >
-              <Button
-                onClick={triggerExamplesButton}
-                variant="ghost"
-                className={cn(
-                  "min-w-10 h-10 px-2 m-.5 border rounded-lg text-muted-foreground relative",
-                  "transition-all duration-300 ease-in-out",
-                  "hover:scale-110 hover:shadow-md flex items-center justify-center",
-                  playgroundState.showExamples && "bg-primary/5 border-primary/30 ring-2 ring-primary/50"
-                )}
-                title={'Show Examples'}
-              >
-                <div className="flex items-center justify-center">
-                  <List className="size-4 flex-shrink-0" />
-                  <span
-                    className={cn(
-                      "text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden",
-                      hoveredButton === 'examples'
-                        ? "max-w-[100px] opacity-100 ml-2"
-                        : "w-0 opacity-0"
-                    )}
-                  >
-                    Examples
-                  </span>
-                </div>
-              </Button>
-            </div>
+            {panelConfigs.map(({ id, label, Icon, desktopActive, onClick }) => (
+              <PanelToggleButton
+                key={id}
+                id={id}
+                icon={<Icon className="size-4 flex-shrink-0" />}
+                label={label}
+                isActive={desktopActive}
+                onClick={onClick}
+                hoveredButton={hoveredButton}
+                setHoveredButton={setHoveredButton}
+                variant="desktop"
+              />
+            ))}
           </div>
         )}
       </div>
@@ -400,130 +392,19 @@ export default function PlaygroundPage() {
 
   const MobileTopPanelToolbar = () => (
     <div className="w-full flex items-center justify-end gap-2 p-2 border-b border-border bg-muted/30">
-      <div
-        className="relative group"
-        onMouseEnter={() => setHoveredButton('search-mobile')}
-        onMouseLeave={() => setHoveredButton(null)}
-      >
-        <Button
-          onClick={triggerSearchButton}
-          variant={activeTopPanel === 'search' ? 'secondary' : 'ghost'}
-          className={cn(
-            "min-w-10 h-10 px-2 m-.5 border rounded-lg text-muted-foreground relative",
-            "transition-all duration-300 ease-in-out",
-            "hover:scale-110 hover:shadow-md flex items-center justify-center"
-          )}
-          aria-pressed={activeTopPanel === 'search'}
-          title="Show Search"
-        >
-          <div className="flex items-center justify-center">
-            <SearchIcon className="size-4 flex-shrink-0" />
-            <span
-              className={cn(
-                "text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden",
-                hoveredButton === 'search-mobile'
-                  ? "max-w-[100px] opacity-100 ml-2"
-                  : "w-0 opacity-0"
-              )}
-            >
-              Search
-            </span>
-          </div>
-        </Button>
-      </div>
-      <div
-        className="relative group"
-        onMouseEnter={() => setHoveredButton('props-mobile')}
-        onMouseLeave={() => setHoveredButton(null)}
-      >
-        <Button
-          onClick={triggerPropsButton}
-          variant={activeTopPanel === 'props' ? 'secondary' : 'ghost'}
-          className={cn(
-            "min-w-10 h-10 px-2 m-.5 border rounded-lg text-muted-foreground relative",
-            "transition-all duration-300 ease-in-out",
-            "hover:scale-110 hover:shadow-md flex items-center justify-center"
-          )}
-          aria-pressed={activeTopPanel === 'props'}
-          title="Show Properties"
-        >
-          <div className="flex items-center justify-center">
-            <EyeIcon className="size-4 flex-shrink-0" />
-            <span
-              className={cn(
-                "text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden",
-                hoveredButton === 'props-mobile'
-                  ? "max-w-[100px] opacity-100 ml-2"
-                  : "w-0 opacity-0"
-              )}
-            >
-              Properties
-            </span>
-          </div>
-        </Button>
-      </div>
-      <div
-        className="relative group"
-        onMouseEnter={() => setHoveredButton('code-mobile')}
-        onMouseLeave={() => setHoveredButton(null)}
-      >
-        <Button
-          onClick={triggerCodeButton}
-          variant={activeTopPanel === 'code' ? 'secondary' : 'ghost'}
-          className={cn(
-            "min-w-10 h-10 px-2 m-.5 border rounded-lg text-muted-foreground relative",
-            "transition-all duration-300 ease-in-out",
-            "hover:scale-110 hover:shadow-md flex items-center justify-center"
-          )}
-          aria-pressed={activeTopPanel === 'code'}
-          title="Show Code"
-        >
-          <div className="flex items-center justify-center">
-            <CodeIcon className="size-4 flex-shrink-0" />
-            <span
-              className={cn(
-                "text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden",
-                hoveredButton === 'code-mobile'
-                  ? "max-w-[100px] opacity-100 ml-2"
-                  : "w-0 opacity-0"
-              )}
-            >
-              Code
-            </span>
-          </div>
-        </Button>
-      </div>
-      <div
-        className="relative group"
-        onMouseEnter={() => setHoveredButton('examples-mobile')}
-        onMouseLeave={() => setHoveredButton(null)}
-      >
-        <Button
-          onClick={triggerExamplesButton}
-          variant={activeTopPanel === 'examples' ? 'secondary' : 'ghost'}
-          className={cn(
-            "min-w-10 h-10 px-2 m-.5 border rounded-lg text-muted-foreground relative",
-            "transition-all duration-300 ease-in-out",
-            "hover:scale-110 hover:shadow-md flex items-center justify-center"
-          )}
-          aria-pressed={activeTopPanel === 'examples'}
-          title="Show Examples"
-        >
-          <div className="flex items-center justify-center">
-            <List className="size-4 flex-shrink-0" />
-            <span
-              className={cn(
-                "text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden",
-                hoveredButton === 'examples-mobile'
-                  ? "max-w-[100px] opacity-100 ml-2"
-                  : "w-0 opacity-0"
-              )}
-            >
-              Examples
-            </span>
-          </div>
-        </Button>
-      </div>
+      {panelConfigs.map(({ id, label, Icon, mobileActive, onClick }) => (
+        <PanelToggleButton
+          key={id}
+          id={id}
+          icon={<Icon className="size-4 flex-shrink-0" />}
+          label={label}
+          isActive={mobileActive}
+          onClick={onClick}
+          hoveredButton={hoveredButton}
+          setHoveredButton={setHoveredButton}
+          variant="mobile"
+        />
+      ))}
     </div>
   );
 
@@ -624,7 +505,6 @@ export default function PlaygroundPage() {
                   <ComponentPreview
                     selectedComponent={playgroundState.selectedComponent}
                     currentProps={playgroundState.currentProps}
-                    selectedExampleIndex={selectedExampleIndex}
                     onRetry={() => {
                       if (playgroundState.selectedComponent) {
                         selectComponent(playgroundState.selectedComponent, selectedExampleIndex);
@@ -660,7 +540,6 @@ export default function PlaygroundPage() {
                     <ComponentPreview
                       selectedComponent={playgroundState.selectedComponent}
                       currentProps={playgroundState.currentProps}
-                      selectedExampleIndex={selectedExampleIndex}
                       onRetry={() => {
                         if (playgroundState.selectedComponent) {
                           selectComponent(playgroundState.selectedComponent, selectedExampleIndex);

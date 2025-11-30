@@ -17,29 +17,36 @@ import { StylishCarousel } from "@/components/ui/stylish-carousel"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { CodeBlock } from "@/components/code-block"
 
+const BLACKLIST = (indexJson.blacklist || []) as string[]
+const ALL_COMPONENT_IDS = ((indexJson.components || []) as Array<{ id: string }>).map((c) => c.id)
+const ALLOWED_COMPONENT_IDS = ALL_COMPONENT_IDS.filter((id) => !BLACKLIST.includes(id))
+
+const THEME_COMPONENT_MAP: Record<string, string> = {
+  button: "Buttons",
+  card: "Cards",
+  input: "Input",
+  slider: "Slider",
+  switch: "Switch",
+  textarea: "Textarea",
+  toggle: "Toggle",
+  form: "Forms",
+  alert: "Alerts",
+  badge: "Badges",
+}
+
+const THEME_COMPONENT_TYPES = Array.from(
+  new Set(ALLOWED_COMPONENT_IDS.filter((id) => THEME_COMPONENT_MAP[id]))
+).map((id) => ({ id, name: THEME_COMPONENT_MAP[id] }))
+
 export default function ThemesPage() {
   const searchParams = useSearchParams()
   const selectedThemeId = searchParams.get('theme') || ''
   const selectedTheme = selectedThemeId ? getTheme(selectedThemeId) : undefined
   const [viewMode, setViewMode] = useState<"grid" | "gallery">("grid")
   const [colorMode, setColorMode] = useState<"light" | "dark">("light")
-  const [columns, setColumns] = useState(1)
   const [themeModes, setThemeModes] = useState<Record<string, "light" | "dark">>({})
 
   const router = useRouter()
-
-  // Track responsive grid columns to alternate carousel direction per row
-  useEffect(() => {
-    const updateColumns = () => {
-      const width = window.innerWidth
-      if (width >= 1024) setColumns(3) // lg:grid-cols-3
-      else if (width >= 768) setColumns(2) // md:grid-cols-2
-      else setColumns(1)
-    }
-    updateColumns()
-    window.addEventListener("resize", updateColumns)
-    return () => window.removeEventListener("resize", updateColumns)
-  }, [])
 
   if (selectedTheme) {
     return (
@@ -136,29 +143,7 @@ export default function ThemesPage() {
           </Card>
 
           <div className="grid gap-6">
-            {(
-              () => {
-                const blacklist = (indexJson.blacklist || []) as string[]
-                const componentMap: Record<string, string> = {
-                  button: "Buttons",
-                  card: "Cards",
-                  input: "Input",
-                  slider: "Slider",
-                  switch: "Switch",
-                  textarea: "Textarea",
-                  toggle: "Toggle",
-                  form: "Forms",
-                  alert: "Alerts",
-                  badge: "Badges",
-                }
-                const allowed = (indexJson.components || [])
-                  .map((c: any) => c.id)
-                  .filter((id: string) => !blacklist.includes(id))
-                  .filter((id: string) => componentMap[id])
-                const uniqueOrdered = Array.from(new Set(allowed))
-                return uniqueOrdered.map((id: string) => ({ id, name: componentMap[id] }))
-              }
-            )().map((componentType) => (
+            {THEME_COMPONENT_TYPES.map((componentType) => (
               <Link href={`/components/?component=${componentType.id}`} key={componentType.id}>
                 <Card
                   className={`transition-all duration-200 cursor-pointer group hover:shadow-lg dark:hover:shadow-[0_14px_24px_-6px_rgba(255,255,255,0.18),_0_6px_10px_-4px_rgba(255,255,255,0.12),_0_0_0_1px_rgba(255,255,255,0.06)]`}
@@ -374,15 +359,16 @@ export default function ThemesPage() {
                         reverse={idx % 2 === 1}
                         fadeColor={bg}
                       >
-                        {(() => {
-                          const blacklist = (indexJson.blacklist || []) as string[]
-                          const allowed = (indexJson.components || [])
-                            .map((c: any) => c.id as string)
-                            .filter((id: string) => !blacklist.includes(id))
-                          return allowed.map((id: any) => (
-                            <ThemedComponentPreview key={id} seamless themeId={theme.id} component={id} size="medium" mode={localMode} />
-                          ))
-                        })()}
+                        {ALLOWED_COMPONENT_IDS.map((id) => (
+                          <ThemedComponentPreview
+                            key={id}
+                            seamless
+                            themeId={theme.id}
+                            component={id}
+                            size="medium"
+                            mode={localMode}
+                          />
+                        ))}
                       </StylishCarousel>
                     </div>
                     <div className="flex flex-wrap gap-1 mt-4">
@@ -466,15 +452,16 @@ export default function ThemesPage() {
                   style={{ ...cssVars, backgroundColor: bg, color: fg }}
                 >
                   <StylishCarousel className="py-8" speedMs={65000} reverse={idx % 2 === 1} fadeColor={bg}>
-                    {(() => {
-                      const blacklist = (indexJson.blacklist || []) as string[]
-                      const allowed = (indexJson.components || [])
-                        .map((c: any) => c.id as string)
-                        .filter((id: string) => !blacklist.includes(id))
-                      return allowed.map((id: any) => (
-                        <ThemedComponentPreview key={id} seamless themeId={theme.id} component={id} size="large" mode={localMode} />
-                      ))
-                    })()}
+                    {ALLOWED_COMPONENT_IDS.map((id) => (
+                      <ThemedComponentPreview
+                        key={id}
+                        seamless
+                        themeId={theme.id}
+                        component={id}
+                        size="large"
+                        mode={localMode}
+                      />
+                    ))}
                   </StylishCarousel>
                 </div>
 
