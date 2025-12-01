@@ -7,10 +7,10 @@ test.describe('Component: Skeleton', () => {
   test.describe.configure({ mode: 'serial' });
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/playground');
     const loadingIndicator = page.getByText('Loading components...');
     await expect(loadingIndicator).not.toBeVisible({ timeout: 20000 });
-    await expect(page.getByRole('heading', { name: 'Components', level: 2 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Playground', level: 1 })).toBeVisible();
     // Select the Skeleton component before each test
     await page.getByRole('button', { name: /^Skeleton v/ }).click();
   });
@@ -26,6 +26,11 @@ test.describe('Component: Skeleton', () => {
 
     test('is className prop working with different skeleton shapes', async ({ page }) => {
       const { componentPreview } = await setupSkeletonTestConsts(page);
+
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
 
       // Test circular skeleton
       await typeInInput(page, 'className', 'h-12 w-12 rounded-full');
@@ -46,6 +51,12 @@ test.describe('Component: Skeleton', () => {
 
     test('is className prop working with default test', async ({ page }) => {
       const { componentPreview } = await setupSkeletonTestConsts(page);
+      
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+      
       await testClassNameProp(componentName, componentPreview, page);
     });
   });

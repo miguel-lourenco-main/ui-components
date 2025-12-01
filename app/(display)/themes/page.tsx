@@ -364,7 +364,7 @@ export default function ThemesPage() {
                             key={id}
                             seamless
                             themeId={theme.id}
-                            component={id}
+                            component={id as any}
                             size="medium"
                             mode={localMode}
                           />
@@ -457,7 +457,7 @@ export default function ThemesPage() {
                         key={id}
                         seamless
                         themeId={theme.id}
-                        component={id}
+                        component={id as any}
                         size="large"
                         mode={localMode}
                       />

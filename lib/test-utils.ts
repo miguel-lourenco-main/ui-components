@@ -116,14 +116,14 @@ export const setupTest = async (page: any, componentName: string) => {
   console.log(`🚀 Setting up test for ${componentName}...`);
   
   // Navigate to the app
-  await page.goto('/');
+  await page.goto('/playground');
   
   // Wait for the loading indicator to disappear
   const loadingIndicator = page.getByText('Loading components...');
   await expect(loadingIndicator).not.toBeVisible({ timeout: 20000 });
   
   // Wait for the main component list header to be visible
-  await expect(page.getByRole('heading', { name: 'Components', level: 2 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Playground', level: 1 })).toBeVisible();
   
   // Reset any existing component state
   await resetComponentState(page);
@@ -275,11 +275,23 @@ export const setupComponentTestConsts = (componentName: string) => {
     // Use a more flexible regex that matches the component name followed by version
     // This handles both "DataTable v1.0.0" and "Button v1.0.0" patterns
     const buttonPattern = new RegExp(`^${displayName} v`);
-    
+
     await page.getByRole('button', { name: buttonPattern }).click();
 
+    // Wait for the toolbar to appear with the Examples button
+    const examplesButton = page.getByRole('button', { name: /Examples/i });
+    await expect(examplesButton).toBeVisible();
+
+    // Click the Examples button to open the examples panel
+    await examplesButton.click();
+
+    // Wait for examples panel to be visible
+    const examplesPanel = page.getByTestId('examples-panel-desktop');
+    await expect(examplesPanel).toBeVisible();
+
     // Wait for examples to be visible and get their count
-    const examples = page.getByTestId('examples-panel').getByRole('button', { name: /Currently selected|^(?!.*Currently selected).*$/ });
+    const examples = examplesPanel
+      .getByRole('button', { name: /Currently selected|^(?!.*Currently selected).*$/ });
     const exampleCount = await examples.count();
 
     // Verify we have at least 3 examples to test with

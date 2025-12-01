@@ -13,10 +13,10 @@ test.describe('Component: Sonner', () => {
   test.describe.configure({ mode: 'serial' });
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/playground');
     const loadingIndicator = page.getByText('Loading components...');
     await expect(loadingIndicator).not.toBeVisible({ timeout: 20000 });
-    await expect(page.getByRole('heading', { name: 'Components', level: 2 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Playground', level: 1 })).toBeVisible();
     // Select the Sonner component before each test
     await page.getByRole('button', { name: /^Sonner v/ }).click();
   });
@@ -32,34 +32,70 @@ test.describe('Component: Sonner', () => {
 
     test('is message prop working', async ({ page }) => {
       const { componentPreview } = await setupSonnerTestConsts(page);
+      
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+      
       await testMessageProp(componentName, componentPreview, page);
     });
 
     test('is description prop working', async ({ page }) => {
       const { componentPreview } = await setupSonnerTestConsts(page);
+      
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+      
       await testDescriptionProp(componentName, componentPreview, page);
     });
 
     test('is variant prop working with success', async ({ page }) => {
       const { componentPreview } = await setupSonnerTestConsts(page);
+      
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+      
       await selectOption(page, 'variant', 'success');
       await expect(componentPreview).toHaveScreenshot(`${componentName}-success-variant.png`);
     });
 
     test('is variant prop working with error', async ({ page }) => {
       const { componentPreview } = await setupSonnerTestConsts(page);
+      
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+      
       await selectOption(page, 'variant', 'error');
       await expect(componentPreview).toHaveScreenshot(`${componentName}-error-variant.png`);
     });
 
     test('is variant prop working with warning', async ({ page }) => {
       const { componentPreview } = await setupSonnerTestConsts(page);
+      
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+      
       await selectOption(page, 'variant', 'warning');
       await expect(componentPreview).toHaveScreenshot(`${componentName}-warning-variant.png`);
     });
 
     test('is variant prop working with info', async ({ page }) => {
       const { componentPreview } = await setupSonnerTestConsts(page);
+      
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+      
       await selectOption(page, 'variant', 'info');
       await expect(componentPreview).toHaveScreenshot(`${componentName}-info-variant.png`);
     });

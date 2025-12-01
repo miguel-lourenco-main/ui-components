@@ -8,10 +8,10 @@ test.describe('Component: Card', () => {
   test.describe.configure({ mode: 'serial' });
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/playground');
     const loadingIndicator = page.getByText('Loading components...');
     await expect(loadingIndicator).not.toBeVisible({ timeout: 20000 });
-    await expect(page.getByRole('heading', { name: 'Components', level: 2 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Playground', level: 1 })).toBeVisible();
     // Select the Card component before each test
     await page.getByRole('button', { name: /^Card v/ }).click();
   });
@@ -30,11 +30,21 @@ test.describe('Component: Card', () => {
     test('is children prop working', async ({ page }) => {
       const { componentPreview, renderedComponent } = await setupCardTestConsts(page);
   
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+  
       await testChildrenProp(componentName, componentPreview, renderedComponent, page);
     });
   
     test('is className prop working', async ({ page }) => {
       const { componentPreview } = await setupCardTestConsts(page);
+  
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
   
       await testClassNameProp(componentName, componentPreview, page);
     });
@@ -42,11 +52,21 @@ test.describe('Component: Card', () => {
     test('is padding prop working', async ({ page }) => {
       const { componentPreview } = await setupCardTestConsts(page);
   
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+  
       await testPaddingProp(componentName, componentPreview, page);
     });
   
     test('is shadow prop working', async ({ page }) => {
       const { componentPreview } = await setupCardTestConsts(page);
+  
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
   
       await testShadowProp(componentName, componentPreview, page);
     });
@@ -54,11 +74,21 @@ test.describe('Component: Card', () => {
     test('is border prop working', async ({ page }) => {
       const { componentPreview } = await setupCardTestConsts(page);
   
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+  
       await testBorderProp(componentName, componentPreview, page);
     });
   
     test('is rounded prop working', async ({ page }) => {
       const { componentPreview } = await setupCardTestConsts(page);
+  
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
   
       await testRoundedProp(componentName, componentPreview, page);
     });
@@ -66,11 +96,21 @@ test.describe('Component: Card', () => {
     test('is header prop working', async ({ page }) => {
       const { componentPreview } = await setupCardTestConsts(page);
   
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+  
       await testHeaderProp(componentName, componentPreview, page);
     });
   
     test('is footer prop working', async ({ page }) => {
       const { componentPreview } = await setupCardTestConsts(page);
+  
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
   
       await testFooterProp(componentName, componentPreview, page);
     });

@@ -10,10 +10,10 @@ test.describe('Component: DataTable', () => {
   test.describe.configure({ mode: 'serial' });
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/playground');
     const loadingIndicator = page.getByText('Loading components...');
     await expect(loadingIndicator).not.toBeVisible({ timeout: 20000 });
-    await expect(page.getByRole('heading', { name: 'Components', level: 2 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Playground', level: 1 })).toBeVisible();
     // Select the DataTable component before each test
     await page.getByRole('button', { name: /^DataTable v/ }).click();
   });

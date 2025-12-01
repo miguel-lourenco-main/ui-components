@@ -17,10 +17,10 @@ test.describe('Component: Toggle', () => {
   test.describe.configure({ mode: 'serial' });
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/playground');
     const loadingIndicator = page.getByText('Loading components...');
     await expect(loadingIndicator).not.toBeVisible({ timeout: 20000 });
-    await expect(page.getByRole('heading', { name: 'Components', level: 2 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Playground', level: 1 })).toBeVisible();
     // Select the Toggle component before each test
     await page.getByRole('button', { name: /^Toggle v/ }).click();
   });
@@ -36,21 +36,45 @@ test.describe('Component: Toggle', () => {
 
     test('is variant prop working', async ({ page }) => {
       const { componentPreview } = await setupToggleTestConsts(page);
+      
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+      
       await testVariantProp(componentName, componentPreview, page, 'outline');
     });
 
     test('is size prop working', async ({ page }) => {
       const { componentPreview } = await setupToggleTestConsts(page);
+      
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+      
       await testSizeProp(componentName, componentPreview, page);
     });
 
     test('is pressed prop working', async ({ page }) => {
       const { componentPreview } = await setupToggleTestConsts(page);
+      
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+      
       await testPressedProp(componentName, componentPreview, page);
     });
 
     test('is disabled prop working', async ({ page }) => {
       const { componentPreview } = await setupToggleTestConsts(page);
+      
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+      
       await testDisabledProp(componentName, componentPreview, page);
     });
 
@@ -63,16 +87,34 @@ test.describe('Component: Toggle', () => {
 
     test('is className prop working', async ({ page }) => {
       const { componentPreview } = await setupToggleTestConsts(page);
+      
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+      
       await testClassNameProp(componentName, componentPreview, page);
     });
 
     test('is children prop working', async ({ page }) => {
       const { componentPreview, renderedComponent } = await setupToggleTestConsts(page);
+      
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+      
       await testChildrenProp(componentName, componentPreview, renderedComponent, page);
     });
 
     test('is onPressedChange prop working', async ({ page }) => {
       const { renderedComponent } = await setupToggleTestConsts(page);
+      
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+      
       await testOnPressedChangeProp(componentName, renderedComponent, page);
     });
 
