@@ -31,6 +31,8 @@ export const getComponentPropStatus = (page: any, propName: string) => {
 // Common operations
 export const selectOption = async (page: any, propName: string, value: string) => {
   const select = getSelectControl(page, propName);
+  // Wait for the select to be visible first, then check if it's enabled
+  await expect(select).toBeVisible({ timeout: 10000 });
   await expect(select).toBeEnabled();
   await select.scrollIntoViewIfNeeded();
   await select.click();
@@ -323,14 +325,20 @@ export const doesComponentRender = async (componentName: string, componentPrevie
 }
 
 export async function testChildrenProp(componentName: string, componentPreview:any, testingComponent: any, page: any) {
-  const childrenControl = page.getByTestId('prop-control-children');
-  const editor = childrenControl.locator('.monaco-editor');
+  // Use the same approach as setFunctionProp - get the Monaco editor directly
+  const editor = getMonacoEditor(page, 'children');
   const status = getComponentPropStatus(page, 'children');
 
-  await childrenControl.scrollIntoViewIfNeeded();
+  // Wait for Monaco editor to be available and visible (same as setFunctionProp)
+  await expect(editor).toBeVisible({ timeout: 20000 });
+  await editor.scrollIntoViewIfNeeded();
+  
+  // Ensure Monaco editor is ready for interaction
+  await page.waitForTimeout(500);
 
   // Helper to clear editor
   const clearEditor = async () => {
+    await editor.scrollIntoViewIfNeeded();
     await editor.click();
     await page.keyboard.press('Control+A');
     await page.keyboard.press('Delete');
@@ -469,6 +477,10 @@ export async function testFooterProp(componentName: string, componentPreview: an
 }
 
 export async function testTypeProp(componentName: string, componentPreview: any, page: any) {
+  // Wait for the prop control to be visible before trying to select
+  const typeControl = page.getByTestId('prop-control-type');
+  await expect(typeControl).toBeVisible({ timeout: 10000 });
+  
   await selectOption(page, 'type', 'text');
   await expect(componentPreview).toHaveScreenshot(`${componentName}-text.png`);
 }

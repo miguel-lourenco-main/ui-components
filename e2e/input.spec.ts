@@ -51,21 +51,15 @@ test.describe('Component: Input', () => {
     test('is type prop working', async ({ page }) => {
       const { componentPreview } = await setupInputTestConsts(page);
       
-      // Open the props panel
-      const propsButton = page.getByTitle('Show Properties');
-      await expect(propsButton).toBeVisible();
-      await propsButton.click();
+      // Wait for the props panel to be ready and the type prop control to be visible
+      const typeControl = page.getByTestId('prop-control-type');
+      await expect(typeControl).toBeVisible({ timeout: 10000 });
       
       await testTypeProp(componentName, componentPreview, page);
     });
 
     test('is placeholder prop working', async ({ page }) => {
       const { componentPreview } = await setupInputTestConsts(page);
-      
-      // Open the props panel
-      const propsButton = page.getByTitle('Show Properties');
-      await expect(propsButton).toBeVisible();
-      await propsButton.click();
       
       await testPlaceholderProp(componentName, componentPreview, page);
     });
@@ -83,7 +77,7 @@ test.describe('Component: Input', () => {
     });
 
     test('is onChange prop working', async ({ page }) => {
-      const { componentPreview, renderedComponent } = await setupInputTestConsts(page);
+      const { renderedComponent } = await setupInputTestConsts(page);
       
       await testOnChangeProp(componentName, renderedComponent, page);
     });

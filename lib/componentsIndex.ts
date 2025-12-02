@@ -3,10 +3,20 @@ import indexJsonInfo from '@/components/display-components/index.json';
 import { FullComponentInfo } from './interfaces';
 import { ComponentMetadata } from './types';
 
-// Normalize meta prop types (e.g., "number[]", "React.ReactNode") to internal PropType
+// Normalize meta prop types (e.g., "number[]", "React.ReactNode", ["component", "function"]) to internal PropType
 // values used by the PropsPanel.
-function normalizePropType(type: string) {
+function normalizePropType(type: string | string[]) {
   if (!type) return 'string';
+
+  // Handle array types like ["component", "function"]
+  if (Array.isArray(type)) {
+    // If array contains "component", prioritize component editor
+    if (type.includes('component')) return 'component';
+    // If array contains "function", use function editor
+    if (type.includes('function')) return 'function';
+    // Otherwise, use the first type in the array
+    return normalizePropType(type[0]);
+  }
 
   const normalized = typeof type === 'string' ? type.trim() : String(type);
   const lower = normalized.toLowerCase();
