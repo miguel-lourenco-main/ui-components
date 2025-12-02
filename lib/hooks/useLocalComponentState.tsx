@@ -8,7 +8,6 @@ import { perf } from '@/lib/performance';
 import { startMonacoPreload } from '@/lib/monaco-preloader';
 import { 
   isFunctionPropValue, 
-  convertFunctionPropValuesToFunctions,
   setFunctionSource
 } from '@/lib/utils/functionProps';
 import indexJson from '@/components/display-components/index.json'
@@ -131,9 +130,6 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
   const generateCodeWithProps = async (component: FullComponentInfo, props: Record<string, any>) => {
     debugLog('props', '🏗️ generateCodeWithProps called for:', component.name);
     
-    // Convert FunctionPropValues to actual functions for code generation
-    const propsWithFunctions = convertFunctionPropValuesToFunctions(props, component.props);
-    
     // Check for missing function props that are required
     const functionPropDefs = component.props.filter(p => p.type === 'function');
     const missingFunctionProps = functionPropDefs.filter(propDef => 
@@ -153,87 +149,116 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
     }
     
     // Generate JSX usage code with current props
-    const propsString = Object.entries(propsWithFunctions)
-      .filter(([key, value]) => {
-        // Only include props that have actual values
-        if (value === undefined || value === null) return false;
-        // For functions, only include if they're actually defined and not empty
-        if (typeof value === 'function') return true;
-        return true;
-      })
-      .map(([key, value]) => {
-        if (typeof value === 'string') {
-          return `  ${key}="${value}"`;
-        } else if (typeof value === 'boolean') {
-          return value ? `  ${key}` : '';
-        } else if (typeof value === 'function') {
-          // For functions, show a more meaningful representation
-          const funcName = key || 'handleEvent';
-          return `  ${key}={${funcName}}`;
-        } else if (Array.isArray(value) || typeof value === 'object') {
-          return `  ${key}={${JSON.stringify(value, null, 2).replace(/\n/g, '\n    ')}}`;
-        } else {
-          return `  ${key}={${value}}`;
+    // Build props string, treating function props and component children specially
+    const propsLines: string[] = [];
+    const childrenPropDef = component.props.find(
+      (p) => p.name === 'children' && p.type === 'component'
+    );
+
+    component.props.forEach((propDef) => {
+      const key = propDef.name;
+      const value = (props as any)[key];
+
+      if (value === undefined || value === null) {
+        return;
+      }
+
+      // Component children are rendered as JSX children, not as a prop
+      if (childrenPropDef && key === 'children') {
+        return;
+      }
+
+      if (propDef.type === 'function') {
+        // Function props are referenced by name; their bodies are emitted separately
+        propsLines.push(`  ${key}={${key}}`);
+        return;
+      }
+
+      if (typeof value === 'string') {
+        propsLines.push(`  ${key}="${value}"`);
+      } else if (typeof value === 'boolean') {
+        if (value) {
+          propsLines.push(`  ${key}`);
         }
-      })
-      .filter(prop => prop !== '')
-      .join('\n');
+      } else if (Array.isArray(value) || typeof value === 'object') {
+        propsLines.push(
+          `  ${key}={${JSON.stringify(value, null, 2).replace(/\n/g, '\n    ')}}`
+        );
+      } else {
+        propsLines.push(`  ${key}={${value}}`);
+      }
+    });
+
+    const propsString = propsLines.join('\n');
 
     // Generate function declarations for any function props
-    const functionDeclarations = Object.entries(propsWithFunctions)
-      .filter(([key, value]) => typeof value === 'function' && value !== undefined)
-      .map(([key, value]) => {
-        const funcName = key; // Use the prop name as the function name
-        const propDef = component.props.find(p => p.name === key);
+    const functionDeclarations = component.props
+      .filter((p) => p.type === 'function')
+      .map((propDef) => {
+        const key = propDef.name;
+        const funcName = key;
 
         debugLog('props', '🔍 Generating function declarations for:', key);
-        
+
         // Get the function source from the original FunctionPropValue
         const originalPropValue = props[key];
         let functionBody = '';
-        
+
         if (isFunctionPropValue(originalPropValue)) {
           functionBody = originalPropValue.source;
-          debugLog('props', `🔍 Using FunctionPropValue source for ${key}:`, functionBody);
+          debugLog(
+            'props',
+            `🔍 Using FunctionPropValue source for ${key}:`,
+            functionBody
+          );
         } else {
-          debugLog('props', `⚠️ No FunctionPropValue found for ${key}, using fallback`);
+          debugLog(
+            'props',
+            `⚠️ No FunctionPropValue found for ${key}, using fallback`
+          );
         }
 
         // If we have user-defined function body, use it
         if (functionBody && functionBody.trim()) {
           // Extract function signature from prop description or use default
           let params = '...args';
-          const signatureMatch = propDef?.description?.match(/\((.*?)\)\s*=>/);
-          
-          if (propDef?.functionSignature?.params) {
+          const signatureMatch = propDef.description?.match(/\((.*?)\)\s*=>/);
+
+          if (propDef.functionSignature?.params) {
             params = propDef.functionSignature.params;
           } else if (signatureMatch) {
             params = signatureMatch[1].trim();
           } else {
             // Default parameters for common prop patterns
             const defaultParams: Record<string, string> = {
-              'onClick': 'event',
-              'onChange': 'value',
-              'onSubmit': 'event',
-              'onFocus': 'event',
-              'onBlur': 'event',
+              onClick: 'event',
+              onChange: 'value',
+              onSubmit: 'event',
+              onFocus: 'event',
+              onBlur: 'event',
             };
-            params = defaultParams[key] || ''; // Default to no params
+            params = defaultParams[key] || '';
           }
-          
-          return `  const ${funcName} = (${params}) => {\n${functionBody.split('\n').map(line => line ? '    ' + line : '').join('\n')}\n  };`;
+
+          return `  const ${funcName} = (${params}) => {\n${functionBody
+            .split('\n')
+            .map((line) => (line ? '    ' + line : ''))
+            .join('\n')}\n  };`;
         }
-        
+
         // Fall back to default function generation if no user body
-        if (propDef?.description) {
-          // Try to extract signature from description
-          const signatureMatch = propDef.description.match(/\((.*?)\)\s*=>\s*(.+)/);
+        if (propDef.description) {
+          const signatureMatch = propDef.description.match(
+            /\((.*?)\)\s*=>\s*(.+)/
+          );
           if (signatureMatch) {
             const [, params, returnType] = signatureMatch;
-            return `  const ${funcName} = (${params.trim()}) => {\n    // ${propDef.description}\n    console.log('${key} called:', arguments);\n  };`;
+            return `  const ${funcName} = (${params.trim()}) => {\n    // ${
+              propDef.description
+            }\n    console.log('${key} called:', arguments);\n  };`;
           }
         }
-        
+
         // Ultimate fallback
         return `  const ${funcName} = (...args) => {\n    console.log('${key} called:', args);\n  };`;
       });
@@ -260,16 +285,49 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
       return `  ${propDef.name}={${stubName}} // ⚠️ Required prop - implement this function`;
     }).join('\n');
 
-    const allPropsString = [propsString, missingPropsString].filter(Boolean).join('\n');
+    const allPropsString = [propsString, missingPropsString]
+      .filter(Boolean)
+      .join('\n');
 
     // Add warnings as comments at the top
     const warningsCode = warnings.length > 0 
       ? `/*\n * VALIDATION WARNINGS:\n * ${warnings.join('\n * ')}\n */\n\n`
       : '';
 
+    // Build children JSX for component children (if present)
+    let childrenJsx = '';
+    if (childrenPropDef) {
+      const rawChildren = (props as any).children;
+      if (isFunctionPropValue(rawChildren)) {
+        childrenJsx = rawChildren.source || '';
+      } else if (typeof rawChildren === 'string') {
+        childrenJsx = rawChildren;
+      }
+    }
+
+    let componentUsage: string;
+    if (childrenPropDef && childrenJsx.trim()) {
+      const childrenLines = childrenJsx
+        .split('\n')
+        .map((line) => (line ? '    ' + line : ''))
+        .join('\n');
+
+      if (allPropsString) {
+        componentUsage = `<${component.name}\n${allPropsString}\n  >\n${childrenLines}\n  </${component.name}>`;
+      } else {
+        componentUsage = `<${component.name}>\n${childrenLines}\n  </${component.name}>`;
+      }
+    } else {
+      if (allPropsString) {
+        componentUsage = `<${component.name}\n${allPropsString}\n/>`;
+      } else {
+        componentUsage = `<${component.name} />`;
+      }
+    }
+
     const usageCode = `${warningsCode}export default function Example() {${functionDeclarationsCode}
   return (
-    <${component.name}${allPropsString ? '\n' + allPropsString + '\n    ' : ' '}/>
+    ${componentUsage}
   );
 }
 `;
@@ -371,7 +429,15 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
 
     const defaultProps = component.props.reduce((acc, prop) => {
       if (prop.defaultValue !== undefined) {
-        acc[prop.name] = prop.defaultValue === "[]" ? [] : prop.defaultValue;
+        // For component props with string defaults, wrap into a FunctionPropValue
+        if (prop.type === 'component' && typeof prop.defaultValue === 'string') {
+          acc[prop.name] = setFunctionSource(prop.defaultValue, {
+            params: '',
+            returnType: 'React.ReactNode',
+          });
+        } else {
+          acc[prop.name] = prop.defaultValue === "[]" ? [] : prop.defaultValue;
+        }
       }
       return acc;
     }, {} as Record<string, any>);
@@ -390,9 +456,13 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
             const propDef = component.props.find(p => p.name === key);
             const value = exampleProps[key];
 
-            if (propDef?.type === 'function' && typeof value === 'string') {
+            if ((propDef?.type === 'function' || propDef?.type === 'component') && typeof value === 'string') {
               debugLog('props', `  🔄 Converting string to FunctionPropValue for: ${key}`);
-              initialProps[key] = setFunctionSource(value, propDef.functionSignature);
+              const signature =
+                propDef.type === 'function'
+                  ? propDef.functionSignature
+                  : { params: '', returnType: 'React.ReactNode' };
+              initialProps[key] = setFunctionSource(value, signature);
             } else {
               initialProps[key] = value;
             }

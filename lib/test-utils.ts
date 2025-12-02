@@ -24,9 +24,15 @@ export const getFunctionPropStatus = (page: any, propName: string) => {
   return getPropControl(page, propName).getByTestId('function-prop-status');
 };
 
+export const getComponentPropStatus = (page: any, propName: string) => {
+  return getPropControl(page, propName).getByTestId('component-prop-status');
+};
+
 // Common operations
 export const selectOption = async (page: any, propName: string, value: string) => {
   const select = getSelectControl(page, propName);
+  // Wait for the select to be visible first, then check if it's enabled
+  await expect(select).toBeVisible({ timeout: 10000 });
   await expect(select).toBeEnabled();
   await select.scrollIntoViewIfNeeded();
   await select.click();
@@ -116,14 +122,14 @@ export const setupTest = async (page: any, componentName: string) => {
   console.log(`🚀 Setting up test for ${componentName}...`);
   
   // Navigate to the app
-  await page.goto('/');
+  await page.goto('/playground');
   
   // Wait for the loading indicator to disappear
   const loadingIndicator = page.getByText('Loading components...');
   await expect(loadingIndicator).not.toBeVisible({ timeout: 20000 });
   
   // Wait for the main component list header to be visible
-  await expect(page.getByRole('heading', { name: 'Components', level: 2 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Playground', level: 1 })).toBeVisible();
   
   // Reset any existing component state
   await resetComponentState(page);
@@ -275,11 +281,23 @@ export const setupComponentTestConsts = (componentName: string) => {
     // Use a more flexible regex that matches the component name followed by version
     // This handles both "DataTable v1.0.0" and "Button v1.0.0" patterns
     const buttonPattern = new RegExp(`^${displayName} v`);
-    
+
     await page.getByRole('button', { name: buttonPattern }).click();
 
+    // Wait for the toolbar to appear with the Examples button
+    const examplesButton = page.getByRole('button', { name: /Examples/i });
+    await expect(examplesButton).toBeVisible();
+
+    // Click the Examples button to open the examples panel
+    await examplesButton.click();
+
+    // Wait for examples panel to be visible
+    const examplesPanel = page.getByTestId('examples-panel-desktop');
+    await expect(examplesPanel).toBeVisible();
+
     // Wait for examples to be visible and get their count
-    const examples = page.getByTestId('examples-panel').getByRole('button', { name: /Currently selected|^(?!.*Currently selected).*$/ });
+    const examples = examplesPanel
+      .getByRole('button', { name: /Currently selected|^(?!.*Currently selected).*$/ });
     const exampleCount = await examples.count();
 
     // Verify we have at least 3 examples to test with
@@ -307,28 +325,48 @@ export const doesComponentRender = async (componentName: string, componentPrevie
 }
 
 export async function testChildrenProp(componentName: string, componentPreview:any, testingComponent: any, page: any) {
-  const jsxContent = 'return (<div>Click e</div>)';
+  // Use the same approach as setFunctionProp - get the Monaco editor directly
+  const editor = getMonacoEditor(page, 'children');
+  const status = getComponentPropStatus(page, 'children');
 
-  const childrenInput = page.getByTestId('prop-control-children');
-  const functionPropStatus = childrenInput.getByTestId('function-prop-status');
-  await childrenInput.scrollIntoViewIfNeeded();
-  await childrenInput.locator('.monaco-editor').click();
-  await page.keyboard.press('Control+A');
-  await page.keyboard.press('Delete');
-  await page.keyboard.type(jsxContent);
+  // Wait for Monaco editor to be available and visible (same as setFunctionProp)
+  await expect(editor).toBeVisible({ timeout: 20000 });
+  await editor.scrollIntoViewIfNeeded();
+  
+  // Ensure Monaco editor is ready for interaction
+  await page.waitForTimeout(500);
 
-  await expect(functionPropStatus).toHaveText(VALID_FUNCTION_TEST, { timeout: 10000 });
-  
-  // Wait for component to stabilize with the new JSX content
-  await waitForComponentStability(page, 'children', jsxContent);
-  
+  // Helper to clear editor
+  const clearEditor = async () => {
+    await editor.scrollIntoViewIfNeeded();
+    await editor.click();
+    await page.keyboard.press('Control+A');
+    await page.keyboard.press('Delete');
+  };
+
+  // 1) Plain text children: "Primary"
+  await clearEditor();
+  await page.keyboard.type('Primary');
+  await waitForComponentStability(page); // no function-specific status polling
   await expect(testingComponent).toBeVisible();
-  await expect(componentPreview).toHaveScreenshot(`${componentName}-children-success-test.png`);
+  await expect(componentPreview).toHaveScreenshot(`${componentName}-children-text.png`);
 
-  await page.keyboard.press('Backspace');
-  await page.keyboard.press('Backspace');
+  // 2) Simple JSX: <span>Primary</span>
+  await clearEditor();
+  await page.keyboard.type('<span>Primary</span>');
+  await waitForComponentStability(page);
+  await expect(status).toContainText('Valid');
+  await expect(testingComponent).toBeVisible();
+  await expect(componentPreview).toHaveScreenshot(`${componentName}-children-jsx-span.png`);
 
-  await expect(functionPropStatus).toHaveText(INVALID_FUNCTION_TEST, { timeout: 10000 });
+  // 3) Multi-line / fragment JSX
+  await clearEditor();
+  const fragmentJsx = `<>\n  <span>One</span>\n  <span>Two</span>\n</>`;
+  await page.keyboard.type(fragmentJsx);
+  await waitForComponentStability(page);
+  await expect(status).toContainText('Valid');
+  await expect(testingComponent).toBeVisible();
+  await expect(componentPreview).toHaveScreenshot(`${componentName}-children-jsx-fragment.png`);
 };
 
 export async function testVariantProp(componentName: string, componentPreview: any, page: any, variantValue: string = 'secondary') {
@@ -439,6 +477,10 @@ export async function testFooterProp(componentName: string, componentPreview: an
 }
 
 export async function testTypeProp(componentName: string, componentPreview: any, page: any) {
+  // Wait for the prop control to be visible before trying to select
+  const typeControl = page.getByTestId('prop-control-type');
+  await expect(typeControl).toBeVisible({ timeout: 10000 });
+  
   await selectOption(page, 'type', 'text');
   await expect(componentPreview).toHaveScreenshot(`${componentName}-text.png`);
 }
@@ -449,12 +491,44 @@ export async function testPlaceholderProp(componentName: string, componentPrevie
 }
 
 export async function testValueProp(componentName: string, componentPreview: any, page: any) {
-  await typeInInput(page, 'value', '18');
+  // Slider uses an array-based value prop (number[]), which is edited via the JSON textarea.
+  // Other components like Input still use a simple string input.
+  if (componentName === 'slider') {
+    const control = getPropControl(page, 'value');
+    const textarea = control.locator('textarea');
+
+    if (await textarea.count()) {
+      await expect(textarea).toBeEnabled();
+      await textarea.scrollIntoViewIfNeeded();
+      await textarea.fill('[18]');
+    } else {
+      await typeInInput(page, 'value', '18');
+    }
+  } else {
+    await typeInInput(page, 'value', '18');
+  }
+
   await expect(componentPreview).toHaveScreenshot(`${componentName}-value.png`);
 }
 
 export async function testDefaultValueProp(componentName: string, componentPreview: any, page: any) {
-  await typeInInput(page, 'defaultValue', '18');
+  // Slider uses an array-based defaultValue prop (number[]), which is edited via the JSON textarea.
+  // Other components like Input still use a simple string input.
+  if (componentName === 'slider') {
+    const control = getPropControl(page, 'defaultValue');
+    const textarea = control.locator('textarea');
+
+    if (await textarea.count()) {
+      await expect(textarea).toBeEnabled();
+      await textarea.scrollIntoViewIfNeeded();
+      await textarea.fill('[18]');
+    } else {
+      await typeInInput(page, 'defaultValue', '18');
+    }
+  } else {
+    await typeInInput(page, 'defaultValue', '18');
+  }
+
   await expect(componentPreview).toHaveScreenshot(`${componentName}-default-value.png`);
 }
 

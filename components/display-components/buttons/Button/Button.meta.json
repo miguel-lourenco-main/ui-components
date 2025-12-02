@@ -6,13 +6,9 @@
   "props": [
     {
       "name": "children",
-      "type": "function",
+      "type": ["component", "function"],
       "required": true,
-      "description": "Function that returns JSX for the button content.",
-      "functionSignature": {
-        "params": "",
-        "returnType": "React.ReactNode"
-      }
+      "description": "React.ReactNode content for the button — either JSX or a function returning JSX (e.g., () => <... />)"
     },
     {
       "name": "variant",

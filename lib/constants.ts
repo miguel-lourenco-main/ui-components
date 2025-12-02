@@ -31,3 +31,21 @@ export function debugLog(category: DebugCategory, ...args: any[]) {
 export const COMPONENTS_BLACKLIST: string[] = [];
 
 export const BASE_REPO_URL = 'https://gitlab.com/miguel-lourenco-main/ui-components';
+
+/**
+ * Resolve the public base URL for the app.
+ *
+ * Centralizes the GitLab Pages deployment logic so metadata, links, and config
+ * stay in sync.
+ */
+export function getPublicBaseUrl(): string {
+  if (process.env.NODE_ENV === 'production') {
+    const slug = process.env.CI_COMMIT_REF_SLUG;
+    if (slug && slug !== 'main') {
+      return `https://ui-components-5218c2.gitlab.io/${slug}`;
+    }
+    return 'https://miguel-lourenco-main.gitlab.io/ui-components';
+  }
+
+  return 'http://localhost:3000';
+}

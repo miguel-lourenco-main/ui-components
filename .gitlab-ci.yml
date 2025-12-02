@@ -16,7 +16,7 @@ cache:
 # Define stages
 stages:
   - build
-  #- test
+  - test
   - deploy
 
 # Build stage for all branches
@@ -37,6 +37,18 @@ build:
     paths:
       - out/
     expire_in: 1 hour
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+    - when: always
+
+test:
+  stage: test
+  image: mcr.microsoft.com/playwright:v1.54.2-jammy   
+  script:
+    - npm install -g pnpm@10.14.0
+    - pnpm install --frozen-lockfile
+    - pnpm test:e2e
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: never
@@ -64,49 +76,5 @@ pages:
     name: production
     url: $CI_PAGES_URL
   rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_MERGE_REQUEST_ID
       when: never
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-
-# Deploy to GitLab Pages - Feature Branches (parallel deployments)
-pages-review:
-  stage: deploy
-  script:
-    - echo "Deploying parallel deployment for branch $CI_COMMIT_REF_SLUG"
-    - echo "Review URL - ${CI_PAGES_URL}/$CI_COMMIT_REF_SLUG/"
-    - ls -la out/  # Debug: List contents of out directory
-    - mkdir -p public
-    - cp -r out/* public/  # Copy contents of out directory to public directory
-    - ls -la public/  # Debug: List contents of public directory
-    - ls -la public/_next/static/chunks/ || echo "No chunks directory found"
-  artifacts:
-    paths:
-      - public/
-    expire_in: 1 week
-  pages:
-    path_prefix: "$CI_COMMIT_REF_SLUG"  # Creates URL: site.com/branch-name/
-    expire_in: 1 week  # Auto-cleanup after 1 week
-  dependencies:
-    - build
-  environment:
-    name: review/$CI_COMMIT_REF_SLUG
-    url: $CI_PAGES_URL/$CI_COMMIT_REF_SLUG/
-    on_stop: stop_review
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: never
-    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
-    
-# Stop review environment (automatic cleanup when branch is deleted)
-stop_review:
-  stage: deploy
-  script:
-    - echo "Stopping review environment for $CI_COMMIT_REF_SLUG"
-  environment:
-    name: review/$CI_COMMIT_REF_SLUG
-    action: stop
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: never
-    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
-      when: manual

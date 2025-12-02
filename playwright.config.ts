@@ -21,9 +21,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: process.env.CI_COMMIT_REF_SLUG 
-      ? `http://localhost:3000/${process.env.CI_COMMIT_REF_SLUG}`
-      : 'http://localhost:3000',
+    baseURL: 'http://localhost:3000',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -57,12 +55,30 @@ export default defineConfig({
     },
   ],
 
-  /* Run your local dev server before starting the tests */
-  webServer: {
-    command: 'pnpm dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: true, // Always reuse existing server to avoid port conflicts
-    stdout: 'pipe',
-    stderr: 'pipe',
-  },
+  /* Run server before starting the tests.
+   *
+   * In CI we reuse the pre-built static export in `out/` (from the build job),
+   * which avoids rebuilding and bypasses any dev-server specific issues.
+   * Locally we still use `pnpm dev` for the best DX.
+   */
+  webServer: process.env.CI
+    ? {
+        // Serve the static export produced in the build stage.
+        // GitLab Pages serves branch deployments from /<branch>/..., so we add a
+        // symlink inside `out/` when a branch slug exists.
+        command: process.env.CI_COMMIT_REF_SLUG
+          ? `bash -lc "cd out && ln -sfn . ${process.env.CI_COMMIT_REF_SLUG} && cd .. && npx --yes serve -l 3000 out"`
+          : 'npx --yes serve -l 3000 out',
+        url: 'http://localhost:3000',
+        reuseExistingServer: true,
+        stdout: 'pipe',
+        stderr: 'pipe',
+      }
+    : {
+        command: 'pnpm dev',
+        url: 'http://localhost:3000',
+        reuseExistingServer: true, // Always reuse existing server to avoid port conflicts
+        stdout: 'pipe',
+        stderr: 'pipe',
+      },
 }); 

@@ -3,16 +3,60 @@ import indexJsonInfo from '@/components/display-components/index.json';
 import { FullComponentInfo } from './interfaces';
 import { ComponentMetadata } from './types';
 
-// Normalize meta prop types (e.g., "number[]") to internal PropType values used by the PropsPanel
-function normalizePropType(type: string) {
+// Normalize meta prop types (e.g., "number[]", "React.ReactNode", ["component", "function"]) to internal PropType
+// values used by the PropsPanel.
+function normalizePropType(type: string | string[]) {
   if (!type) return 'string';
+
+  // Handle array types like ["component", "function"]
+  if (Array.isArray(type)) {
+    // If array contains "component", prioritize component editor
+    if (type.includes('component')) return 'component';
+    // If array contains "function", use function editor
+    if (type.includes('function')) return 'function';
+    // Otherwise, use the first type in the array
+    return normalizePropType(type[0]);
+  }
+
+  const normalized = typeof type === 'string' ? type.trim() : String(type);
+  const lower = normalized.toLowerCase();
+
   // Treat any array-like meta type as an array so the PropsPanel renders a JSON editor
-  if (typeof type === 'string' && type.endsWith('[]')) return 'array';
-  return type;
+  if (normalized.endsWith('[]')) return 'array';
+
+  // Map React node-like meta types to our internal "component" PropType so they
+  // get the dedicated JSX/Monaco-based editor (ComponentPropEditor).
+  // Use strict pattern matching to avoid false positives (e.g., "customreactnode").
+  const reactNodePatterns = [
+    'react.reactnode',
+    'reactnode',
+  ];
+  const reactElementPatterns = [
+    'react.element',
+    'jsx.element',
+    'element',
+  ];
+  
+  if (
+    reactNodePatterns.includes(lower) ||
+    reactElementPatterns.includes(lower)
+  ) {
+    return 'component';
+  }
+
+  // Preserve any explicit internal PropType strings ("string", "number", "component", etc.)
+  return normalized;
 }
 
 const getComponentsIndex = (): FullComponentInfo[] => {
-  const info = indexJsonInfo.components.filter((component) => !indexJsonInfo.blacklist.includes(component.id));
+  // Coerce the JSON `blacklist` (which is currently an empty array) to a string[]
+  // so that `.includes(component.id)` is type-safe even when the JSON literal
+  // causes TypeScript to infer `never[]`.
+  const blacklist = (indexJsonInfo.blacklist ?? []) as string[];
+
+  const info = indexJsonInfo.components.filter(
+    (component) => !blacklist.includes(component.id)
+  );
 
   return info.map((component) => {
     // Normalize path from index.json (e.g. "./buttons/Button/" → "buttons/Button")

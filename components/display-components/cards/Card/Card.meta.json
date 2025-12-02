@@ -46,10 +46,61 @@
       "required": false,
       "defaultValue": "",
       "description": "Additional CSS classes"
+    },
+    {
+      "name": "padding",
+      "type": "enum",
+      "required": false,
+      "defaultValue": "md",
+      "options": ["none", "sm", "md", "lg"],
+      "description": "Internal padding for the card content"
+    },
+    {
+      "name": "shadow",
+      "type": "enum",
+      "required": false,
+      "defaultValue": "md",
+      "options": ["none", "sm", "md", "lg"],
+      "description": "Drop shadow size"
+    },
+    {
+      "name": "border",
+      "type": "boolean",
+      "required": false,
+      "defaultValue": true,
+      "description": "Whether to show border"
+    },
+    {
+      "name": "rounded",
+      "type": "enum",
+      "required": false,
+      "defaultValue": "md",
+      "options": ["none", "sm", "md", "lg"],
+      "description": "Border radius"
+    },
+    {
+      "name": "header",
+      "type": "function",
+      "required": false,
+      "description": "Function that returns JSX for the card header.",
+      "functionSignature": {
+        "params": "",
+        "returnType": "React.ReactNode"
+      }
+    },
+    {
+      "name": "footer",
+      "type": "function",
+      "required": false,
+      "description": "Function that returns JSX for the card footer.",
+      "functionSignature": {
+        "params": "",
+        "returnType": "React.ReactNode"
+      }
     }
   ],
   "tags": ["layout", "container", "content"],
   "version": "1.0.0",
   "author": "UI Components Team",
-  "code": "import React from 'react';\n\ninterface CardProps {\n  children: React.ReactNode;\n  title?: string;\n  subtitle?: string;\n  variant?: 'default' | 'outlined' | 'elevated' | 'flat';\n  size?: 'sm' | 'md' | 'lg';\n  className?: string;\n}\n\nexport default function Card({\n  children,\n  title,\n  subtitle,\n  variant = 'default',\n  size = 'md',\n  className = ''\n}: CardProps) {\n  const baseStyles = 'rounded-lg transition-all duration-200';\n  \n  const variantStyles = {\n    default: 'bg-white border border-gray-200 shadow-sm',\n    outlined: 'bg-white border-2 border-gray-300',\n    elevated: 'bg-white shadow-lg border border-gray-100',\n    flat: 'bg-gray-50'\n  };\n  \n  const sizeStyles = {\n    sm: 'p-4',\n    md: 'p-6',\n    lg: 'p-8'\n  };\n  \n  const combinedClassName = `${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`.trim();\n  \n  return (\n    <div className={combinedClassName} data-testid=\"rendered-component-card\">\n      {(title || subtitle) && (\n        <div className=\"mb-4\">\n          {title && (\n            <h3 className=\"text-lg font-semibold text-gray-900 mb-1\">\n              {title}\n            </h3>\n          )}\n          {subtitle && (\n            <p className=\"text-sm text-gray-600\">\n              {subtitle}\n            </p>\n          )}\n        </div>\n      )}\n      <div>\n        {children}\n      </div>\n    </div>\n  );\n}"
+  "code": "import React from 'react';\n\ninterface CardProps {\n  children: React.ReactNode;\n  title?: string;\n  subtitle?: string;\n  variant?: 'default' | 'outlined' | 'elevated' | 'flat';\n  size?: 'sm' | 'md' | 'lg';\n  className?: string;\n  padding?: 'none' | 'sm' | 'md' | 'lg';\n  shadow?: 'none' | 'sm' | 'md' | 'lg';\n  border?: boolean;\n  rounded?: 'none' | 'sm' | 'md' | 'lg';\n  header?: () => React.ReactNode;\n  footer?: () => React.ReactNode;\n}\n\nexport default function Card({\n  children,\n  title,\n  subtitle,\n  variant = 'default',\n  size = 'md',\n  className = '',\n  padding = 'md',\n  shadow = 'md',\n  border = true,\n  rounded = 'md',\n  header,\n  footer\n}: CardProps) {\n  const baseStyles = 'transition-all duration-200';\n  \n  const variantStyles = {\n    default: 'bg-card',\n    outlined: 'bg-card',\n    elevated: 'bg-card',\n    flat: 'bg-muted'\n  };\n  \n  const sizeStyles = {\n    sm: 'p-4',\n    md: 'p-6',\n    lg: 'p-8'\n  };\n\n  const paddingStyles = {\n    none: 'p-0',\n    sm: 'p-3',\n    md: 'p-6',\n    lg: 'p-8'\n  };\n\n  const shadowStyles = {\n    none: '',\n    sm: 'shadow-sm',\n    md: 'shadow-md',\n    lg: 'shadow-lg'\n  };\n\n  const roundedStyles = {\n    none: 'rounded-none',\n    sm: 'rounded-sm',\n    md: 'rounded-md',\n    lg: 'rounded-lg'\n  };\n\n  const borderStyles = border ? 'border border-border' : '';\n  const variantBorderStyles = variant === 'outlined' && border ? 'border-2' : '';\n  \n  // Use padding prop if provided, otherwise fall back to size\n  const paddingClass = paddingStyles[padding] || sizeStyles[size];\n  \n  // Apply shadow class based on shadow prop\n  const shadowClass = shadowStyles[shadow];\n  \n  const combinedClassName = `${baseStyles} ${variantStyles[variant]} ${paddingClass} ${shadowClass} ${borderStyles} ${variantBorderStyles} ${roundedStyles[rounded]} ${className}`.trim();\n  \n  const headerContent = header?.();\n  const footerContent = footer?.();\n  \n  return (\n    <div className={combinedClassName} data-testid=\"rendered-component-card\">\n      {headerContent && (\n        <div className=\"mb-4\">\n          {headerContent}\n        </div>\n      )}\n      {(title || subtitle) && !headerContent && (\n        <div className=\"mb-4\">\n          {title && (\n            <h3 className=\"text-lg font-semibold text-card-foreground mb-1\">\n              {title}\n            </h3>\n          )}\n          {subtitle && (\n            <p className=\"text-sm text-muted-foreground\">\n              {subtitle}\n            </p>\n          )}\n        </div>\n      )}\n      <div>\n        {children}\n      </div>\n      {footerContent && (\n        <div className=\"mt-4\">\n          {footerContent}\n        </div>\n      )}\n    </div>\n  );\n}"
 } 

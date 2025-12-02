@@ -6,6 +6,7 @@ import { RefreshCwIcon, InfoIcon, EyeIcon, AlertTriangle, Settings, X } from 'lu
 import { debugLog } from '@/lib/constants';
 import TooltipComponent from '@/components/ui/tooltip-component';
 import FunctionPropEditor from './FunctionPropEditor';
+import ComponentPropEditor from './ComponentPropEditor';
 import { LinkPreview } from './link-preview';
 import { cn } from '@/lib/utils';
 
@@ -83,7 +84,7 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
       <div className="flex items-center justify-between p-4 border-b border-border">
         <div className="flex items-center space-x-2">
           <EyeIcon className="size-5 mr-1" />
-          <h3 className="font-semibold">Props Configuration</h3>
+          <h3 className="font-semibold">Properties Configuration</h3>
         </div>
         <div className="flex items-center space-x-3">
           <button
@@ -152,13 +153,22 @@ function PropsList({
           <div className="bg-destructive/40 p-3 w-fit mb-4 rounded-r-lg">
             <h4 className="text-base font-semibold text-foreground flex items-center">
               <AlertTriangle className="size-5 mr-2" />
-              Required Props
+              Required Properties
             </h4>
           </div>
           <div className="space-y-4 ml-2">
             {requiredProps.map(prop => (
               prop.type === 'function' ? (
                 <FunctionPropEditor
+                  key={prop.name}
+                  prop={prop}
+                  value={values[prop.name]}
+                  onChange={(value) => onPropChange(prop.name, value)}
+                  isExpanded={expandedProps.has(prop.name)}
+                  onToggleExpansion={() => onToggleExpansion(prop.name)}
+                />
+              ) : prop.type === 'component' ? (
+                <ComponentPropEditor
                   key={prop.name}
                   prop={prop}
                   value={values[prop.name]}
@@ -189,7 +199,7 @@ function PropsList({
               <div>
                 <h4 className="text-base font-semibold text-primary flex items-center">
                   <Settings className="size-5 mr-2" />
-                  Optional Props
+                  Optional Properties
                 </h4>
               </div>
             </div>
@@ -199,6 +209,15 @@ function PropsList({
               {optionalProps.map(prop => (
                 prop.type === 'function' ? (
                   <FunctionPropEditor
+                    key={prop.name}
+                    prop={prop}
+                    value={values[prop.name]}
+                    onChange={(value) => onPropChange(prop.name, value)}
+                    isExpanded={expandedProps.has(prop.name)}
+                    onToggleExpansion={() => onToggleExpansion(prop.name)}
+                  />
+                ) : prop.type === 'component' ? (
+                  <ComponentPropEditor
                     key={prop.name}
                     prop={prop}
                     value={values[prop.name]}
@@ -446,7 +465,7 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
         </label>
         <div className="flex items-center gap-x-2">
           <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
-            {prop.type}
+            {prop.type === 'component' ? 'React.ReactNode' : prop.type}
           </span>
           {prop.description && (
             <TooltipComponent

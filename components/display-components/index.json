@@ -1,5 +1,5 @@
 {
-    "blacklist": ["textarea"],
+    "blacklist": [],
     "components": [
         {
             "id": "button",

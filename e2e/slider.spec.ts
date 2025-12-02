@@ -7,10 +7,10 @@ test.describe('Component: Slider', () => {
   test.describe.configure({ mode: 'serial' });
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/playground');
     const loadingIndicator = page.getByText('Loading components...');
     await expect(loadingIndicator).not.toBeVisible({ timeout: 20000 });
-    await expect(page.getByRole('heading', { name: 'Components', level: 2 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Playground', level: 1 })).toBeVisible();
     // Select the Slider component before each test
     await page.getByRole('button', { name: /^Slider v/ }).click();
   });
@@ -26,39 +26,81 @@ test.describe('Component: Slider', () => {
 
     test('is min prop working', async ({ page }) => {
       const { componentPreview } = await setupSliderTestConsts(page);
+      
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+      
       await typeInNumberInput(page, 'min', 10);
       await expect(componentPreview).toHaveScreenshot(`${componentName}-min-10.png`);
     });
 
     test('is max prop working', async ({ page }) => {
       const { componentPreview } = await setupSliderTestConsts(page);
+      
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+      
       await typeInNumberInput(page, 'max', 200);
       await expect(componentPreview).toHaveScreenshot(`${componentName}-max-200.png`);
     });
 
     test('is defaultValue prop working', async ({ page }) => {
       const { componentPreview } = await setupSliderTestConsts(page);
+      
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+      
       await testDefaultValueProp(componentName, componentPreview, page);
     });
 
     test('is value prop working', async ({ page }) => {
       const { componentPreview } = await setupSliderTestConsts(page);
+      
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+      
       await testValueProp(componentName, componentPreview, page);
     });
 
     test('is step prop working', async ({ page }) => {
       const { componentPreview } = await setupSliderTestConsts(page);
+      
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+      
       await typeInNumberInput(page, 'step', 5);
       await expect(componentPreview).toHaveScreenshot(`${componentName}-step-5.png`);
     });
 
     test('is disabled prop working', async ({ page }) => {
       const { componentPreview } = await setupSliderTestConsts(page);
+      
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+      
       await testDisabledProp(componentName, componentPreview, page);
     });
 
     test('is className prop working', async ({ page }) => {
       const { componentPreview } = await setupSliderTestConsts(page);
+      
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+      
       await testClassNameProp(componentName, componentPreview, page);
     });
 

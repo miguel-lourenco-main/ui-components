@@ -14,10 +14,10 @@ test.describe('Component: Textarea', () => {
   test.describe.configure({ mode: 'serial' });
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/playground');
     const loadingIndicator = page.getByText('Loading components...');
     await expect(loadingIndicator).not.toBeVisible({ timeout: 20000 });
-    await expect(page.getByRole('heading', { name: 'Components', level: 2 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Playground', level: 1 })).toBeVisible();
     // Select the Textarea component before each test
     await page.getByRole('button', { name: /^Textarea v/ }).click();
   });
@@ -33,22 +33,46 @@ test.describe('Component: Textarea', () => {
 
     test('is label prop working', async ({ page }) => {
       const { componentPreview, renderedComponent } = await setupTextareaTestConsts(page);
+      
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+      
       await testLabelProp(componentName, componentPreview, renderedComponent, page);
     });
 
     test('is helperText prop working', async ({ page }) => {
       const { componentPreview, renderedComponent } = await setupTextareaTestConsts(page);
+      
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+      
       await testHelperTextProp(componentName, componentPreview, renderedComponent, page);
     });
 
     test('is error prop working', async ({ page }) => {
       const { componentPreview } = await setupTextareaTestConsts(page);
+      
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+      
       await typeInInput(page, 'error', 'This field is required');
       await expect(componentPreview).toHaveScreenshot(`${componentName}-error.png`);
     });
 
     test('is className prop working', async ({ page }) => {
       const { componentPreview } = await setupTextareaTestConsts(page);
+      
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+      
       await testClassNameProp(componentName, componentPreview, page);
     });
 
