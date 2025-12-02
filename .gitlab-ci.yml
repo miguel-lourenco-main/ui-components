@@ -51,11 +51,9 @@ test:
   script:
     - pnpm test:e2e
   rules:
-    # Run tests for merge requests and for the default branch
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: always
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-      when: always
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+    - when: always
 
 # Deploy to GitLab Pages - Production (main branch)
 pages:
