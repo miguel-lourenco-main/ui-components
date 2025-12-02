@@ -57,12 +57,26 @@ export default defineConfig({
     },
   ],
 
-  /* Run your local dev server before starting the tests */
-  webServer: {
-    command: 'pnpm dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: true, // Always reuse existing server to avoid port conflicts
-    stdout: 'pipe',
-    stderr: 'pipe',
-  },
+  /* Run server before starting the tests.
+   *
+   * In CI we reuse the pre-built static export in `out/` (from the build job),
+   * which avoids rebuilding and bypasses any dev-server specific issues.
+   * Locally we still use `pnpm dev` for the best DX.
+   */
+  webServer: process.env.CI
+    ? {
+        // Serve the static export produced in the build stage
+        command: 'npx --yes serve -l 3000 out',
+        url: 'http://localhost:3000',
+        reuseExistingServer: true,
+        stdout: 'pipe',
+        stderr: 'pipe',
+      }
+    : {
+        command: 'pnpm dev',
+        url: 'http://localhost:3000',
+        reuseExistingServer: true, // Always reuse existing server to avoid port conflicts
+        stdout: 'pipe',
+        stderr: 'pipe',
+      },
 }); 
