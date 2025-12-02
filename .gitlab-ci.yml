@@ -36,7 +36,6 @@ build:
   artifacts:
     paths:
       - out/
-      - node_modules/
     expire_in: 1 hour
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -46,8 +45,9 @@ build:
 test:
   stage: test
   image: mcr.microsoft.com/playwright:v1.54.2-jammy
-  dependencies:
-    - build
+  before_script:
+    - npm install -g pnpm@10.14.0
+    - pnpm install --frozen-lockfile
   script:
     - pnpm test:e2e
   rules:
