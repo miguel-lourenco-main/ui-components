@@ -6,13 +6,9 @@
   "props": [
     {
       "name": "children",
-      "type": "function",
+      "type": "component",
       "required": true,
-      "description": "Function that returns JSX for the button content.",
-      "functionSignature": {
-        "params": "",
-        "returnType": "React.ReactNode"
-      }
+      "description": "React.ReactNode content for the button. Write JSX directly, without a function wrapper."
     },
     {
       "name": "variant",

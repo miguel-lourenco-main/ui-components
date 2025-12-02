@@ -5,7 +5,7 @@ import { CodeBlock } from '@/components/code-block'
 import { FullComponentInfo } from '@/lib/interfaces';
 import { AlertTriangleIcon, RefreshCwIcon, LoaderIcon } from 'lucide-react';
 import { debugLog } from '@/lib/constants';
-import { convertFunctionPropValuesToFunctions } from '@/lib/utils/functionProps';
+import { convertPropsForRuntime } from '@/lib/utils/functionProps';
 import indexJson from '@/components/display-components/index.json';
 
 interface LocalComponentRendererProps {
@@ -205,7 +205,7 @@ export default function LocalComponentRenderer({
     // Render the actual component
     try {
       // Convert FunctionPropValues to actual functions before passing to component
-      const propsWithFunctions = convertFunctionPropValuesToFunctions(props, component.props);
+      const propsWithFunctions = convertPropsForRuntime(props, component.props);
       
       // Inject onChange callbacks for interactive components
       const propsWithCallbacks = injectChangeCallbacks(propsWithFunctions, component, onPropChange);

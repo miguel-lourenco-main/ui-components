@@ -124,6 +124,91 @@ export function determineLanguageFromReturnType(returnType: string): 'javascript
 }
 
 /**
+ * Validate JSX/TSX for component props.
+ *
+ * Users write only JSX (no wrapper, no return). We:
+ * - Pre-parse the raw input and issue a warning when a return statement is present.
+ * - Reuse validateFunctionCode to perform syntax/linting/return-type checks,
+ *   treating the body as the function body.
+ */
+export async function validateComponentPropCode(
+  source: string,
+  propName: string,
+  propDefinition?: PropDefinition
+): Promise<ValidationResult> {
+  // Fast path for empty input
+  if (!source.trim()) {
+    return {
+      isValid: true,
+      errors: [],
+      warnings: [],
+      language: 'tsx',
+    };
+  }
+
+  const warnings: ValidationWarning[] = [];
+
+  // Pre-parse to detect explicit return statements in user input
+  try {
+    const fullSource = `function temp() {\n${source}\n}`;
+    const ast = babelParse(fullSource, {
+      sourceType: 'module',
+      plugins: ['jsx', 'typescript'],
+      allowReturnOutsideFunction: true,
+    });
+
+    traverse(ast, {
+      ReturnStatement(path: any) {
+        const loc = path.node.loc?.start;
+        if (!loc) return;
+
+        const adjustedLine = loc.line > 2 ? loc.line - 2 : loc.line;
+
+        warnings.push({
+          line: adjustedLine,
+          column: loc.column + 1,
+          message:
+            "Component props should not include 'return' statements. Just write the JSX directly.",
+          source: 'linter',
+        });
+      },
+    });
+  } catch (error) {
+    // If pre-parse fails, we'll surface the real syntax error via validateFunctionCode below.
+    console.warn('[Validation] Component prop pre-parse failed:', error);
+  }
+
+  // Reuse function validation pipeline, forcing a JSX/ReactNode-friendly signature
+  const effectivePropDefinition: PropDefinition | undefined = propDefinition
+    ? {
+        ...propDefinition,
+        functionSignature: {
+          params: '',
+          returnType:
+            propDefinition.functionSignature?.returnType || 'React.ReactNode',
+        },
+      }
+    : undefined;
+
+  const baseResult = await validateFunctionCode(
+    source,
+    propName,
+    effectivePropDefinition,
+    ''
+  );
+
+  // Ensure editor language supports JSX/TSX nicely
+  const language: ValidationResult['language'] =
+    baseResult.language === 'javascript' ? 'tsx' : baseResult.language;
+
+  return {
+    ...baseResult,
+    warnings: [...warnings, ...baseResult.warnings],
+    language,
+  };
+}
+
+/**
  * Validate function source code based on its expected return type
  */
 export async function validateFunctionCode(

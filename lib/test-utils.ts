@@ -24,6 +24,10 @@ export const getFunctionPropStatus = (page: any, propName: string) => {
   return getPropControl(page, propName).getByTestId('function-prop-status');
 };
 
+export const getComponentPropStatus = (page: any, propName: string) => {
+  return getPropControl(page, propName).getByTestId('component-prop-status');
+};
+
 // Common operations
 export const selectOption = async (page: any, propName: string, value: string) => {
   const select = getSelectControl(page, propName);
@@ -319,28 +323,42 @@ export const doesComponentRender = async (componentName: string, componentPrevie
 }
 
 export async function testChildrenProp(componentName: string, componentPreview:any, testingComponent: any, page: any) {
-  const jsxContent = 'return (<div>Click e</div>)';
+  const childrenControl = page.getByTestId('prop-control-children');
+  const editor = childrenControl.locator('.monaco-editor');
+  const status = getComponentPropStatus(page, 'children');
 
-  const childrenInput = page.getByTestId('prop-control-children');
-  const functionPropStatus = childrenInput.getByTestId('function-prop-status');
-  await childrenInput.scrollIntoViewIfNeeded();
-  await childrenInput.locator('.monaco-editor').click();
-  await page.keyboard.press('Control+A');
-  await page.keyboard.press('Delete');
-  await page.keyboard.type(jsxContent);
+  await childrenControl.scrollIntoViewIfNeeded();
 
-  await expect(functionPropStatus).toHaveText(VALID_FUNCTION_TEST, { timeout: 10000 });
-  
-  // Wait for component to stabilize with the new JSX content
-  await waitForComponentStability(page, 'children', jsxContent);
-  
+  // Helper to clear editor
+  const clearEditor = async () => {
+    await editor.click();
+    await page.keyboard.press('Control+A');
+    await page.keyboard.press('Delete');
+  };
+
+  // 1) Plain text children: "Primary"
+  await clearEditor();
+  await page.keyboard.type('Primary');
+  await waitForComponentStability(page); // no function-specific status polling
   await expect(testingComponent).toBeVisible();
-  await expect(componentPreview).toHaveScreenshot(`${componentName}-children-success-test.png`);
+  await expect(componentPreview).toHaveScreenshot(`${componentName}-children-text.png`);
 
-  await page.keyboard.press('Backspace');
-  await page.keyboard.press('Backspace');
+  // 2) Simple JSX: <span>Primary</span>
+  await clearEditor();
+  await page.keyboard.type('<span>Primary</span>');
+  await waitForComponentStability(page);
+  await expect(status).toContainText('Valid');
+  await expect(testingComponent).toBeVisible();
+  await expect(componentPreview).toHaveScreenshot(`${componentName}-children-jsx-span.png`);
 
-  await expect(functionPropStatus).toHaveText(INVALID_FUNCTION_TEST, { timeout: 10000 });
+  // 3) Multi-line / fragment JSX
+  await clearEditor();
+  const fragmentJsx = `<>\n  <span>One</span>\n  <span>Two</span>\n</>`;
+  await page.keyboard.type(fragmentJsx);
+  await waitForComponentStability(page);
+  await expect(status).toContainText('Valid');
+  await expect(testingComponent).toBeVisible();
+  await expect(componentPreview).toHaveScreenshot(`${componentName}-children-jsx-fragment.png`);
 };
 
 export async function testVariantProp(componentName: string, componentPreview: any, page: any, variantValue: string = 'secondary') {
@@ -461,12 +479,44 @@ export async function testPlaceholderProp(componentName: string, componentPrevie
 }
 
 export async function testValueProp(componentName: string, componentPreview: any, page: any) {
-  await typeInInput(page, 'value', '18');
+  // Slider uses an array-based value prop (number[]), which is edited via the JSON textarea.
+  // Other components like Input still use a simple string input.
+  if (componentName === 'slider') {
+    const control = getPropControl(page, 'value');
+    const textarea = control.locator('textarea');
+
+    if (await textarea.count()) {
+      await expect(textarea).toBeEnabled();
+      await textarea.scrollIntoViewIfNeeded();
+      await textarea.fill('[18]');
+    } else {
+      await typeInInput(page, 'value', '18');
+    }
+  } else {
+    await typeInInput(page, 'value', '18');
+  }
+
   await expect(componentPreview).toHaveScreenshot(`${componentName}-value.png`);
 }
 
 export async function testDefaultValueProp(componentName: string, componentPreview: any, page: any) {
-  await typeInInput(page, 'defaultValue', '18');
+  // Slider uses an array-based defaultValue prop (number[]), which is edited via the JSON textarea.
+  // Other components like Input still use a simple string input.
+  if (componentName === 'slider') {
+    const control = getPropControl(page, 'defaultValue');
+    const textarea = control.locator('textarea');
+
+    if (await textarea.count()) {
+      await expect(textarea).toBeEnabled();
+      await textarea.scrollIntoViewIfNeeded();
+      await textarea.fill('[18]');
+    } else {
+      await typeInInput(page, 'defaultValue', '18');
+    }
+  } else {
+    await typeInInput(page, 'defaultValue', '18');
+  }
+
   await expect(componentPreview).toHaveScreenshot(`${componentName}-default-value.png`);
 }
 

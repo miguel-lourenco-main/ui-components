@@ -6,6 +6,7 @@ import { RefreshCwIcon, InfoIcon, EyeIcon, AlertTriangle, Settings, X } from 'lu
 import { debugLog } from '@/lib/constants';
 import TooltipComponent from '@/components/ui/tooltip-component';
 import FunctionPropEditor from './FunctionPropEditor';
+import ComponentPropEditor from './ComponentPropEditor';
 import { LinkPreview } from './link-preview';
 import { cn } from '@/lib/utils';
 
@@ -166,6 +167,15 @@ function PropsList({
                   isExpanded={expandedProps.has(prop.name)}
                   onToggleExpansion={() => onToggleExpansion(prop.name)}
                 />
+              ) : prop.type === 'component' ? (
+                <ComponentPropEditor
+                  key={prop.name}
+                  prop={prop}
+                  value={values[prop.name]}
+                  onChange={(value) => onPropChange(prop.name, value)}
+                  isExpanded={expandedProps.has(prop.name)}
+                  onToggleExpansion={() => onToggleExpansion(prop.name)}
+                />
               ) : (
                 <PropControl
                   key={prop.name}
@@ -199,6 +209,15 @@ function PropsList({
               {optionalProps.map(prop => (
                 prop.type === 'function' ? (
                   <FunctionPropEditor
+                    key={prop.name}
+                    prop={prop}
+                    value={values[prop.name]}
+                    onChange={(value) => onPropChange(prop.name, value)}
+                    isExpanded={expandedProps.has(prop.name)}
+                    onToggleExpansion={() => onToggleExpansion(prop.name)}
+                  />
+                ) : prop.type === 'component' ? (
+                  <ComponentPropEditor
                     key={prop.name}
                     prop={prop}
                     value={values[prop.name]}
@@ -446,7 +465,7 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
         </label>
         <div className="flex items-center gap-x-2">
           <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
-            {prop.type}
+            {prop.type === 'component' ? 'React.ReactNode' : prop.type}
           </span>
           {prop.description && (
             <TooltipComponent

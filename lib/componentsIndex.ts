@@ -3,12 +3,34 @@ import indexJsonInfo from '@/components/display-components/index.json';
 import { FullComponentInfo } from './interfaces';
 import { ComponentMetadata } from './types';
 
-// Normalize meta prop types (e.g., "number[]") to internal PropType values used by the PropsPanel
+// Normalize meta prop types (e.g., "number[]", "React.ReactNode") to internal PropType
+// values used by the PropsPanel.
 function normalizePropType(type: string) {
   if (!type) return 'string';
+
+  const normalized = typeof type === 'string' ? type.trim() : String(type);
+  const lower = normalized.toLowerCase();
+
   // Treat any array-like meta type as an array so the PropsPanel renders a JSON editor
-  if (typeof type === 'string' && type.endsWith('[]')) return 'array';
-  return type;
+  if (normalized.endsWith('[]')) return 'array';
+
+  // Map React node-like meta types to our internal "component" PropType so they
+  // get the dedicated JSX/Monaco-based editor (ComponentPropEditor).
+  if (
+    lower === 'react.reactnode' ||
+    lower === 'reactnode' ||
+    lower === 'react.element' ||
+    lower === 'jsx.element' ||
+    lower.includes('react.reactnode') ||
+    lower.includes('reactnode') ||
+    lower.includes('react.element') ||
+    lower.includes('jsx.element')
+  ) {
+    return 'component';
+  }
+
+  // Preserve any explicit internal PropType strings ("string", "number", "component", etc.)
+  return normalized;
 }
 
 const getComponentsIndex = (): FullComponentInfo[] => {

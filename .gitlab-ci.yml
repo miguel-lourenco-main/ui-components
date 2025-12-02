@@ -16,7 +16,7 @@ cache:
 # Define stages
 stages:
   - build
-  #- test
+  - test
   - deploy
 
 # Build stage for all branches
@@ -41,6 +41,21 @@ build:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: never
     - when: always
+
+test:
+  stage: test
+  image: mcr.microsoft.com/playwright:v1.54.2-jammy
+  before_script:
+    - npm install -g pnpm@10.14.0
+    - pnpm install --frozen-lockfile
+  script:
+    - pnpm test:e2e
+  rules:
+    # Run tests for merge requests and for the default branch
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      when: always
 
 # Deploy to GitLab Pages - Production (main branch)
 pages:

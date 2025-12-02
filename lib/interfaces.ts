@@ -86,7 +86,13 @@ export type PropType =
   | 'array'
   | 'object'
   | 'color'
-  | 'function';
+  | 'function'
+  /**
+   * Component-like props that semantically represent `React.ReactNode`.
+   * These are edited as JSX (no function wrapper) but are stored internally
+   * using the same FunctionPropValue structure and rendered as React nodes.
+   */
+  | 'component';
 
 export interface ComponentExample {
   name: string;

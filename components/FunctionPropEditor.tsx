@@ -70,6 +70,7 @@ export default function FunctionPropEditor({
   const [isUserTyping, setIsUserTyping] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [lastSentFunctionBody, setLastSentFunctionBody] = useState<string>('');
+  const [initialFunctionBody, setInitialFunctionBody] = useState<string>('');
   
   // Use ref to store current onChange to avoid dependency loops
   const onChangeRef = useRef(onChange);
@@ -128,6 +129,8 @@ export default function FunctionPropEditor({
     // Mark as initialized after processing the value
     if (!isInitialized) {
       setIsInitialized(true);
+      setInitialFunctionBody(source);
+      setLastSentFunctionBody(source);
     }
   }, [value, isInitialized, prop.name]);
 
@@ -202,6 +205,24 @@ export default function FunctionPropEditor({
     debugLog('FUNCTION_EDITOR', '🗑️ FunctionPropEditor: Clear complete for', prop.name);
   }, [prop.name]);
 
+  // Reset function - restores the initial/default value seen on mount
+  const handleResetFunction = useCallback(() => {
+    debugLog('FUNCTION_EDITOR', '🔄 FunctionPropEditor: Resetting function for', prop.name);
+
+    setFunctionBody(initialFunctionBody || '');
+    setValidationResult({ isValid: true, errors: [], warnings: [], language: validationResult.language });
+    setLastSentFunctionBody(initialFunctionBody || '');
+    setIsUserTyping(false);
+
+    if (initialFunctionBody && initialFunctionBody.trim()) {
+      const signature = getFunctionSignature();
+      const functionPropValue = setFunctionSource(initialFunctionBody, signature);
+      onChangeRef.current(functionPropValue);
+    } else {
+      onChangeRef.current(undefined);
+    }
+  }, [getFunctionSignature, initialFunctionBody, onChangeRef, prop.name, validationResult.language]);
+
   const signature = getFunctionSignature();
   const functionPreview = `(${signature.params}) => ${signature.returnType}`;
 
@@ -253,6 +274,15 @@ export default function FunctionPropEditor({
               >
                 <Trash2Icon className="w-3 h-3" />
                 <span>Clear</span>
+              </button>
+            )}
+            {initialFunctionBody !== functionBody && (
+              <button
+                onClick={handleResetFunction}
+                className="text-xs text-primary hover:text-primary/90 flex items-center space-x-1 px-2 py-1 rounded hover:bg-primary/10 transition-colors"
+                title="Reset to initial value"
+              >
+                <span>Reset</span>
               </button>
             )}
             <button

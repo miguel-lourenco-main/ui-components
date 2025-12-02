@@ -3,7 +3,7 @@ import React from 'react';
 interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg' | 'icon';
-  children: React.ReactNode | (() => React.ReactNode);
+  children: React.ReactNode;
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   title?: string;
   disabled?: boolean;
@@ -45,7 +45,7 @@ export default function Button({
       data-testid="rendered-component-button"
       title={title}
     >
-      {typeof children === 'function' ? children() : children}
+      {children}
     </button>
   );
 } 

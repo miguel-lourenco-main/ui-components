@@ -46,10 +46,61 @@
       "required": false,
       "defaultValue": "",
       "description": "Additional CSS classes"
+    },
+    {
+      "name": "padding",
+      "type": "enum",
+      "required": false,
+      "defaultValue": "md",
+      "options": ["none", "sm", "md", "lg"],
+      "description": "Internal padding for the card content"
+    },
+    {
+      "name": "shadow",
+      "type": "enum",
+      "required": false,
+      "defaultValue": "md",
+      "options": ["none", "sm", "md", "lg"],
+      "description": "Drop shadow size"
+    },
+    {
+      "name": "border",
+      "type": "boolean",
+      "required": false,
+      "defaultValue": true,
+      "description": "Whether to show border"
+    },
+    {
+      "name": "rounded",
+      "type": "enum",
+      "required": false,
+      "defaultValue": "md",
+      "options": ["none", "sm", "md", "lg"],
+      "description": "Border radius"
+    },
+    {
+      "name": "header",
+      "type": "function",
+      "required": false,
+      "description": "Function that returns JSX for the card header.",
+      "functionSignature": {
+        "params": "",
+        "returnType": "React.ReactNode"
+      }
+    },
+    {
+      "name": "footer",
+      "type": "function",
+      "required": false,
+      "description": "Function that returns JSX for the card footer.",
+      "functionSignature": {
+        "params": "",
+        "returnType": "React.ReactNode"
+      }
     }
   ],
   "tags": ["layout", "container", "content"],
   "version": "1.0.0",
   "author": "UI Components Team",
-  "code": "import React from 'react';\n\ninterface CardProps {\n  children: React.ReactNode;\n  title?: string;\n  subtitle?: string;\n  variant?: 'default' | 'outlined' | 'elevated' | 'flat';\n  size?: 'sm' | 'md' | 'lg';\n  className?: string;\n}\n\nexport default function Card({\n  children,\n  title,\n  subtitle,\n  variant = 'default',\n  size = 'md',\n  className = ''\n}: CardProps) {\n  const baseStyles = 'rounded-lg transition-all duration-200';\n  \n  const variantStyles = {\n    default: 'bg-white border border-gray-200 shadow-sm',\n    outlined: 'bg-white border-2 border-gray-300',\n    elevated: 'bg-white shadow-lg border border-gray-100',\n    flat: 'bg-gray-50'\n  };\n  \n  const sizeStyles = {\n    sm: 'p-4',\n    md: 'p-6',\n    lg: 'p-8'\n  };\n  \n  const combinedClassName = `${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`.trim();\n  \n  return (\n    <div className={combinedClassName} data-testid=\"rendered-component-card\">\n      {(title || subtitle) && (\n        <div className=\"mb-4\">\n          {title && (\n            <h3 className=\"text-lg font-semibold text-gray-900 mb-1\">\n              {title}\n            </h3>\n          )}\n          {subtitle && (\n            <p className=\"text-sm text-gray-600\">\n              {subtitle}\n            </p>\n          )}\n        </div>\n      )}\n      <div>\n        {children}\n      </div>\n    </div>\n  );\n}"
+  "code": "import React from 'react';\n\ninterface CardProps {\n  children: React.ReactNode;\n  title?: string;\n  subtitle?: string;\n  variant?: 'default' | 'outlined' | 'elevated' | 'flat';\n  size?: 'sm' | 'md' | 'lg';\n  className?: string;\n  padding?: 'none' | 'sm' | 'md' | 'lg';\n}\n\nexport default function Card({\n  children,\n  title,\n  subtitle,\n  variant = 'default',\n  size = 'md',\n  className = '',\n  padding = 'md'\n}: CardProps) {\n  const baseStyles = 'rounded-lg transition-all duration-200';\n  \n  const variantStyles = {\n    default: 'bg-card border border-border shadow-sm',\n    outlined: 'bg-card border-2 border-border',\n    elevated: 'bg-card shadow-lg border border-border',\n    flat: 'bg-muted'\n  };\n  \n  const sizeStyles = {\n    sm: 'p-4',\n    md: 'p-6',\n    lg: 'p-8'\n  };\n\n  const paddingStyles = {\n    none: 'p-0',\n    sm: 'p-3',\n    md: 'p-6',\n    lg: 'p-8'\n  };\n  \n  const baseSizeClass = sizeStyles[size];\n  const paddingClass = paddingStyles[padding] || baseSizeClass;\n  \n  const combinedClassName = `${baseStyles} ${variantStyles[variant]} ${paddingClass} ${className}`.trim();\n  \n  return (\n    <div className={combinedClassName} data-testid=\"rendered-component-card\">\n      {(title || subtitle) && (\n        <div className=\"mb-4\">\n          {title && (\n            <h3 className=\"text-lg font-semibold text-card-foreground mb-1\">\n              {title}\n            </h3>\n          )}\n          {subtitle && (\n            <p className=\"text-sm text-muted-foreground\">\n              {subtitle}\n            </p>\n          )}\n        </div>\n      )}\n      <div>\n        {children}\n      </div>\n    </div>\n  );\n}"
 } 

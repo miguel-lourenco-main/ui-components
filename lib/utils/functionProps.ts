@@ -1,4 +1,4 @@
-import { FunctionPropValue } from '@/lib/interfaces';
+import { FunctionPropValue, PropDefinition } from '@/lib/interfaces';
 import { parse } from 'acorn';
 import { simple as walkSimple } from 'acorn-walk';
 import React from 'react';
@@ -29,8 +29,9 @@ function transformJSXWithBabel(jsxCode: string, params: string = ''): string {
       codeToTransform = `function temp(${params}) {\n  return ${jsxPart}\n}`;
       isReturnStatement = true;
     } else if (!codeToTransform.startsWith('function') && !codeToTransform.includes('=>')) {
-      // If it's just JSX without function wrapper, wrap it
-      codeToTransform = `function temp(${params}) {\n  ${jsxCode}\n}`;
+      // If it's just JSX without function wrapper, wrap it and ensure we return it
+      // so the resulting function actually yields a ReactNode.
+      codeToTransform = `function temp(${params}) {\n  return ${jsxCode}\n}`;
     }
     
     const result = Babel.transform(codeToTransform, {
@@ -349,6 +350,45 @@ export function convertFunctionPropValuesToFunctions(
     }
   }
   
+  return converted;
+}
+
+/**
+ * Convert props object for runtime rendering.
+ *
+ * - For standard function props, converts FunctionPropValues into callable functions.
+ * - For component props (PropDefinition.type === 'component'), converts FunctionPropValues
+ *   into a ReactNode by evaluating the generated function once.
+ */
+export function convertPropsForRuntime(
+  props: Record<string, any>,
+  propDefinitions?: PropDefinition[]
+): Record<string, any> {
+  const converted: Record<string, any> = {};
+
+  for (const [key, value] of Object.entries(props)) {
+    if (isFunctionPropValue(value)) {
+      const propDefinition = propDefinitions?.find(p => p.name === key);
+
+      // Component props: evaluate the generated function once to get a ReactNode
+      if (propDefinition?.type === 'component') {
+        try {
+          const componentFn = functionPropValueToFunction(value, key, propDefinition);
+          converted[key] = componentFn();
+        } catch (error) {
+          console.warn(`Failed to render component prop "${key}":`, error);
+          // Fallback to the raw FunctionPropValue so the renderer can still show something
+          converted[key] = value;
+        }
+      } else {
+        // Regular function prop
+        converted[key] = functionPropValueToFunction(value, key, propDefinition);
+      }
+    } else {
+      converted[key] = value;
+    }
+  }
+
   return converted;
 }
 

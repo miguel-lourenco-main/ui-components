@@ -45,9 +45,9 @@
     },
     {
       "name": "children",
-      "type": "function",
+      "type": "component",
       "required": false,
-      "description": "Function that returns JSX for the toggle content.",
+      "description": "React.ReactNode content for the toggle. Write JSX directly, without a function wrapper.",
       "defaultValue": {
         "type": "function",
         "source": "return <span>Toggle</span>;"
