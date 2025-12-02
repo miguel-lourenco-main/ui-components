@@ -77,7 +77,7 @@ pages:
     url: $CI_PAGES_URL
   rules:
     - if: $CI_MERGE_REQUEST_ID
-      when: neve
+      when: never
 
 # Deploy to GitLab Pages - Feature Branches (parallel deployments)
 pages-review:
