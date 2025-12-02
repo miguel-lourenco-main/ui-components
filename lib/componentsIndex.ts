@@ -16,15 +16,20 @@ function normalizePropType(type: string) {
 
   // Map React node-like meta types to our internal "component" PropType so they
   // get the dedicated JSX/Monaco-based editor (ComponentPropEditor).
+  // Use strict pattern matching to avoid false positives (e.g., "customreactnode").
+  const reactNodePatterns = [
+    'react.reactnode',
+    'reactnode',
+  ];
+  const reactElementPatterns = [
+    'react.element',
+    'jsx.element',
+    'element',
+  ];
+  
   if (
-    lower === 'react.reactnode' ||
-    lower === 'reactnode' ||
-    lower === 'react.element' ||
-    lower === 'jsx.element' ||
-    lower.includes('react.reactnode') ||
-    lower.includes('reactnode') ||
-    lower.includes('react.element') ||
-    lower.includes('jsx.element')
+    reactNodePatterns.includes(lower) ||
+    reactElementPatterns.includes(lower)
   ) {
     return 'component';
   }

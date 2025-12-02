@@ -80,6 +80,16 @@ export default function ComponentPropEditor({
     onChangeRef.current = onChange;
   }, [onChange]);
 
+  // Cleanup MutationObserver on unmount
+  useEffect(() => {
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
+    };
+  }, []);
+
   // Initialize editor content from current value
   useEffect(() => {
     let initialSource = '';

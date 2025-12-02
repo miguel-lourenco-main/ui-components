@@ -6,9 +6,9 @@
   "props": [
     {
       "name": "children",
-      "type": "component",
+      "type": ["component", "function"],
       "required": true,
-      "description": "React.ReactNode content for the button. Write JSX directly, without a function wrapper."
+      "description": "React.ReactNode content for the button — either JSX or a function returning JSX (e.g., () => <... />)"
     },
     {
       "name": "variant",

@@ -210,7 +210,6 @@ export default function FunctionPropEditor({
     debugLog('FUNCTION_EDITOR', '🔄 FunctionPropEditor: Resetting function for', prop.name);
 
     setFunctionBody(initialFunctionBody || '');
-    setValidationResult({ isValid: true, errors: [], warnings: [], language: validationResult.language });
     setLastSentFunctionBody(initialFunctionBody || '');
     setIsUserTyping(false);
 
@@ -221,7 +220,7 @@ export default function FunctionPropEditor({
     } else {
       onChangeRef.current(undefined);
     }
-  }, [getFunctionSignature, initialFunctionBody, onChangeRef, prop.name, validationResult.language]);
+  }, [getFunctionSignature, initialFunctionBody, prop.name]);
 
   const signature = getFunctionSignature();
   const functionPreview = `(${signature.params}) => ${signature.returnType}`;

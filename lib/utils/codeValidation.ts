@@ -162,7 +162,7 @@ export async function validateComponentPropCode(
         const loc = path.node.loc?.start;
         if (!loc) return;
 
-        const adjustedLine = loc.line > 2 ? loc.line - 2 : loc.line;
+        const adjustedLine = Math.max(1, loc.line - 1);
 
         warnings.push({
           line: adjustedLine,
@@ -414,7 +414,7 @@ function validateCustomRules(ast: any, source: string, params: string | undefine
         const { line, column } = node.loc.start;
         
         warnings.push({
-          line: line > 2 ? line - 2 : line, // Adjust for function wrapper
+          line: Math.max(1, line - 1), // Adjust for 1-line wrapper
           column: column + 1,
           message: `Avoid using console.${node.callee.property.name} in component props.`,
           source: 'linter'

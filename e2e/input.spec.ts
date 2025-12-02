@@ -41,6 +41,12 @@ test.describe('Component: Input', () => {
   });
 
   test.describe('Test input props', () => {
+    test.beforeEach(async ({ page }) => {
+      // Open the props panel
+      const propsButton = page.getByTitle('Show Properties');
+      await expect(propsButton).toBeVisible();
+      await propsButton.click();
+    });
 
     test('is type prop working', async ({ page }) => {
       const { componentPreview } = await setupInputTestConsts(page);
@@ -67,21 +73,11 @@ test.describe('Component: Input', () => {
     test('is value prop working', async ({ page }) => {
       const { componentPreview } = await setupInputTestConsts(page);
       
-      // Open the props panel
-      const propsButton = page.getByTitle('Show Properties');
-      await expect(propsButton).toBeVisible();
-      await propsButton.click();
-      
       await testValueProp(componentName, componentPreview, page);
     });
 
     test('is defaultValue prop working', async ({ page }) => {
       const { componentPreview } = await setupInputTestConsts(page);
-      
-      // Open the props panel
-      const propsButton = page.getByTitle('Show Properties');
-      await expect(propsButton).toBeVisible();
-      await propsButton.click();
       
       await testDefaultValueProp(componentName, componentPreview, page);
     });
@@ -89,21 +85,11 @@ test.describe('Component: Input', () => {
     test('is onChange prop working', async ({ page }) => {
       const { componentPreview, renderedComponent } = await setupInputTestConsts(page);
       
-      // Open the props panel
-      const propsButton = page.getByTitle('Show Properties');
-      await expect(propsButton).toBeVisible();
-      await propsButton.click();
-      
       await testOnChangeProp(componentName, renderedComponent, page);
     });
 
     test('is onFocus prop working', async ({ page }) => {
       const { componentPreview, renderedComponent } = await setupInputTestConsts(page);
-      
-      // Open the props panel
-      const propsButton = page.getByTitle('Show Properties');
-      await expect(propsButton).toBeVisible();
-      await propsButton.click();
       
       await testOnFocusProp(componentName, componentPreview, renderedComponent, page);
     });
@@ -111,21 +97,11 @@ test.describe('Component: Input', () => {
     test('is onBlur prop working', async ({ page }) => {
       const { componentPreview, renderedComponent } = await setupInputTestConsts(page);
       
-      // Open the props panel
-      const propsButton = page.getByTitle('Show Properties');
-      await expect(propsButton).toBeVisible();
-      await propsButton.click();
-      
       await testOnBlurProp(componentName, componentPreview, renderedComponent, page);
     });
 
     test('is disabled prop working', async ({ page }) => {
       const { componentPreview } = await setupInputTestConsts(page);
-      
-      // Open the props panel
-      const propsButton = page.getByTitle('Show Properties');
-      await expect(propsButton).toBeVisible();
-      await propsButton.click();
       
       await testDisabledProp(componentName, componentPreview, page);
     });
@@ -133,21 +109,11 @@ test.describe('Component: Input', () => {
     test('is required prop working', async ({ page }) => {
       const { componentPreview, renderedComponent } = await setupInputTestConsts(page);
       
-      // Open the props panel
-      const propsButton = page.getByTitle('Show Properties');
-      await expect(propsButton).toBeVisible();
-      await propsButton.click();
-      
       await testRequiredProp(componentName, componentPreview, renderedComponent, page);
     });
 
     test('is size prop working', async ({ page }) => {
       const { componentPreview } = await setupInputTestConsts(page);
-      
-      // Open the props panel
-      const propsButton = page.getByTitle('Show Properties');
-      await expect(propsButton).toBeVisible();
-      await propsButton.click();
       
       await testSizeProp(componentName, componentPreview, page);
     });
@@ -155,21 +121,11 @@ test.describe('Component: Input', () => {
     test('is variant class prop working', async ({ page }) => {
       const { componentPreview, renderedComponent } = await setupInputTestConsts(page);
       
-      // Open the props panel
-      const propsButton = page.getByTitle('Show Properties');
-      await expect(propsButton).toBeVisible();
-      await propsButton.click();
-      
       await testVariantClassProp(componentName, componentPreview, renderedComponent, page, 'error');
     });
 
     test('is className prop working', async ({ page }) => {
       const { componentPreview } = await setupInputTestConsts(page);
-      
-      // Open the props panel
-      const propsButton = page.getByTitle('Show Properties');
-      await expect(propsButton).toBeVisible();
-      await propsButton.click();
       
       await testClassNameProp(componentName, componentPreview, page);
     });
@@ -177,32 +133,17 @@ test.describe('Component: Input', () => {
     test('is label prop working', async ({ page }) => {
       const { componentPreview, renderedComponent } = await setupInputTestConsts(page);
       
-      // Open the props panel
-      const propsButton = page.getByTitle('Show Properties');
-      await expect(propsButton).toBeVisible();
-      await propsButton.click();
-      
       await testLabelProp(componentName, componentPreview, renderedComponent, page);
     });
 
     test('is helperText prop working', async ({ page }) => {
       const { componentPreview, renderedComponent } = await setupInputTestConsts(page);
       
-      // Open the props panel
-      const propsButton = page.getByTitle('Show Properties');
-      await expect(propsButton).toBeVisible();
-      await propsButton.click();
-      
       await testHelperTextProp(componentName, componentPreview, renderedComponent, page);
     });
 
     test('is errorMessage prop working', async ({ page }) => {
       const { componentPreview, renderedComponent } = await setupInputTestConsts(page);
-      
-      // Open the props panel
-      const propsButton = page.getByTitle('Show Properties');
-      await expect(propsButton).toBeVisible();
-      await propsButton.click();
       
       await testErrorProp(componentName, componentPreview, renderedComponent, page);
     });
