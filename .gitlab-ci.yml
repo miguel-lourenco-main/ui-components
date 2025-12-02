@@ -76,10 +76,8 @@ pages:
     name: production
     url: $CI_PAGES_URL
   rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: never
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      when: always
+    - if: $CI_MERGE_REQUEST_ID
+      when: neve
 
 # Deploy to GitLab Pages - Feature Branches (parallel deployments)
 pages-review:
