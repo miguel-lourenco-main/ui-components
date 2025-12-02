@@ -34,7 +34,14 @@ function normalizePropType(type: string) {
 }
 
 const getComponentsIndex = (): FullComponentInfo[] => {
-  const info = indexJsonInfo.components.filter((component) => !indexJsonInfo.blacklist.includes(component.id));
+  // Coerce the JSON `blacklist` (which is currently an empty array) to a string[]
+  // so that `.includes(component.id)` is type-safe even when the JSON literal
+  // causes TypeScript to infer `never[]`.
+  const blacklist = (indexJsonInfo.blacklist ?? []) as string[];
+
+  const info = indexJsonInfo.components.filter(
+    (component) => !blacklist.includes(component.id)
+  );
 
   return info.map((component) => {
     // Normalize path from index.json (e.g. "./buttons/Button/" → "buttons/Button")

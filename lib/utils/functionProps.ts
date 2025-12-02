@@ -1,8 +1,7 @@
-import { FunctionPropValue, PropDefinition } from '@/lib/interfaces';
+import type { FunctionPropValue, PropDefinition } from '@/lib/interfaces';
 import { parse } from 'acorn';
 import { simple as walkSimple } from 'acorn-walk';
 import React from 'react';
-import type { PropDefinition } from '@/lib/interfaces';
 // @ts-ignore - Babel standalone doesn't have perfect types
 import * as Babel from '@babel/standalone';
 
