@@ -66,17 +66,20 @@ export default defineConfig({
   webServer: process.env.CI
     ? {
         // Serve the static export produced in the build stage
-        command: 'npx --yes serve -l 3000 out',
+        // In CI, create a directory with branch name and serve from there
+        command: process.env.CI_COMMIT_REF_SLUG
+          ? `mkdir -p /tmp/${process.env.CI_COMMIT_REF_SLUG} && cp -r out/* /tmp/${process.env.CI_COMMIT_REF_SLUG}/ && npx --yes serve -l 3000 /tmp`
+          : 'npx --yes serve -l 3000 out',
         url: 'http://localhost:3000',
         reuseExistingServer: true,
         stdout: 'pipe',
         stderr: 'pipe',
       }
     : {
-        command: 'pnpm dev',
-        url: 'http://localhost:3000',
-        reuseExistingServer: true, // Always reuse existing server to avoid port conflicts
-        stdout: 'pipe',
-        stderr: 'pipe',
-      },
+    command: 'pnpm dev',
+    url: 'http://localhost:3000',
+    reuseExistingServer: true, // Always reuse existing server to avoid port conflicts
+    stdout: 'pipe',
+    stderr: 'pipe',
+  },
 }); 
