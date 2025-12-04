@@ -1,62 +1,29 @@
-"use client"
+/**
+ * Custom React hook to detect hover state on an HTML element.
+ *
+ * @returns {{ref: React.RefObject<any>, isHovered: boolean}} Object containing the ref to attach to the element and the hover state boolean.
+ */
+function useHover() {
+  const [isHovered, setIsHovered] = React.useState(false);
+  const ref = React.useRef(null);
 
-import { useState, useRef, useEffect } from 'react'
-
-export function useHover<T extends HTMLElement = HTMLElement>(): [
-  React.RefObject<T>,
-  boolean
-] {
-  const [isHovered, setIsHovered] = useState(false);
-  const ref = useRef<T>(null);
-
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
+  React.useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
 
     const handleMouseEnter = () => setIsHovered(true);
     const handleMouseLeave = () => setIsHovered(false);
 
-    element.addEventListener('mouseenter', handleMouseEnter);
-    element.addEventListener('mouseleave', handleMouseLeave);
+    node.addEventListener('mouseenter', handleMouseEnter);
+    node.addEventListener('mouseleave', handleMouseLeave);
 
     return () => {
-      element.removeEventListener('mouseenter', handleMouseEnter);
-      element.removeEventListener('mouseleave', handleMouseLeave);
+      node.removeEventListener('mouseenter', handleMouseEnter);
+      node.removeEventListener('mouseleave', handleMouseLeave);
     };
   }, []);
 
-  return [ref, isHovered];
+  return {ref, isHovered};
 }
 
-export function useHoverState<T extends HTMLElement = HTMLElement>(
-  onHoverChange?: (isHovered: boolean) => void
-): [React.RefObject<T>, boolean] {
-  const [isHovered, setIsHovered] = useState(false);
-  const ref = useRef<T>(null);
-
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-
-    const handleMouseEnter = () => {
-      setIsHovered(true);
-      onHoverChange?.(true);
-    };
-
-    const handleMouseLeave = () => {
-      setIsHovered(false);
-      onHoverChange?.(false);
-    };
-
-    element.addEventListener('mouseenter', handleMouseEnter);
-    element.addEventListener('mouseleave', handleMouseLeave);
-
-    return () => {
-      element.removeEventListener('mouseenter', handleMouseEnter);
-      element.removeEventListener('mouseleave', handleMouseLeave);
-    };
-  }, [onHoverChange]);
-
-  return [ref, isHovered];
-}
-
+export default useHover;
