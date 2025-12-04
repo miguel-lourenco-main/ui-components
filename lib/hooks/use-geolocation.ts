@@ -2,35 +2,18 @@
 
 import { useState, useEffect } from 'react'
 
+@interface GeolocationState 
+ * Defines the shape of the geolocation state object.
 interface GeolocationState {
-  /**
-   * The latitude of the user's location, or null if not available.
-   */
   latitude: number | null;
-  /**
-   * The longitude of the user's location, or null if not available.
-   */
   longitude: number | null;
-  /**
-   * The accuracy of the geolocation position in meters, or null if not available.
-   */
   accuracy: number | null;
-  /**
-   * Any error that occurred while trying to retrieve the position, or null if no error.
-   */
   error: GeolocationPositionError | null;
-  /**
-   * A boolean indicating if the geolocation data is currently being loaded.
-   */
   loading: boolean;
 }
 
-/**
- * A React hook that returns the current geolocation state, watching for updates.
- *
- * @param {PositionOptions} [options] - Options for the geolocation retrieval.
- * @returns {GeolocationState} The current geolocation state, including latitude, longitude, accuracy, error, and loading status.
- */
+@function useGeolocation 
+ * A hook to get the current geolocation and update state whenever it changes.
 export function useGeolocation(options?: PositionOptions): GeolocationState {
   const [state, setState] = useState<GeolocationState>({
     latitude: null,
@@ -69,6 +52,8 @@ export function useGeolocation(options?: PositionOptions): GeolocationState {
       },
       options
     );
+@function useGeolocationOnce 
+ * A hook to get the current geolocation just once and update state.
 
     return () => {
       navigator.geolocation.clearWatch(watchId);
@@ -78,12 +63,6 @@ export function useGeolocation(options?: PositionOptions): GeolocationState {
   return state;
 }
 
-/**
- * A React hook that retrieves the geolocation once and returns the state.
- *
- * @param {PositionOptions} [options] - Options for the geolocation retrieval.
- * @returns {GeolocationState} The current geolocation state, including latitude, longitude, accuracy, error, and loading status.
- */
 export function useGeolocationOnce(options?: PositionOptions): GeolocationState {
   const [state, setState] = useState<GeolocationState>({
     latitude: null,
@@ -126,3 +105,4 @@ export function useGeolocationOnce(options?: PositionOptions): GeolocationState 
 
   return state;
 }
+
