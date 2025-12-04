@@ -1,158 +1,129 @@
-Compares two values for deep equality.
-@param {any} a - The first value to compare.
-@param {any} b - The second value to compare.
-@returns {boolean} True if the values are deeply equal, false otherwise.
-export function isEqual(a: any, b: any): boolean {
-  if (a === b) {
-    return true;
-  }
-
-  if (a == null || b == null) {
-    return false;
-  }
-
-  if (typeof a !== 'object' || typeof b !== 'object') {
-    return false;
-  }
-
-  const keysA = Object.keys(a);
-  const keysB = Object.keys(b);
-
-  if (keysA.length !== keysB.length) {
-    return false;
-  }
-
-  for (const key of keysA) {
-    if (!keysB.includes(key)) {
-      Compares two values for shallow equality.
-@param {any} a - The first value to compare.
-@param {any} b - The second value to compare.
-@returns {boolean} True if the values are shallowly equal, false otherwise.
-      return false;
-    }
-
-    if (!isEqual(a[key], b[key])) {
-      return false;
-    }
-  }
-
-  return true;
+/**
+ * Formats a number with commas as thousand separators.
+ *
+ * @param {number} value - The number to format.
+ * @returns {string} The formatted number as a string.
+ */
+export function formatNumberWithCommas(num: number): string {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
-export function isShallowEqual(a: any, b: any): boolean {
-  if (a === b) {
-    return true;
-  }
-
-  if (a == null || b == null) {
-    return false;
-  }
-
-  Compares two numbers.
-@param {number} a - The first number to compare.
-@param {number} b - The second number to compare.
-@returns {number} A negative number if a is less than b, zero if they are equal, or a positive number if a is greater than b.
-  if (typeof a !== 'object' || typeof b !== 'object') {
-    return false;
-  }
-
-  Compares two strings, optionally case-sensitive.
-@param {string} a - The first string to compare.
-@param {string} b - The second string to compare.
-@param {boolean} [caseSensitive=false] - Indicates if the comparison should be case-sensitive.
-@returns {number} A negative number if a is less than b, zero if equal, or a positive number if a is greater than b.
-  const keysA = Object.keys(a);
-  const keysB = Object.keys(b);
-
-  if (keysA.length !== keysB.length) {
-    return false;
-  }
-Compares two dates.
-@param {Date} a - The first date to compare.
-@param {Date} b - The second date to compare.
-@returns {number} A negative number if a is earlier than b, zero if they are equal, or a positive number if a is later than b.
-
-  for (const key of keysA) {
-    if (a[key] !== b[key]) {
-      return false;
-    Creates a comparator function for objects based on a specific key and order.
-@param {string} key - The key to compare the objects by.
-@param {'asc' | 'desc'} order - The sort order, either ascending or descending.
-@returns {Function} A comparator function that takes two objects and returns a number.
-    }
-  }
-
-  return true;
+/**
+ * Formats a number as currency using a specified currency and locale.
+ *
+ * @param {number} amount - The amount to format.
+ * @param {string} currency - The currency code (e.g., 'USD').
+ * @param {string} locale - The locale to use for formatting.
+ * @returns {string} The formatted currency string.
+ */
+export function formatCurrencyAmount(amount: number, currency: string = 'USD', locale: string = 'en-US'): string {
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency,
+  }).format(amount);
+/**
+ * Formats a number as a percentage with a specified number of decimals.
+ *
+ * @param {number} value - The value to format as a percentage.
+ * @param {number} decimals - The number of decimal places to include.
+ * @returns {string} The formatted percentage string.
+ */
 }
 
-export function compareNumbers(a: number, b: number): number {
-  return a - b;
-}
-Finds the minimum element in an array based on a specific key.
-@param {Array<Object>} array - The array to search.
-@param {string} key - The key to determine the minimum element.
-@returns {Object} The minimum element in the array.
-
-export function compareStrings(a: string, b: string, caseSensitive: boolean = true): number {
-  const aVal = caseSensitive ? a : a.toLowerCase();
-  const bVal = caseSensitive ? b : b.toLowerCase();
-  return aVal.localeCompare(bVal);
+export function formatPercentage(value: number, decimals: number = 1): string {
+  return `${value.toFixed(decimals)}%`;
+/**
+ * Formats a file size in bytes into a human-readable string (e.g., KB, MB).
+ *
+ * @param {number} bytes - The size in bytes.
+ * @returns {string} The human-readable file size string.
+ */
 }
 
-export function compareDates(a: Date, b: Date): number {
-  Finds the maximum element in an array based on a specific key.
-@param {Array<Object>} array - The array to search.
-@param {string} key - The key to determine the maximum element.
-@returns {Object} The maximum element in the array.
-  return a.getTime() - b.getTime();
+export function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+/**
+ * Formats a duration from seconds into a human-readable time string.
+ *
+ * @param {number} seconds - The duration in seconds.
+ * @returns {string} The formatted duration string.
+ */
 }
 
-export function compareBy<T>(key: keyof T, order: 'asc' | 'desc' = 'asc'): (a: T, b: T) => number {
-  return (a, b) => {
-    const aVal = a[key];
-    const bVal = b[key];
+export function formatDuration(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
 
-    Clamps a number between a minimum and maximum value.
-@param {number} value - The number to clamp.
-@param {number} min - The minimum value.
-@param {number} max - The maximum value.
-@returns {number} The clamped number.
-    if (aVal < bVal) return order === 'asc' ? -1 : 1;
-    if (aVal > bVal) return order === 'asc' ? 1 : -1;
-    return 0;
-  };
-Checks if a number is between two values, optionally inclusive.
-@param {number} value - The number to check.
-@param {number} start - The start of the range.
-@param {number} end - The end of the range.
-@param {boolean} [inclusive=false] - Indicates if the range should be inclusive.
-@returns {boolean} True if the number is between the values, false otherwise.
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  /**
+ * Formats a date into a relative time format (e.g., '2h ago').
+ *
+ * @param {Date} date - The date to format.
+ * @returns {string} The formatted relative time string.
+ */
+  }
+  return `${minutes}:${String(secs).padStart(2, '0')}`;
 }
 
-export function minBy<T>(array: T[], key: keyof T): T | undefined {
-  if (array.length === 0) return undefined;
+export function formatRelativeTime(date: Date | string): string {
+  const now = new Date();
+  const then = typeof date === 'string' ? new Date(date) : date;
+  const diffInSeconds = Math.floor((now.getTime() - then.getTime()) / 1000);
+
+  if (diffInSeconds < 60) return 'just now';
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+  /**
+ * Formats a 10-digit US phone number into a standard format.
+ *
+ * @param {string} phoneNumber - The 10-digit phone number as a string.
+ * @returns {string} The formatted phone number.
+ */
+  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
   
-  return array.reduce((min, current) => {
-    return current[key] < min[key] ? current : min;
-  });
+  return then.toLocaleDateString();
 }
 
-export function maxBy<T>(array: T[], key: keyof T): T | undefined {
-  if (array.length === 0) return undefined;
+export function formatPhoneNumber(phone: string): string {
+  /**
+ * Formats a credit card number by adding spaces to separate digits.
+ *
+ * @param {string} cardNumber - The credit card number as a string.
+ * @returns {string} The formatted credit card number.
+ */
+  const cleaned = phone.replace(/\D/g, '');
   
-  return array.reduce((max, current) => {
-    return current[key] > max[key] ? current : max;
-  });
-}
-
-export function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
-}
-
-export function isBetween(value: number, min: number, max: number, inclusive: boolean = true): boolean {
-  if (inclusive) {
-    return value >= min && value <= max;
+  if (cleaned.length === 10) {
+    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
   }
-  return value > min && value < max;
+  /**
+ * Formats a Social Security Number (SSN) into a standard format.
+ *
+ * @param {string} ssn - The SSN as a string.
+ * @returns {string} The formatted SSN.
+ */
+  
+  return phone;
+}
+
+export function formatCreditCard(cardNumber: string): string {
+  const cleaned = cardNumber.replace(/\s+/g, '');
+  return cleaned.match(/.{1,4}/g)?.join(' ') || cardNumber;
+}
+
+export function formatSSN(ssn: string): string {
+  const cleaned = ssn.replace(/\D/g, '');
+  if (cleaned.length === 9) {
+    return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 5)}-${cleaned.slice(5)}`;
+  }
+  return ssn;
 }
 
