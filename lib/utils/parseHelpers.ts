@@ -1,3 +1,9 @@
+/**
+ * Parses a JSON string and returns the result or a fallback value.
+ * @param {string} jsonString - The JSON string to parse.
+ * @param {any} fallback - The fallback value to return in case of an error.
+ * @returns {any} The parsed object or the fallback value.
+ */
 export function parseJSON<T>(json: string, fallback?: T): T | null {
   try {
     return JSON.parse(json) as T;
@@ -5,6 +11,11 @@ export function parseJSON<T>(json: string, fallback?: T): T | null {
     return fallback ?? null;
   }
 }
+/**
+ * Parses a query string into a record of key/value pairs.
+ * @param {string} queryString - The query string to parse.
+ * @returns {Record<string, string>} An object containing the key/value pairs from the query string.
+ */
 
 export function parseQueryString(queryString: string): Record<string, string> {
   const params: Record<string, string> = {};
@@ -13,6 +24,11 @@ export function parseQueryString(queryString: string): Record<string, string> {
   searchParams.forEach((value, key) => {
     params[key] = value;
   });
+  /**
+ * Parses a cookie string into a record of key/value pairs.
+ * @param {string} cookieString - The cookie string to parse.
+ * @returns {Record<string, string>} An object containing the key/value pairs from the cookie string.
+ */
   
   return params;
 }
@@ -23,6 +39,12 @@ export function parseCookieString(cookieString: string): Record<string, string> 
   cookieString.split(';').forEach(cookie => {
     const [name, ...valueParts] = cookie.trim().split('=');
     if (name) {
+      /**
+ * Attempts to parse a number from a string or returns a fallback value.
+ * @param {string} value - The string to parse.
+ * @param {number} fallback - The fallback value to return if parsing fails.
+ * @returns {number} The parsed number or the fallback value.
+ */
       cookies[name] = decodeURIComponent(valueParts.join('='));
     }
   });
@@ -31,6 +53,12 @@ export function parseCookieString(cookieString: string): Record<string, string> 
 }
 
 export function parseNumber(value: string | number, fallback: number = 0): number {
+  /**
+ * Attempts to parse an integer from a string or returns a fallback value.
+ * @param {string} value - The string to parse.
+ * @param {number} fallback - The fallback value to return if parsing fails.
+ * @returns {number} The parsed integer or the fallback value.
+ */
   if (typeof value === 'number') {
     return isNaN(value) ? fallback : value;
   }
@@ -39,6 +67,11 @@ export function parseNumber(value: string | number, fallback: number = 0): numbe
   return isNaN(parsed) ? fallback : parsed;
 }
 
+/**
+ * Converts a string, boolean, or number to a boolean value.
+ * @param {string | boolean | number} value - The value to convert.
+ * @returns {boolean} The converted boolean value.
+ */
 export function parseInteger(value: string | number, fallback: number = 0): number {
   if (typeof value === 'number') {
     return isNaN(value) ? fallback : Math.floor(value);
@@ -48,6 +81,12 @@ export function parseInteger(value: string | number, fallback: number = 0): numb
   return isNaN(parsed) ? fallback : parsed;
 }
 
+/**
+ * Parses a string into a Date object or returns a fallback value.
+ * @param {string} dateString - The string to parse.
+ * @param {Date} fallback - The fallback Date to return if parsing fails.
+ * @returns {Date} The parsed Date object or the fallback value.
+ */
 export function parseBoolean(value: string | boolean | number): boolean {
   if (typeof value === 'boolean') {
     return value;
@@ -56,6 +95,11 @@ export function parseBoolean(value: string | boolean | number): boolean {
   if (typeof value === 'number') {
     return value !== 0;
   }
+  /**
+ * Converts a CSV string into a 2D array, handling nested quotes.
+ * @param {string} csvString - The CSV string to parse.
+ * @returns {string[][]} A 2D array representing the parsed CSV data.
+ */
   
   const lowercased = value.toLowerCase().trim();
   return lowercased === 'true' || lowercased === '1' || lowercased === 'yes';
