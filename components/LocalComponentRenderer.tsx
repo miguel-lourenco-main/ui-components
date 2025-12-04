@@ -20,6 +20,9 @@ interface ComponentErrorBoundaryState {
   error: Error | null;
 }
 
+/**
+ * Catches runtime errors thrown by custom component examples so the playground UI keeps working.
+ */
 class ComponentErrorBoundary extends ComponentType<
   { children: React.ReactNode; onRetry: () => void },
   ComponentErrorBoundaryState
@@ -76,6 +79,10 @@ class ComponentErrorBoundary extends ComponentType<
   }
 }
 
+/**
+ * Dynamically loads a component example module and renders it with converted props,
+ * while surfacing load errors and retry affordances.
+ */
 export default function LocalComponentRenderer({
   component,
   props,

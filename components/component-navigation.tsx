@@ -11,7 +11,10 @@ import { useEffect, useRef } from "react"
 import { COMPONENTS_INDEX } from '@/lib/componentsIndex'
 import indexJson from '@/components/display-components/index.json'
 
-// Generate navigation items dynamically from discovered components
+/**
+ * Generates the carousel navigation payload from the discovered components,
+ * filtering out any blacklisted entries defined in `index.json`.
+ */
 function generateComponentNavigation() {
   const blacklist = (indexJson.blacklist || []) as string[];
   const filteredComponents = COMPONENTS_INDEX.filter(c => !blacklist.includes(c.id));
@@ -30,6 +33,10 @@ interface ComponentNavigationProps {
   currentComponent: string
 }
 
+/**
+ * Horizontal carousel that lets users jump between components and keeps the active
+ * card centered when the route changes.
+ */
 export function ComponentNavigation({ currentComponent }: ComponentNavigationProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
 

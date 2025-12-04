@@ -9,6 +9,9 @@ import { COMPONENTS_INDEX } from '@/lib/componentsIndex'
 import indexJson from '@/components/display-components/index.json'
 import ComponentPreview from './component-preview'
 
+/**
+ * Highlights a handful of featured components on the marketing page with live previews.
+ */
 export default function PopularComponentsGrid() {
   const blacklist = (indexJson.blacklist || []) as string[]
   const items = React.useMemo(() => {
@@ -56,6 +59,7 @@ export default function PopularComponentsGrid() {
   )
 }
 
+/** Loading placeholder that matches the PopularComponentsGrid layout. */
 export function PopularComponentsGridSkeleton() {
   return (
     <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">

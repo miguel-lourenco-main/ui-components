@@ -9,6 +9,7 @@ interface SectionHeaderProps {
   icon?: React.ReactNode
 }
 
+/** Decorative divider used between major sections on marketing/detail pages. */
 export function SectionHeader({ title, description, className, icon }: SectionHeaderProps) {
   return (
     <div className={"my-10 overflow-visible " + (className || "")}> 

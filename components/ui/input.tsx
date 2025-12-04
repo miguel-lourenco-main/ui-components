@@ -2,10 +2,17 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Extended input props that optionally render an icon inside the left edge of the field.
+ */
 type InputProps = React.ComponentProps<"input"> & {
   icon?: React.ReactNode
 }
 
+/**
+ * Text input with built-in icon slot and consistent spacing with the design system.
+ * Applies Tailwind/Focus ring presets plus optional left padding when an icon is supplied.
+ */
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, icon, type, ...props }, ref) => {
     return (

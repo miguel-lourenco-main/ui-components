@@ -29,6 +29,10 @@ interface ThemedComponentPreviewProps {
   seamless?: boolean
 }
 
+/**
+ * Renders a miniature component preview that inherits colors from the requested theme
+ * so the carousel/theme browser can show cross-theme comparisons at a glance.
+ */
 export function ThemedComponentPreview({
   themeId,
   component,
@@ -68,6 +72,9 @@ export function ThemedComponentPreview({
   const themeColors = theme.colors[mode]
   const themeComponents = theme.components[mode]
 
+  /**
+   * Returns a scaled-down component vignette that matches the requested type.
+   */
   const renderComponent = () => {
     switch (component) {
       case "button":

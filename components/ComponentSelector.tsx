@@ -15,6 +15,9 @@ interface ComponentSelectorProps {
   onSearchChange: (query: string) => void;
 }
 
+/**
+ * Searchable/filterable list of all components in the registry used by the playground sidebar.
+ */
 export default function ComponentSelector({
   components,
   selectedComponent,
@@ -159,6 +162,7 @@ interface ComponentItemProps {
   onSelect: (component: FullComponentInfo) => void;
 }
 
+/** Individual row in the selector that shows metadata, tags, and handles selection. */
 function ComponentItem({ component, isSelected, onSelect }: ComponentItemProps) {
   return (
     <button

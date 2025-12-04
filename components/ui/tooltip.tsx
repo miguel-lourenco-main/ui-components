@@ -5,12 +5,18 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 
 import { cn } from "@/lib/utils"
 
+/** Wraps part of the tree so multiple tooltips share timing + delay config. */
 const TooltipProvider = TooltipPrimitive.Provider
 
+/** Root tooltip primitive for controlling open state and accessibility bindings. */
 const Tooltip = TooltipPrimitive.Root
 
+/** Element users interact with to toggle the tooltip. */
 const TooltipTrigger = TooltipPrimitive.Trigger
 
+/**
+ * Styled tooltip surface that adds consistent padding, animation, and side offsets.
+ */
 const TooltipContent = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>

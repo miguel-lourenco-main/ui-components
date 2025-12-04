@@ -46,6 +46,10 @@ interface FunctionPropEditorProps {
   onToggleExpansion: () => void;
 }
 
+/**
+ * Monaco-powered editor for function props. Handles validation, previews, and
+ * storing the function source so it can be regenerated in the usage snippet.
+ */
 export default function FunctionPropEditor({
   prop,
   value,

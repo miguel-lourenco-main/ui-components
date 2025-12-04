@@ -32,6 +32,10 @@ interface PanelToggleButtonProps {
   variant?: 'desktop' | 'mobile';
 }
 
+/**
+ * Shared button used to toggle the different playground panels on desktop and mobile.
+ * Handles hover labels on desktop and pressed-state styles on mobile.
+ */
 function PanelToggleButton({
   id,
   icon,
@@ -81,6 +85,10 @@ function PanelToggleButton({
   );
 }
 
+/**
+ * Custom effect that opens/closes a side panel while resizing the center panel
+ * so that the total width always roughly sums to 100%.
+ */
 function usePanelWithCenter(
   isOpen: boolean,
   panelRef: React.MutableRefObject<ImperativePanelHandle | null>,
@@ -98,6 +106,7 @@ function usePanelWithCenter(
       const current = panel.getSize?.() ?? 0;
       if (current === 0 && center) {
         const centerSize = center.getSize?.() ?? 0;
+        // When expanding a collapsed panel, shrink the center panel so the sum remains ~100%.
         const desiredCenter = Math.max(20, centerSize - target);
         if (desiredCenter !== centerSize) {
           center.resize?.(desiredCenter);
@@ -121,6 +130,9 @@ function usePanelWithCenter(
   }, [isOpen, panelRef, lastSizeRef, centerPanelRef, defaultSize]);
 }
 
+/**
+ * Basic panel toggler that just stores/restores the last open width.
+ */
 function useSimplePanel(
   isOpen: boolean,
   panelRef: React.MutableRefObject<ImperativePanelHandle | null>,
@@ -151,6 +163,10 @@ interface ComponentPreviewProps {
   rendererButtons: React.ReactNode;
 }
 
+/**
+ * Wrapper around `LocalComponentRenderer` that supplies preview chrome,
+ * retry wiring, and the empty-state message.
+ */
 function ComponentPreview({ 
   selectedComponent, 
   currentProps, 
@@ -184,6 +200,10 @@ function ComponentPreview({
   );
 }
 
+/**
+ * Main interactive playground that lets users search, preview, edit props,
+ * and inspect code for any component in the registry.
+ */
 export default function PlaygroundPage() {
   const {
     components,
@@ -222,6 +242,7 @@ export default function PlaygroundPage() {
 
   useEffect(() => {
     if (shouldSnap) {
+      // Auto scroll to the editor area when the user swipes down quickly on mobile.
       window.scrollTo({
         top: document.documentElement.scrollHeight,
         behavior: 'smooth'
@@ -390,6 +411,9 @@ export default function PlaygroundPage() {
     );
   }
 
+  /**
+   * Mobile-only toolbar that reuses the same panel toggle buttons but collapses them into a single row.
+   */
   const MobileTopPanelToolbar = () => (
     <div className="w-full flex items-center justify-end gap-2 p-2 border-b border-border bg-muted/30">
       {panelConfigs.map(({ id, label, Icon, mobileActive, onClick }) => (

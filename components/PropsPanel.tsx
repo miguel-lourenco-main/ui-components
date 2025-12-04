@@ -19,6 +19,10 @@ interface PropsPanelProps {
   triggerPropsButton?: () => void;
 }
 
+/**
+ * Main control surface for editing props inside the playground. It renders specialized
+ * editors for functions/components plus default controls for primitive types.
+ */
 export default function PropsPanel({ component, values, onChange, onSelectExample, selectedExampleIndex = -1, triggerPropsButton }: PropsPanelProps) {
   const [expandedProps, setExpandedProps] = useState<Set<string>>(new Set());
   const [showOptionalProps, setShowOptionalProps] = useState<boolean>(true);
@@ -135,6 +139,9 @@ interface PropsListProps {
   onToggleOptionalProps: () => void;
 }
 
+/**
+ * Splits required vs optional props and renders the correct editor for each entry.
+ */
 function PropsList({ 
   requiredProps, 
   optionalProps, 
@@ -252,6 +259,9 @@ interface PropControlProps {
   onToggleExpansion: () => void;
 }
 
+/**
+ * Generic editor used for primitive/JSON props when a specialized editor is not required.
+ */
 function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: PropControlProps) {
   const [jsonValidationError, setJsonValidationError] = useState<string | null>(null);
   const [jsonTextValue, setJsonTextValue] = useState<string>('');

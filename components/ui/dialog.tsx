@@ -6,14 +6,22 @@ import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+/** Root dialog context that wires up open state and accessibility bindings. */
 const Dialog = DialogPrimitive.Root
 
+/** Trigger element that toggles the dialog using Radix semantics. */
 const DialogTrigger = DialogPrimitive.Trigger
 
+/** Portal target used so modals render outside of stacking context traps. */
 const DialogPortal = DialogPrimitive.Portal
 
+/** Close button primitive consumers can reuse if they need custom placements. */
 const DialogClose = DialogPrimitive.Close
 
+/**
+ * Full-screen overlay responsible for dimming the background and animating
+ * in/out according to Radix's `data-state` attributes.
+ */
 const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
@@ -29,6 +37,9 @@ const DialogOverlay = React.forwardRef<
 ))
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 
+/**
+ * Centered surface that wraps arbitrary dialog content and renders the overlay + close button.
+ */
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
@@ -53,6 +64,7 @@ const DialogContent = React.forwardRef<
 ))
 DialogContent.displayName = DialogPrimitive.Content.displayName
 
+/** Semantic wrapper for the dialog header area (title + description). */
 const DialogHeader = ({
   className,
   ...props
@@ -67,6 +79,7 @@ const DialogHeader = ({
 )
 DialogHeader.displayName = "DialogHeader"
 
+/** Flex container that stacks footer actions on mobile and row-aligns on desktop. */
 const DialogFooter = ({
   className,
   ...props
@@ -81,6 +94,7 @@ const DialogFooter = ({
 )
 DialogFooter.displayName = "DialogFooter"
 
+/** Styled text primitive for dialog titles that maintains semantic focus order. */
 const DialogTitle = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Title>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
@@ -96,6 +110,7 @@ const DialogTitle = React.forwardRef<
 ))
 DialogTitle.displayName = DialogPrimitive.Title.displayName
 
+/** Secondary text region intended for longer descriptions. */
 const DialogDescription = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Description>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>

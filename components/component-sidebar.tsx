@@ -8,6 +8,9 @@ interface ComponentSidebarProps {
   currentComponent: string
 }
 
+/**
+ * Desktop-only quick navigation list that mirrors the carousel cards so users can jump across components.
+ */
 export function ComponentSidebar({ currentComponent }: ComponentSidebarProps) {
   return (
     <nav className="hidden lg:block sticky top-20 h-[calc(100vh-5rem)] overflow-auto pr-4 transition-all duration-300 will-change-transform">

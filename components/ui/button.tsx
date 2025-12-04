@@ -4,6 +4,10 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Utility that resolves Tailwind class combinations for every button size/variant pair.
+ * Keeping this centralized ensures Button and `buttonVariants` consumers stay in sync.
+ */
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
@@ -39,6 +43,10 @@ export interface ButtonProps
   asChild?: boolean
 }
 
+/**
+ * Accessible, theme-aware button that supports the shadcn-style variant system
+ * plus the Slot primitive via `asChild` for composing other interactive elements.
+ */
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"

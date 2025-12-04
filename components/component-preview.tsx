@@ -14,18 +14,21 @@ interface ComponentPreviewProps {
   overrideSize?: PreviewSize
 }
 
+/** Normalizes component ids into PascalCase so legacy preview exports can be resolved. */
 function toPascalCase(input: string): string {
   return input
     .replace(/[-_\s]+(.)?/g, (_, c) => (c ? c.toUpperCase() : ''))
     .replace(/^(.)/, (m) => m.toUpperCase())
 }
 
+/** Maps the preview context (carousel/theme/page) to the default preview size. */
 function getDesiredSize(context: PreviewContext, overrideSize?: PreviewSize): PreviewSize {
   if (overrideSize) return overrideSize
   if (context === 'carousel') return 'small'
   return 'medium'
 }
 
+/** Utility for converting sizing tokens into the right Tailwind scale class. */
 function getScaleClass(size: PreviewSize): string {
   switch (size) {
     case 'small':
@@ -39,6 +42,7 @@ function getScaleClass(size: PreviewSize): string {
   }
 }
 
+/** Returns width/height classes that match the preview size. */
 function getContainerClass(size: PreviewSize): string {
   switch (size) {
     case 'small':
@@ -52,6 +56,10 @@ function getContainerClass(size: PreviewSize): string {
   }
 }
 
+/**
+ * Dynamically imports the `.examples` module for the requested component.
+ * Returns `null` when the registry entry is missing or the import fails.
+ */
 async function importExamplesModule(componentId: string): Promise<any | null> {
   const item = (indexJson as any).components.find(
     (c: any) => c.id.toLowerCase() === componentId.toLowerCase() || c.name.toLowerCase() === componentId.toLowerCase()
@@ -67,6 +75,9 @@ async function importExamplesModule(componentId: string): Promise<any | null> {
   }
 }
 
+/**
+ * Chooses the best preview component export based on size and legacy naming fallbacks.
+ */
 function pickPreviewExport(mod: any, itemName: string, size: PreviewSize): React.ComponentType | null {
   if (!mod) return null
   // Preferred exports: SmallPreview / MediumPreview
@@ -79,6 +90,10 @@ function pickPreviewExport(mod: any, itemName: string, size: PreviewSize): React
   return null
 }
 
+/**
+ * Runtime loader that selects and renders the correct preview snippet for a component
+ * depending on where it is being shown (carousel, theme browser, or component page).
+ */
 export function ComponentPreview({ componentId, context, themeId, overrideSize }: ComponentPreviewProps) {
   const [PreviewComponent, setPreviewComponent] = useState<React.ComponentType | null>(null)
 

@@ -13,6 +13,10 @@ import { ComponentNavigation } from '@/components/component-navigation'
 import { useRef } from 'react'
 import { Blocks } from 'lucide-react'
 
+/**
+ * Public components catalog route that either shows the grid of entries or,
+ * when a query param is present, renders the fully featured detail experience.
+ */
 export default function ComponentsPage() {
   const components = COMPONENTS_INDEX
   const searchParams = useSearchParams()

@@ -31,6 +31,10 @@ export interface DropzoneState {
   getInputProps: () => React.InputHTMLAttributes<HTMLInputElement>;
 }
 
+/**
+ * Lightweight dropzone hook inspired by `react-dropzone`. Handles drag state bookkeeping,
+ * validates accepted files, and exposes helpers for wiring up the root + hidden input.
+ */
 export function useDropzone(options: DropzoneOptions = {}): DropzoneState {
   const {
     accept = {},

@@ -9,7 +9,9 @@ import { PopularComponentsGridSkeleton } from "@/components/PopularComponentsGri
 
 const PopularComponentsGrid = dynamic(() => import('@/components/PopularComponentsGrid'), { ssr: false, loading: () => <PopularComponentsGridSkeleton /> })
 
-
+/**
+ * Marketing landing page that highlights the playground value prop and links into the components catalog.
+ */
 export default function HomePage() {
   return (
     <div className="flex flex-col size-full items-center">

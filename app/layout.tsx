@@ -14,6 +14,10 @@ export const metadata: Metadata = {
   metadataBase: new URL(getPublicBaseUrl()),
 }
 
+/**
+ * Global Next.js layout that wires fonts, theme provider, and shared toasts.
+ * Applies head-level performance hints and ensures all routes inherit the same shell.
+ */
 export default function RootLayout({
   children,
 }: {

@@ -11,6 +11,7 @@ interface CodeBlockProps {
   className?: string
 }
 
+/** Lightweight code block with copy-to-clipboard support and optional reveal styling. */
 export function CodeBlock({ code, language, reveal = false, className }: CodeBlockProps) {
   const [copied, setCopied] = useState(false)
 

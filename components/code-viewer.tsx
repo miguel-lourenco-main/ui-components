@@ -31,6 +31,9 @@ interface CodeViewerProps {
   title?: string;
 }
 
+/**
+ * Read-only Monaco instance used to show the generated component code with copy/download helpers.
+ */
 export default function CodeViewer({
   value,
   language = 'typescript',

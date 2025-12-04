@@ -38,6 +38,10 @@ const THEME_COMPONENT_TYPES = Array.from(
   new Set(ALLOWED_COMPONENT_IDS.filter((id) => THEME_COMPONENT_MAP[id]))
 ).map((id) => ({ id, name: THEME_COMPONENT_MAP[id] }))
 
+/**
+ * Theme explorer route that shows either an overview of every theme or
+ * a focused detail view with previews, CSS variables, and component links.
+ */
 export default function ThemesPage() {
   const searchParams = useSearchParams()
   const selectedThemeId = searchParams.get('theme') || ''

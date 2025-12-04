@@ -12,6 +12,9 @@ interface ComponentThemeListProps {
   componentName: string
 }
 
+/**
+ * Shows how a single component renders across every theme and links to the broader theme explorer.
+ */
 export function ComponentThemeList({ componentType, componentName }: ComponentThemeListProps) {
   return (
     <div className="mb-12">

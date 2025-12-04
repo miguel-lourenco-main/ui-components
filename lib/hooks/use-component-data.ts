@@ -24,6 +24,10 @@ interface ComponentDataState {
   }
 }
 
+/**
+ * Fetches all metadata required to render a component detail page—including source code,
+ * variants, and theme previews—while exposing granular loading/error state per resource.
+ */
 export function useComponentData(componentId: string) {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const prevComponentIdRef = useRef<string>();

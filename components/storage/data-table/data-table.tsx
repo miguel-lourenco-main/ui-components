@@ -99,6 +99,7 @@ export function CustomDataTable<TData, TValue>({
       const newState = updater({ pageIndex, pageSize })
       setPageSize(newState.pageSize)
       setPageIndex(newState.pageIndex)
+      // Persist the last known good page so we can snap back if incoming data shrinks.
       lastValidPageIndexRef.current = newState.pageIndex
     } else {
       setPageSize(updater.pageSize)

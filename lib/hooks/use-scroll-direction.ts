@@ -2,6 +2,10 @@
 
 import { useState, useEffect } from 'react'
 
+/**
+ * Detects whether the window is being scrolled up or down and exposes a boolean
+ * that flips once the user scrolls past 10px. Useful for hiding headers on scroll.
+ */
 export function useScrollDirection() {
   const [scrollDirection, setScrollDirection] = useState<'up' | 'down' | null>(null)
   const [isScrolled, setIsScrolled] = useState(false)
@@ -25,6 +29,7 @@ export function useScrollDirection() {
 
     const onScroll = () => {
       if (!ticking) {
+        // Batch calculations with RAF so we avoid layout thrash if scroll fires rapidly.
         requestAnimationFrame(updateScrollDirection)
         ticking = true
       }

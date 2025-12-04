@@ -17,6 +17,7 @@ const navigation = [
   { name: "Playground", href: "/playground" },
 ]
 
+/** Shared site header with navigation, GitHub link, and theme selector. */
 export function Header() {
   const pathname = usePathname()
   const { setTheme } = useTheme()

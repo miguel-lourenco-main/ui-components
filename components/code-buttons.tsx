@@ -12,6 +12,7 @@ interface CodeButtonsProps {
   onToggleCode: () => void;
 }
 
+/** Renders the toggle/show code button pair plus the GitLab link for a component detail page. */
 export default function CodeButtons({ component, showCode, onToggleCode }: CodeButtonsProps) {
 
   const getGitLabUrl = (component: Component | FullComponentInfo) => {

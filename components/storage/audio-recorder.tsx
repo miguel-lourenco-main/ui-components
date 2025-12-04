@@ -16,6 +16,10 @@ interface AudioRecorderProps {
   errorMessage?: string;
 }
 
+/**
+ * Lightweight recorder widget that captures microphone input via MediaRecorder
+ * and pushes the resulting file into the storage playground state.
+ */
 export default function AudioRecorder({ 
   files = [],
   setFiles,

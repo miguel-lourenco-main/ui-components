@@ -43,6 +43,10 @@ The application features an **interactive playground** where users can experimen
 - **Search & Filter**: Quick component discovery with intelligent search
 - **Copy-to-Clipboard**: One-click code copying for easy integration
 
+## 📝 Commenting Guidelines
+
+To keep the codebase maintainable, exported components, hooks, and utilities include concise JSDoc summaries that describe key props and behaviors. Inline comments are reserved for complex control flow (async orchestration, dynamic imports, performance-sensitive work) so future contributors understand the rationale behind non-obvious logic without wading through implementation details.
+
 ### 🧪 **Quality Assurance**
 - **End-to-End Testing**: Comprehensive Playwright test suite with visual regression testing
 - **Component Testing**: Individual component testing with multiple scenarios

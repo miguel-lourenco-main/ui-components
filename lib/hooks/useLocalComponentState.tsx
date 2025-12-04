@@ -37,6 +37,11 @@ interface UseLocalComponentStateReturn {
   handlePropChange: (propName: string, value: any) => void;
 }
 
+/**
+ * Manages the entire lifecycle of the local component playground. The hook discovers
+ * components, keeps track of selection/props/code panes, and exposes helpers for keeping
+ * generated snippets in sync with user edits.
+ */
 export function useLocalComponentState(): UseLocalComponentStateReturn {
   const [components, setComponents] = useState<FullComponentInfo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,6 +79,10 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
   // Cache for component implementation source strings
   const componentSourceCache: Record<string, string> = {};
 
+  /**
+   * Attempts to fetch the raw TSX source (or best fallback) for the given component id.
+   * This powers the "copy full implementation" workflow inside the playground.
+   */
   async function loadComponentImplementationSource(component: FullComponentInfo): Promise<string> {
     try {
       const compPath = idToPath[component.id];
@@ -125,7 +134,8 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
   }, [playgroundState.selectedComponent]);
 
   /**
-   * Generate component code with current props, including validation warnings
+   * Generates the playground usage snippet using the currently selected props,
+   * sprinkling in TODO warnings for missing function handlers so copy-paste output is actionable.
    */
   const generateCodeWithProps = async (component: FullComponentInfo, props: Record<string, any>) => {
     debugLog('props', '🏗️ generateCodeWithProps called for:', component.name);
@@ -348,7 +358,8 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
 
 
   /**
-   * Load all local components
+   * Loads the component registry, primes Monaco in parallel, and surfaces friendly
+   * timeout errors when static hosting blocks dynamic imports.
    */
   const loadComponents = useCallback(async () => {
     perf.start('components-loading', { operation: 'loadComponents' });

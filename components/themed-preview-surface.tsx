@@ -19,6 +19,9 @@ interface ThemedPreviewSurfaceProps {
   surfaceClassName?: string
 }
 
+/**
+ * Renders a theme-colored surface plus optional light/dark toggle around the miniature component preview.
+ */
 export function ThemedPreviewSurface({
   themeId,
   component,

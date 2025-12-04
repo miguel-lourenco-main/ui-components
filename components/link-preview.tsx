@@ -25,6 +25,9 @@ type LinkPreviewProps = {
   | { isStatic?: false; imageSrc?: never }
 );
 
+/**
+ * Animated hover-card that shows a microlink screenshot (or static image) for the provided URL.
+ */
 export const LinkPreview = ({
   children,
   url,

@@ -1,5 +1,9 @@
 import { Header } from "@/components/header";
 
+/**
+ * Layout wrapper for the interactive playground route—keeps the sticky header
+ * and scroll snapping consistent regardless of the active playground subview.
+ */
 export default function PlaygroundLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col justify-center items-center size-full snap-y snap-mandatory overflow-y-auto">

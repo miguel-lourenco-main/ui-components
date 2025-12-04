@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
 
+/** React Hook Form provider re-export with local naming for consistency. */
 const Form = FormProvider
 
 type FormFieldContextValue<
@@ -24,10 +25,15 @@ type FormFieldContextValue<
   name: TName
 }
 
+/** Supplies the current field name so nested components can derive ARIA ids. */
 const FormFieldContext = React.createContext<FormFieldContextValue>(
   {} as FormFieldContextValue
 )
 
+/**
+ * Wires React Hook Form's `Controller` with context so label/description/message
+ * components can derive ids without prop drilling.
+ */
 const FormField = <
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
@@ -41,6 +47,7 @@ const FormField = <
   )
 }
 
+/** Convenience hook for consuming the surrounding `FormField` context safely. */
 const useFormField = () => {
   const fieldContext = React.useContext(FormFieldContext)
   const itemContext = React.useContext(FormItemContext)
@@ -68,10 +75,14 @@ type FormItemContextValue = {
   id: string
 }
 
+/** Tracks a stable id for each rendered `FormItem` subtree. */
 const FormItemContext = React.createContext<FormItemContextValue>(
   {} as FormItemContextValue
 )
 
+/**
+ * Stack wrapper that scopes ids and spacing for a single field grouping.
+ */
 const FormItem = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -86,6 +97,7 @@ const FormItem = React.forwardRef<
 })
 FormItem.displayName = "FormItem"
 
+/** Label that automatically mirrors validation state from `useFormField`. */
 const FormLabel = React.forwardRef<
   React.ElementRef<typeof LabelPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
@@ -103,6 +115,9 @@ const FormLabel = React.forwardRef<
 })
 FormLabel.displayName = "FormLabel"
 
+/**
+ * Slot wrapper that injects the correct ARIA attributes onto the underlying input component.
+ */
 const FormControl = React.forwardRef<
   React.ElementRef<typeof Slot>,
   React.ComponentPropsWithoutRef<typeof Slot>
@@ -125,6 +140,7 @@ const FormControl = React.forwardRef<
 })
 FormControl.displayName = "FormControl"
 
+/** Optional helper text tied to the current field via ARIA. */
 const FormDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
@@ -142,6 +158,7 @@ const FormDescription = React.forwardRef<
 })
 FormDescription.displayName = "FormDescription"
 
+/** Validation message region that collapses when no error is present. */
 const FormMessage = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>

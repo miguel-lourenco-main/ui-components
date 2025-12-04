@@ -21,6 +21,10 @@ interface ImprovedDynamicComponentProps {
   navRef: React.RefObject<HTMLDivElement>
 }
 
+/**
+ * Full component detail renderer that stitches together metadata, previews,
+ * variants, code, and theming information for the selected component.
+ */
 export default function ImprovedDynamicComponent({ componentId, navRef }: ImprovedDynamicComponentProps) {
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
   const [showStickySidebar, setShowStickySidebar] = useState(false)
@@ -52,7 +56,8 @@ export default function ImprovedDynamicComponent({ componentId, navRef }: Improv
       if (!navRef.current || !tocRef.current) return
       
       const navRect = navRef.current.getBoundingClientRect()
-      // const tocRect = tocRef.current.getBoundingClientRect()
+      // We compare the nav position against the viewport instead of relying on scrollY
+      // so layouts with their own scroll containers stay in sync.
       
       // When nav top reaches window top, switch to fixed
       if (navRect.top <= 0 && tocPosition === 'absolute') {

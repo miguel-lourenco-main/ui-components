@@ -9,6 +9,9 @@ interface PageTransitionProps {
   children: React.ReactNode
 }
 
+/**
+ * Animates between component detail pages using directional slide transitions based on carousel order.
+ */
 export function PageTransition({ children }: PageTransitionProps) {
   const searchParams = useSearchParams()
   const componentParam = searchParams.get("component")
