@@ -2,6 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react'
 
+
+ * @description A hook that manages a countdown timer.
+ * @param {number} initialSeconds - The initial countdown time in seconds.
+ * @param {function} [onComplete] - Optional callback function to be called when the countdown reaches zero.
+ * @returns {{ seconds: number, isActive: boolean, start: function, pause: function, reset: function }} An object containing the countdown state and methods.
 export function useCountdown(initialSeconds: number, onComplete?: () => void): {
   seconds: number;
   isActive: boolean;
@@ -41,6 +46,10 @@ export function useCountdown(initialSeconds: number, onComplete?: () => void): {
   const start = () => setIsActive(true);
   const pause = () => setIsActive(false);
   const reset = () => {
+    
+ * @description A hook that manages a simple timer.
+ * @param {number} [initialSeconds=0] - The initial timer time in seconds, default is 0.
+ * @returns {{ seconds: number, isRunning: boolean, start: function, stop: function, reset: function }} An object containing the timer state and methods.
     setIsActive(false);
     setSeconds(initialSeconds);
   };
