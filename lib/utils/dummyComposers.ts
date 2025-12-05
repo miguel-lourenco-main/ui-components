@@ -9,6 +9,11 @@ export function dummyPipe<T>(...fns: Array<(arg: T) => T>): (arg: T) => T {
   return (arg: T) => fns.reduce((acc, fn) => fn(acc), arg);
 }
 
+/**
+ * Composes functions from right to left on the argument.
+ * @param {...Function} fns - The functions to compose, applied from right to left.
+ * @returns {Function} A new function that represents the composition of the provided functions.
+ */
 export function dummyCompose<T>(...fns: Array<(arg: T) => T>): (arg: T) => T {
   /**
  /**
