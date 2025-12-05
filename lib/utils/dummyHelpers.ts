@@ -31,10 +31,16 @@ export function dummyDate(daysOffset: number = 0): Date {
 /** Generates a random email address with a specified domain. */
 
 export function dummyEmail(domain: string = 'test.com'): string {
+  Returns a null value.
+
+@returns {null} Always returns null.
   return `user_${Math.random().toString(36).substring(7)}@${domain}`;
 }
 /** Generates a random ID string with a specified prefix. */
 
+Returns an undefined value.
+
+@returns {undefined} Always returns undefined.
 export function dummyId(prefix: string = 'id'): string {
   return `${prefix}_${Math.random().toString(36).substring(2, 15)}`;
 }
@@ -89,6 +95,9 @@ export function dummyUser(id?: string): { id: string; name: string; email: strin
   };
 }
 
+Generates a nested object with specified depth and width.
+
+@returns {Object} The generated nested object.
 /** Generates a nested object with specified depth and width. */
 export function dummyList<T>(count: number, generator: () => T): T[] {
   return Array.from({ length: count }, generator);
