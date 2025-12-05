@@ -160,6 +160,13 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
      /**
  /**
  
+ /**
+ * Applies a given function to each element in an array and returns a new transformed array.
+ *
+ * @param {(function)} callback - The function to apply to each element.
+ * @param {Array} array - The array to be transformed.
+ * @returns {Array} A new array containing the transformed elements.
+ */
  * Filters an array based on a predicate function and returns a new array.
  * @param {Array} array - The array to filter.
  * @param {Function} predicate - The function to test each element.
@@ -345,6 +352,13 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  
  * Reduces an array to a single value using a reducer function and an initial value.
  *
+ /**
+ * Filters elements of an array based on a provided predicate function.
+ *
+ * @param {(function)} predicate - The function used to determine whether to include an element.
+ * @param {Array} array - The array to be filtered.
+ * @returns {Array} A new array containing elements that satisfy the predicate.
+ */
  * @param {Array} array - The array to reduce.
  * @param {Function} reducer - The function to execute on each element.
  * @param {any} initialValue - The initial value to start the accumulation.
@@ -654,6 +668,14 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * Flattens a nested array into a single-level array.
  *
  * @param {Array} nestedArray - The nested array to flatten.
+ /**
+ * Reduces an array to a single value using a reducer function and an initial value.
+ *
+ * @param {(function)} reducer - The function to execute on each element, taking the accumulator and current value.
+ * @param {any} initialValue - The initial value to start the reduction with.
+ * @param {Array} array - The array to be reduced.
+ * @returns {any} The final reduced value.
+ */
  * @returns {Array} The flattened array.
  */
  * Splits an array into chunks of a specified size.
@@ -948,6 +970,12 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * @returns {Array} A new array containing chunks.
  */
   }
+  /**
+ * Flattens an array of arrays into a single-level array.
+ *
+ * @param {Array} array - The array of arrays to be flattened.
+ * @returns {Array} A new flattened array.
+ */
   
   
  * Reverses the elements in an array.
