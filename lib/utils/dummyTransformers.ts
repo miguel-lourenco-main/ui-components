@@ -61,6 +61,10 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * @param {Array} arr - The array to be mapped.
  * @param {Function} func - The function to apply to each element.
  * @returns {Array} - A new array with the mapped values.
+ @function
+@param {Function} fn - The function to apply to each element.
+@param {Array} arr - The array to transform.
+@returns {Array} A new array containing the results of applying the function to each element.
  
  * Applies a function to each element in an array and returns a new array.
  
@@ -326,6 +330,10 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * @param {any} initialValue - The initial value for the accumulator.
  * @param {Array} array - The array to reduce.
  * @returns {any} The single value that results from the reduction.
+@function
+@param {Function} predicate - The function to test each element.
+@param {Array} arr - The array to filter.
+@returns {Array} A new array containing elements that pass the test implemented by the predicate.
 
  * @param {any} initialValue - The initial value for the reduction.
  * @param {Array} array - The array to reduce.
@@ -551,6 +559,11 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
 
  */
  /**
+ @function
+@param {Function} reducer - The function to execute on each element, taking four arguments.
+@param {Array} arr - The array to reduce.
+@param {*} initialValue - The initial value for the accumulator.
+@returns {*} The single value that results from the reduction.
  * Splits an array into chunks of a specified size.
  * @param {Array} arr - The array to chunk.
  
@@ -730,6 +743,9 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
      /** @function dummyUnique
  * Returns a new array with unique elements from the original array using a Set.
  * @param {Array} array - The array to filter unique elements from.
+ @function
+@param {Array<Array>} arr - The array of arrays to flatten.
+@returns {Array} A new array that is a one-dimensional version of the input array.
  * @returns {Array} A new array containing only the unique elements.
  */
      * @returns {Array} A new array with the elements in reverse order.
