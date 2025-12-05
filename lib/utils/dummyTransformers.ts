@@ -191,6 +191,13 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * @returns {Array} A new array containing the results of applying fn to each element.
 
  * @param {Array} arr - The array to filter.
+ 
+ * Reduces an array to a single value using a reducer function and an initial value.
+ * @param {Function} reducer - The function to execute on each element.
+ * @param {any} initialValue - The initial value for the accumulator.
+ * @param {Array} arr - The array to be reduced.
+ * @returns {any} The single accumulated value after reduction.
+
  * @returns {Array} A new array with filtered elements.
  */
      * Filters an array based on a predicate function.
