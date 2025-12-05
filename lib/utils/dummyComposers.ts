@@ -10,6 +10,12 @@ export function dummyPipe<T>(...fns: Array<(arg: T) => T>): (arg: T) => T {
 }
 
 /**
+ 
+ * Composes functions from right to left on the argument.
+ * @param {...Function} fns - The functions to compose.
+ * @param {*} arg - The argument to pass to the composed functions.
+ * @returns {*} The result of the composed function calls.
+ 
  * Composes functions from right to left on the argument.
  * @param {...Function} fns - The functions to compose, applied from right to left.
  * @returns {Function} A new function that represents the composition of the provided functions.
