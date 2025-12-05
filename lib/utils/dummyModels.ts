@@ -11,6 +11,10 @@ export function dummyUser(id?: string): { id: string; name: string; email: strin
 /**
  * Generates a dummy product object with an id, name, and price.
  * @returns {Object} The dummy product object containing id, name, and price.
+ /**
+ * Generates a dummy product object with an id, name, and price.
+ * @returns {Object} An object containing the id, name, and price of the product.
+ */
  */
 }
 
