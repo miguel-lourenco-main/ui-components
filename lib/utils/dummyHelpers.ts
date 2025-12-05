@@ -176,6 +176,12 @@ export function dummyBase64(data: string = 'test'): string {
 /** Retries a function up to a maximum number of attempts. */
 }
 
+ * Retries a function up to a maximum number of attempts.
+ * @param fn - The function to retry.
+ * @param maxAttempts - The maximum number of retry attempts.
+ * @returns The result of the function after successful attempts.
+ 
+
 export function dummyDelay(ms: number = 100): Promise<void> {
   
  * Returns a promise that resolves after a specified delay.
@@ -196,6 +202,12 @@ export function dummyRetry<T>(fn: () => T | Promise<T>, maxAttempts: number = 3)
     let lastError: any;
     for (let i = 0; i < maxAttempts; i++) {
       try {
+        
+ * Executes a function with a timeout, rejecting if it exceeds max time.
+ * @param fn - The function to execute.
+ * @param ms - The maximum time in milliseconds before rejection.
+ * @returns A promise that resolves with the function result.
+ 
         /** Executes a function with a timeout, rejecting if it exceeds max time. */
         const result = await fn();
         return resolve(result);
@@ -217,6 +229,12 @@ export function dummyRetry<T>(fn: () => T | Promise<T>, maxAttempts: number = 3)
 export function dummyTimeout<T>(fn: () => T | Promise<T>, ms: number = 1000): Promise<T> {
   return Promise.race([
     Promise.resolve(fn()),
+    
+ * Debounces a function, ensuring it's called after a delay.
+ * @param fn - The function to debounce.
+ * @param delay - The time delay in milliseconds for debouncing.
+ * @returns A debounced version of the function.
+ 
     new Promise<T>((_, reject) => 
       setTimeout(() => reject(new Error('Timeout')), ms)
     /** Throttles a function, limiting how frequently it can be executed. */
@@ -234,6 +252,12 @@ export function dummyDebounce<T extends (...args: any[]) => any>(
   fn: T,
   delay: number = 300
 /** Memoizes a function, caching its results for identical inputs. */
+
+ * Throttles a function, limiting how frequently it can be executed.
+ * @param fn - The function to throttle.
+ * @param limit - The time limit in milliseconds for throttling.
+ * @returns A throttled version of the function.
+ 
 ): (...args: Parameters<T>) => void {
   let timeoutId: NodeJS.Timeout;
   return (...args: Parameters<T>) => {
@@ -253,6 +277,11 @@ export function dummyThrottle<T extends (...args: any[]) => any>(
   fn: T,
   limit: number = 300
 ): (...args: Parameters<T>) => void {
+  
+ * Memoizes a function, caching its results for identical inputs.
+ * @param fn - The function to memoize.
+ * @returns A memoized version of the function.
+ 
   let inThrottle: boolean;
   return (...args: Parameters<T>) => {
     
@@ -271,6 +300,11 @@ export function dummyThrottle<T extends (...args: any[]) => any>(
 /** Composes a series of functions, executing them right to left. */
 
 export function dummyMemoize<T extends (...args: any[]) => any>(fn: T): T {
+  
+ * Ensures a function is called once, returning its result for subsequent calls.
+ * @param fn - The function to call once.
+ * @returns The result of the function.
+ 
   const cache = new Map();
   return ((...args: Parameters<T>) => {
     /** Passes through an argument while executing a function with it. */
@@ -293,6 +327,11 @@ export function dummyMemoize<T extends (...args: any[]) => any>(fn: T): T {
 
 export function dummyOnce<T extends (...args: any[]) => any>(fn: T): T {
   let called = false;
+  
+ * Creates a pipeline of functions, passing the result from one to the next.
+ * @param fns - An array of functions to compose into a pipeline.
+ * @returns A new function that executes the pipeline.
+ 
   let result: ReturnType<T>;
   /** Returns a function that always returns a specified value. */
   return ((...args: Parameters<T>) => {
@@ -300,6 +339,11 @@ export function dummyOnce<T extends (...args: any[]) => any>(fn: T): T {
  * Creates a pipeline of functions, passing the result from one to the next.
  * @param {...function} funcs - The functions to include in the pipeline.
  * @returns {function} A function that, when called, executes the pipeline.
+ 
+ * Composes a series of functions, executing them right to left.
+ * @param fns - An array of functions to compose.
+ * @returns A new function that executes the composition.
+ 
  
     if (!called) {
       called = true;
@@ -309,6 +353,11 @@ export function dummyOnce<T extends (...args: any[]) => any>(fn: T): T {
     
  * Composes a series of functions, executing them right to left.
  * @param {...function} funcs - The functions to compose.
+ 
+ * Passes through an argument while executing a function with it.
+ * @param fn - The function to execute with the argument.
+ * @returns A function that executes the given function with the argument.
+ 
  * @returns {function} A function that, when called, executes the composed functions.
  
     return result;
@@ -321,6 +370,10 @@ export function dummyOnce<T extends (...args: any[]) => any>(fn: T): T {
  * @param {function} fn - The function to execute with the argument.
  * @returns {function} A function that passes through its argument and executes the input function.
  
+
+ * A no-operation function that does nothing.
+ * @returns void
+ 
 export function dummyPipe<T>(...fns: Array<(arg: T) => T>): (arg: T) => T {
   return (arg: T) => fns.reduce((acc, fn) => fn(acc), arg);
 }
@@ -330,6 +383,11 @@ export function dummyCompose<T>(...fns: Array<(arg: T) => T>): (arg: T) => T {
   return (arg: T) => fns.reduceRight((acc, fn) => fn(acc), arg);
 }
 
+ 
+ * Returns the value passed to it.
+ * @param value - The value to return.
+ * @returns The input value.
+ 
  * A no-operation function that does nothing.
  * @returns {void} This function does not return a value.
  
@@ -338,6 +396,11 @@ export function dummyCompose<T>(...fns: Array<(arg: T) => T>): (arg: T) => T {
 export function dummyTap<T>(fn: (arg: T) => void): (arg: T) => T {
   return (arg: T) => {
     
+ 
+ * Returns a function that always returns a specified value.
+ * @param value - The constant value to return.
+ * @returns A function that returns the constant value.
+ 
  * Returns the value passed to it.
  * @param {any} value - The value to return.
  * @returns {any} The same value that was passed in.
@@ -345,12 +408,21 @@ export function dummyTap<T>(fn: (arg: T) => void): (arg: T) => T {
     /** Returns an empty object. */
     fn(arg);
     return arg;
+  
+ * Returns a function that always returns a specified value for any input.
+ * @param value - The value to always return.
+ * @returns A function that returns the specified value.
+ 
   };
 /** Returns an empty string. */
 }
 
  * Returns a function that always returns a specified value.
  * @param {any} value - The value to always return.
+ 
+ * Function that never returns and always throws an error.
+ * @throws An error every time it's called.
+ 
  * @returns {function} A function that returns the specified value.
  
 
@@ -361,6 +433,10 @@ export function dummyNoop(): void {
 
  * Returns a function that always returns a specified value for any input.
  * @param {any} value - The value to always return.
+ 
+ * Returns void, performing no operation.
+ * @returns void
+ 
  * @returns {function} A function that returns the specified value regardless of input.
  
 export function dummyIdentity<T>(value: T): T {
@@ -369,27 +445,55 @@ export function dummyIdentity<T>(value: T): T {
 }
 
 
+ * Returns an empty array.
+ * @returns An empty array.
+ 
+
  * Function that never returns and always throws an error.
  * @throws {Error} Throws an error when called.
  
 /** Returns true. */
+
+ * Returns an empty object.
+ * @returns An empty object.
+ 
 export function dummyConstant<T>(value: T): () => T {
   return () => value;
 }
 /** Returns false. */
 
+ 
+ * Returns an empty string.
+ * @returns An empty string.
+ 
  * Returns void, performing no operation.
  * @returns {void} This function does not return a value.
+ 
+
+ * Returns zero.
+ * @returns The integer zero.
  
 
 export function dummyAlways<T>(value: T): (...args: any[]) => T {
   return () => value;
 
+ * Returns one.
+ * @returns The integer one.
+ 
+
  * Returns an empty array.
  * @returns {Array} An empty array.
  
+ * Returns true.
+ * @returns The boolean true.
+ 
+ 
 }
 
+
+ * Returns false.
+ * @returns The boolean false.
+ 
 export function dummyNever(): (...args: any[]) => never {
   
  * Returns an empty object.
