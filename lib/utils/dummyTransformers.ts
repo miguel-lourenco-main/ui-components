@@ -94,6 +94,13 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * @param {Array} array - The array to map.
  * @returns {Array} A new array containing the mapped elements.
 
+ /**
+ * Applies a provided function to each element of an array and returns a new array with the results.
+ *
+ * @param {Function} fn - The function to apply to each element.
+ * @param {Array} arr - The array to iterate over.
+ * @returns {Array} A new array containing the results of applying the function to each element.
+ */
  * @param {Function} mapper - The function to apply to each element.
  * @returns {Array} The new array of mapped values.
  */
@@ -228,6 +235,13 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
      * @param {any} initialValue - The initial value for the reduction.
      * @param {Array} arr - The array to reduce.
      * @returns {any} The single value resulting from the reduction.
+     /**
+ * Filters elements of an array using a predicate function and returns a new array of elements that pass the predicate.
+ *
+ * @param {Function} predicate - The predicate function to test each element.
+ * @param {Array} arr - The array to filter.
+ * @returns {Array} A new array containing the elements that pass the predicate.
+ */
      
  * Filters elements of an array using a provided predicate function.
  * @param {Array} array - The array to be filtered.
@@ -614,6 +628,12 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
 
  * @param {number} size - The size of each chunk.
  * @returns {Array} A new array of arrays, each containing a chunk of the original array.
+ /**
+ * Flattens an array of arrays into a single-level array.
+ *
+ * @param {Array} arr - The array of arrays to flatten.
+ * @returns {Array} A new single-level array containing all the elements of the input arrays.
+ */
  */
  * @returns {Array} A new sorted array.
  
@@ -718,6 +738,13 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
   
  * @param {Array} arr - The array to process.
  * @returns {Array} A new array containing only unique elements from the input array.
+/**
+ * Splits an array into chunks of a specified size and returns an array of these chunks.
+ *
+ * @param {Array} arr - The array to split.
+ * @param {number} size - The size of each chunk.
+ * @returns {Array} An array containing the chunks of the specified size.
+ */
 /** @function dummySort
  * Sorts an array based on a compare function and returns a new sorted array.
  
