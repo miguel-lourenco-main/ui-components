@@ -112,6 +112,12 @@ export function dummyUrl(domain: string = 'example.com', path: string = ''): str
 }
 /** Generates a random UUID. */
 
+ * Generates a nested object with specified depth and width.
+ * @param {number} depth - The depth of the nested object.
+ * @param {number} width - The width of each level in the nested object.
+ * @returns {object} The generated nested object.
+ 
+
 export function dummyPhoneNumber(): string {
   return `+1${Math.floor(Math.random() * 9000000000) + 1000000000}`;
 }
@@ -120,6 +126,10 @@ export function dummyUuid(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     /** Generates a random hex color string. */
     const r = Math.random() * 16 | 0;
+    
+ * Generates a random UUID.
+ * @returns {string} A randomly generated UUID.
+ 
     const v = c === 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
   });
@@ -127,31 +137,62 @@ export function dummyUuid(): string {
 }
 
 export function dummyColor(): string {
+  
+ * Generates a random hex color string.
+ * @returns {string} A random hex color (e.g., #FFFFFF).
+ 
   return `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
 /** Converts an object to a JSON string. */
 }
 
 export function dummyImageUrl(width: number = 200, height: number = 200): string {
+  
+ * Generates a placeholder image URL with specified dimensions.
+ * @param {number} width - The width of the image.
+ * @param {number} height - The height of the image.
+ * @returns {string} A placeholder image URL.
+ 
   return `https://via.placeholder.com/${width}x${height}`;
 /** Encodes a string to Base64. */
 }
 
 export function dummyJsonString(obj: any = { test: 'value' }): string {
+  
+ * Converts an object to a JSON string.
+ * @param {object} obj - The object to convert.
+ * @returns {string} The JSON string representation of the object.
+ 
   return JSON.stringify(obj);
 /** Returns a promise that resolves after a specified delay. */
 }
 
 export function dummyBase64(data: string = 'test'): string {
+  
+ * Encodes a string to Base64.
+ * @param {string} input - The string to encode.
+ * @returns {string} The Base64 encoded string.
+ 
   return btoa(data);
 /** Retries a function up to a maximum number of attempts. */
 }
 
 export function dummyDelay(ms: number = 100): Promise<void> {
+  
+ * Returns a promise that resolves after a specified delay.
+ * @param {number} ms - The delay in milliseconds.
+ * @returns {Promise<void>} A promise that resolves after the delay.
+ 
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 export function dummyRetry<T>(fn: () => T | Promise<T>, maxAttempts: number = 3): Promise<T> {
   return new Promise(async (resolve, reject) => {
+    
+ * Retries a function up to a maximum number of attempts.
+ * @param {function} fn - The function to retry.
+ * @param {number} attempts - The maximum number of attempts.
+ * @returns {Promise<any>} A promise that resolves to the function's result.
+ 
     let lastError: any;
     for (let i = 0; i < maxAttempts; i++) {
       try {
@@ -167,12 +208,24 @@ export function dummyRetry<T>(fn: () => T | Promise<T>, maxAttempts: number = 3)
   });
 }
 
+ * Executes a function with a timeout, rejecting if it exceeds max time.
+ * @param {function} fn - The function to execute.
+ * @param {number} ms - The maximum execution time in milliseconds.
+ * @returns {Promise<any>} A promise that resolves or rejects based on the function's execution.
+ 
+
 export function dummyTimeout<T>(fn: () => T | Promise<T>, ms: number = 1000): Promise<T> {
   return Promise.race([
     Promise.resolve(fn()),
     new Promise<T>((_, reject) => 
       setTimeout(() => reject(new Error('Timeout')), ms)
     /** Throttles a function, limiting how frequently it can be executed. */
+    
+ * Debounces a function, ensuring it's called after a delay.
+ * @param {function} fn - The function to debounce.
+ * @param {number} delay - The debounce delay in milliseconds.
+ * @returns {function} The debounced version of the function.
+ 
     )
   ]);
 }
@@ -184,6 +237,12 @@ export function dummyDebounce<T extends (...args: any[]) => any>(
 ): (...args: Parameters<T>) => void {
   let timeoutId: NodeJS.Timeout;
   return (...args: Parameters<T>) => {
+    
+ * Throttles a function, limiting how frequently it can be executed.
+ * @param {function} fn - The function to throttle.
+ * @param {number} limit - The time in milliseconds to wait between calls.
+ * @returns {function} The throttled version of the function.
+ 
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => fn(...args), delay);
   };
@@ -196,6 +255,11 @@ export function dummyThrottle<T extends (...args: any[]) => any>(
 ): (...args: Parameters<T>) => void {
   let inThrottle: boolean;
   return (...args: Parameters<T>) => {
+    
+ * Memoizes a function, caching its results for identical inputs.
+ * @param {function} fn - The function to memoize.
+ * @returns {function} The memoized version of the function.
+ 
     if (!inThrottle) {
       fn(...args);
       inThrottle = true;
@@ -213,6 +277,11 @@ export function dummyMemoize<T extends (...args: any[]) => any>(fn: T): T {
     const key = JSON.stringify(args);
     if (cache.has(key)) {
       return cache.get(key);
+    
+ * Ensures a function is called once, returning its result for subsequent calls.
+ * @param {function} fn - The function to call once.
+ * @returns {function} A function that returns the result of the first call.
+ 
     }
     const result = fn(...args);
     cache.set(key, result);
@@ -227,16 +296,31 @@ export function dummyOnce<T extends (...args: any[]) => any>(fn: T): T {
   let result: ReturnType<T>;
   /** Returns a function that always returns a specified value. */
   return ((...args: Parameters<T>) => {
+    
+ * Creates a pipeline of functions, passing the result from one to the next.
+ * @param {...function} funcs - The functions to include in the pipeline.
+ * @returns {function} A function that, when called, executes the pipeline.
+ 
     if (!called) {
       called = true;
       result = fn(...args);
     /** Returns a function that always returns a specified value for any input. */
     }
+    
+ * Composes a series of functions, executing them right to left.
+ * @param {...function} funcs - The functions to compose.
+ * @returns {function} A function that, when called, executes the composed functions.
+ 
     return result;
   }) as T;
 }
 /** Function that never returns and always throws an error. */
 
+
+ * Passes through an argument while executing a function with it.
+ * @param {function} fn - The function to execute with the argument.
+ * @returns {function} A function that passes through its argument and executes the input function.
+ 
 export function dummyPipe<T>(...fns: Array<(arg: T) => T>): (arg: T) => T {
   return (arg: T) => fns.reduce((acc, fn) => fn(acc), arg);
 }
@@ -245,10 +329,19 @@ export function dummyPipe<T>(...fns: Array<(arg: T) => T>): (arg: T) => T {
 export function dummyCompose<T>(...fns: Array<(arg: T) => T>): (arg: T) => T {
   return (arg: T) => fns.reduceRight((acc, fn) => fn(acc), arg);
 }
+
+ * A no-operation function that does nothing.
+ * @returns {void} This function does not return a value.
+ 
 /** Returns an empty array. */
 
 export function dummyTap<T>(fn: (arg: T) => void): (arg: T) => T {
   return (arg: T) => {
+    
+ * Returns the value passed to it.
+ * @param {any} value - The value to return.
+ * @returns {any} The same value that was passed in.
+ 
     /** Returns an empty object. */
     fn(arg);
     return arg;
@@ -256,41 +349,87 @@ export function dummyTap<T>(fn: (arg: T) => void): (arg: T) => T {
 /** Returns an empty string. */
 }
 
+ * Returns a function that always returns a specified value.
+ * @param {any} value - The value to always return.
+ * @returns {function} A function that returns the specified value.
+ 
+
 export function dummyNoop(): void {
 /** Returns zero. */
 }
 
+
+ * Returns a function that always returns a specified value for any input.
+ * @param {any} value - The value to always return.
+ * @returns {function} A function that returns the specified value regardless of input.
+ 
 export function dummyIdentity<T>(value: T): T {
   /** Returns one. */
   return value;
 }
 
+
+ * Function that never returns and always throws an error.
+ * @throws {Error} Throws an error when called.
+ 
 /** Returns true. */
 export function dummyConstant<T>(value: T): () => T {
   return () => value;
 }
 /** Returns false. */
 
+ * Returns void, performing no operation.
+ * @returns {void} This function does not return a value.
+ 
+
 export function dummyAlways<T>(value: T): (...args: any[]) => T {
   return () => value;
+
+ * Returns an empty array.
+ * @returns {Array} An empty array.
+ 
 }
 
 export function dummyNever(): (...args: any[]) => never {
+  
+ * Returns an empty object.
+ * @returns {object} An empty object.
+ 
   return () => {
     throw new Error('This function never returns');
   };
+
+ * Returns an empty string.
+ * @returns {string} An empty string.
+ 
 }
 
 export function dummyVoid(): void {
+  
+ * Returns zero.
+ * @returns {number} The number zero.
+ 
   return undefined;
 }
 
+
+ * Returns one.
+ * @returns {number} The number one.
+ 
 export function dummyEmptyArray<T>(): T[] {
   return [];
 }
 
+ * Returns true.
+ * @returns {boolean} The boolean value true.
+ 
+
 export function dummyEmptyObject(): Record<string, never> {
   return {};
+
+ * Returns false.
+ * @returns {boolean} The boolean value false.
+ 
 }
 
 export function dummyEmptyString(): string {
