@@ -270,6 +270,12 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  *
  * @param {Function} reducer - The function to execute on each element.
  
+ 
+ * Maps each element of an array to a new array using a provided function.
+ * @param {Array} array - The input array to be transformed.
+ * @param {Function} transformFunction - The function to apply to each element.
+ * @returns {Array} The new array with transformed elements.
+ 
  * Reduces an array to a single value using a reducer function and an initial value.
  * @param {Function} reducer - The function to execute on each element.
  * @param {any} initialValue - The initial value for the accumulator.
@@ -366,6 +372,12 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
 
   
  * Splits an array into chunks of a specified size.
+ 
+ 
+ * Filters an array based on a predicate function.
+ * @param {Array} array - The input array to filter.
+ * @param {Function} predicate - The function to test each element.
+ * @returns {Array} A new array with elements that pass the predicate test.
  
  * Flattens an array of arrays into a single array.
  * @param {Array} array - The array of arrays to be flattened.
@@ -522,6 +534,13 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * @returns {Array} A new array with all sub-array elements concatenated.
 
  *
+ 
+ * Reduces an array to a single value using a reducer function and an initial value.
+ * @param {Array} array - The input array to reduce.
+ * @param {Function} reducer - The function to execute on each element.
+ * @param {*} initialValue - The initial value to start the reduction.
+ * @returns {*} The single value that results from the reduction process.
+ 
  * @param {Array} arr - The array to reverse.
  * @returns {Array} A new array with elements in reverse order.
  */
@@ -693,6 +712,11 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
   
   
  * Reverses the elements in an array.
+ 
+ * Flattens an array of arrays into a single array.
+ * @param {Array} array - The input array of arrays to flatten.
+ * @returns {Array} A new single array with all elements from the nested arrays.
+ 
  * @param {Array} arr - The array to reverse.
  * @returns {Array} A new array with the elements in reverse order.
 
