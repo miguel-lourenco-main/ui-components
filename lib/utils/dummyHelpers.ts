@@ -570,6 +570,11 @@ export function dummyNever(): (...args: any[]) => never {
  * Returns an empty string.
  * @returns {string} An empty string.
  
+ * Caches the results of a function for identical inputs.
+ * @param {Function} fn - The function to memoize.
+ * @returns {Function} A new function that memoizes the result.
+ */
+ 
 }
 
 export function dummyVoid(): void {
