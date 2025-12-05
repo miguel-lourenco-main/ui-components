@@ -13,6 +13,12 @@ export function dummyCompose<T>(...fns: Array<(arg: T) => T>): (arg: T) => T {
   /**
  /**
  * Composes functions from right to left on the argument.
+ 
+ * Composes functions from right to left on the argument.
+ * 
+ * @param {...Function} funcs - Functions to be composed.
+ * @returns {Function} A new function that represents the composition of the provided functions.
+ * @description This function takes any number of functions as arguments and returns a new function that, when invoked, applies the provided functions from right to left.
  *
  * @param {...Function} fns - The functions to compose.
  * @returns {Function} A function that is the result of composing the provided functions.
