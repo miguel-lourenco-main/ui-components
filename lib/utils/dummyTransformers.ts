@@ -65,6 +65,13 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  
  * Maps each element of an array to a new array using a provided function.
  * @param {Array} array - The array to be mapped.
+ 
+ * Maps over an array using the provided function.
+ *
+ * @param {Array} array - The array to map over.
+ * @param {Function} mapper - The function to apply to each element.
+ * @returns {Array} The new array of mapped values.
+ */
  * @param {Function} callback - The function to execute on each element.
  * @returns {Array} A new array with each element transformed.
  
@@ -151,6 +158,13 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
   
  * Reduces an array to a single value using a reducer function and an initial value.
  * @param {Function} reducer - The reducer function to apply.
+ 
+ * Filters elements in an array using a predicate function.
+ *
+ * @param {Array} array - The array to filter.
+ * @param {Function} predicate - The function to test each element.
+ * @returns {Array} The new filtered array.
+ */
  /**
  * Reduces an array to a single value using a reducer function and an initial value.
  * @param {Function} reducer - The function to execute on each element.
@@ -238,6 +252,14 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * @param {Array} array - The array of arrays to be flattened.
  * @returns {Array} A new, flattened array.
 
+ * Reduces an array to a single value using a reducer function.
+ *
+ * @param {Array} array - The array to reduce.
+ * @param {Function} reducer - The function to execute on each element.
+ * @param {*} initialValue - The initial value for the reduction.
+ * @returns {*} The reduced value.
+ */
+
  * @param {Array} array - The array to chunk.
  * @param {number} size - The size of each chunk.
  * @returns {Array} An array of chunks.
@@ -300,6 +322,12 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * @param {Array} arr - The array to chunk.
  * @param {number} size - The size of each chunk.
  * @returns {Array} An array of chunked arrays.
+ */
+ 
+ * Flattens a nested array into a single-level array.
+ *
+ * @param {Array} nestedArray - The nested array to flatten.
+ * @returns {Array} The flattened array.
  */
  * Splits an array into chunks of a specified size.
  * @param {Array} arr - The array to chunk.
