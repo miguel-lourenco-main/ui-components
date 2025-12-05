@@ -21,6 +21,13 @@ export function dummyDebounce<T extends (...args: any[]) => any>(
  
  * Creates a throttled function that only invokes the provided function at most once per every specified limit.
  *
+ /**
+ * Creates a throttled function that only invokes the provided function at most once per every specified limit.
+ *
+ * @param func - The function to throttle.
+ * @param limit - The time limit in milliseconds to throttle invocations.
+ * @returns A new throttled function.
+ */
  * @param {Function} fn - The function to throttle.
  * @param {number} limit - The time limit in milliseconds for which the function can only be invoked once.
  * @returns {Function} A new throttled function that adheres to the throttling logic.
@@ -33,6 +40,12 @@ export function dummyDebounce<T extends (...args: any[]) => any>(
  * @param fn - The function to throttle.
  * @param limit - The number of milliseconds to wait before calling the function again.
  * @returns A new throttled function.
+ /**
+ * Creates a memoized version of the provided function, caching the results based on arguments.
+ *
+ * @param func - The function to memoize.
+ * @returns A new memoized function.
+ */
  */
 }
 
@@ -46,6 +59,12 @@ export function dummyThrottle<T extends (...args: any[]) => any>(
       /**
  * Creates a memoized version of the provided function, caching the results based on arguments.
  *
+ /**
+ * Creates a function that invokes the provided function only once, caching the result for future calls.
+ *
+ * @param func - The function to execute once.
+ * @returns A function that can only be called once.
+ */
  * @param fn - The function to memoize.
  * @returns A new memoized function.
  */
