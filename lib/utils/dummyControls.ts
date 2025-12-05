@@ -18,6 +18,13 @@ export function dummyDebounce<T extends (...args: any[]) => any>(
  /**
  * Creates a throttled function that only invokes the provided function at most once per every specified limit.
  * @param {Function} func - The function to be throttled.
+ 
+ * Creates a throttled function that only invokes the provided function at most once per every specified limit.
+ *
+ * @param {Function} fn - The function to throttle.
+ * @param {number} limit - The time limit in milliseconds for which the function can only be invoked once.
+ * @returns {Function} A new throttled function that adheres to the throttling logic.
+
  * @param {number} limit - The time limit in milliseconds.
  * @returns {Function} A new throttled function.
  */
