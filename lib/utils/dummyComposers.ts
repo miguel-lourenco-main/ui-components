@@ -95,6 +95,13 @@ export function dummyTap<T>(fn: (arg: T) => void): (arg: T) => T {
   return (arg: T) => {
     /**
  * Applies a side-effect function on the argument and returns it.
+ /**
+ * Executes a side-effect function on the provided argument and returns the original argument.
+ *
+ * @param {any} argument - The argument to be processed by the side-effect function.
+ * @param {function} sideEffect - The function to execute as a side-effect.
+ * @returns {any} Returns the original argument after executing the side-effect.
+ */
  * 
  * @param {Function} tapFunc - The side-effect function to execute.
  * @param {*} arg - The argument to process and return.
