@@ -75,6 +75,13 @@ export function dummyCompose<T>(...fns: Array<(arg: T) => T>): (arg: T) => T {
   return (arg: T) => fns.reduceRight((acc, fn) => fn(acc), arg);
 }
 
+
+ * Executes a side-effect function on the provided argument.
+ * @param {any} arg - The argument to be passed to the side-effect function.
+ * @param {Function} sideEffectFn - The function to execute as a side-effect.
+ * @returns {any} The original argument after executing the side-effect.
+ * @description This function executes a side-effect function on the argument and returns the original argument.
+ 
 export function dummyTap<T>(fn: (arg: T) => void): (arg: T) => T {
   return (arg: T) => {
     /**
