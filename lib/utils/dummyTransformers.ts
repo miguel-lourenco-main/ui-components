@@ -42,6 +42,11 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * Splits an array into chunks of a specified size.
  * @param {Array} arr - The array to chunk.
  * @param {number} size - The size of each chunk.
+ /**
+ * Returns a new array with unique elements using a Set.
+ *
+ * @returns {Array} A new array containing only unique elements from the original array.
+ */
  * @returns {Array} An array of chunks, each containing the specified number of elements.
 
   export function dummyChunk<T>(array: T[], size: number): T[][] {
