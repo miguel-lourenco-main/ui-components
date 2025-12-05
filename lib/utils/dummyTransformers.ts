@@ -234,6 +234,12 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  */
  * @param {function} predicate - The function to test each element.
  * @param {array} array - The array to filter.
+ /**
+ * Applies a function to each element in an array and returns a new array.
+ * @param {Function} fn - The function to apply to each element.
+ * @param {Array} arr - The array to be transformed.
+ * @returns {Array} A new array containing the results of applying the function.
+ */
  * @returns {array} A new array with elements that pass the test.
 
  * Filters an array based on a predicate function.
@@ -759,6 +765,12 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * @param {Array} array - The array of arrays to flatten.
  * @returns {Array} A new array with all sub-array elements concatenated.
  */
+ /**
+ * Filters an array based on a predicate function.
+ * @param {Function} predicate - The function used to test each element.
+ * @param {Array} arr - The array to filter.
+ * @returns {Array} A new array containing the elements that pass the test.
+ */
  
  
  * Splits the given array into chunks of a specified size.
@@ -1058,6 +1070,13 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * @param {Array} array - The array to reverse.
  * @returns {Array} A new array with elements in reverse order.
  * @returns {Array} A new array with only unique elements from the original array.
+/**
+ * Reduces an array to a single value using a reducer function and an initial value.
+ * @param {Function} reducer - The function to execute on each element.
+ * @param {any} initialValue - The initial value for the accumulator.
+ * @param {Array} arr - The array to reduce.
+ * @returns {any} The final accumulated value.
+ */
 
  
  * Reverses the elements in an array and returns a new array.
