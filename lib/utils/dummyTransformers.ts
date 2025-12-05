@@ -58,6 +58,12 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * @returns {Array} A new array containing only unique elements from the input array.
 
   export function dummyUnique<T>(array: T[]): T[] {
+    
+ * Sorts an array based on a compare function.
+ * @param {Array} arr - The array to be sorted.
+ * @param {Function} compareFn - The function used to compare elements.
+ * @returns {Array} The sorted array.
+ 
     return Array.from(new Set(array));
   }
   
