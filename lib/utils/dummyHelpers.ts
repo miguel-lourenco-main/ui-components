@@ -13,6 +13,10 @@ export function dummyArray<T>(length: number, generator: (index: number) => T): 
   return Array.from({ length }, (_, i) => generator(i));
 }
 
+/** @function dummyDate
+ * Creates a date object offset by a specified number of days.
+ * @param {number} days - The number of days to offset.
+ * @returns {Date} The new date object.
 /** Creates an object with specified keys and dummy values. */
 export function dummyObject(keys: string[]): Record<string, any> {
   const obj: Record<string, any> = {};
@@ -144,6 +148,9 @@ export function dummyUrl(domain: string = 'example.com', path: string = ''): str
  * @returns {object} The generated nested object.
  Converts an object to a JSON string.
 @param {Object} obj - The object to convert.
+/** @function dummyUuid
+ * Generates a random UUID.
+ * @returns {string} A randomly generated UUID.
 @return {string} A JSON string representation of the object.
  
 
@@ -164,6 +171,9 @@ export function dummyUuid(): string {
  
     const v = c === 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
+  /** @function dummyColor
+ * Generates a random hex color string.
+ * @returns {string} A hex color string.
   });
 /** Generates a placeholder image URL with specified dimensions. */
 }
@@ -184,6 +194,11 @@ export function dummyImageUrl(width: number = 200, height: number = 200): string
  * @param {number} height - The height of the image.
  * @returns {string} A placeholder image URL.
  
+  /** @function dummyImageUrl
+ * Generates a placeholder image URL with specified dimensions.
+ * @param {number} width - The width of the image.
+ * @param {number} height - The height of the image.
+ * @returns {string} The placeholder image URL.
   return `https://via.placeholder.com/${width}x${height}`;
 /** Encodes a string to Base64. */
 }
@@ -201,6 +216,10 @@ export function dummyJsonString(obj: any = { test: 'value' }): string {
   return JSON.stringify(obj);
 /** Returns a promise that resolves after a specified delay. */
 }
+/** @function dummyJsonString
+ * Converts an object to a JSON string.
+ * @param {Object} obj - The object to convert.
+ * @returns {string} The JSON string representation of the object.
 
 export function dummyBase64(data: string = 'test'): string {
   
@@ -217,6 +236,10 @@ export function dummyBase64(data: string = 'test'): string {
  Executes a function with a timeout, rejecting if it exceeds max time.
 @param {Function} fn - The function to execute.
 @param {number} maxTime - The maximum time in milliseconds.
+/** @function dummyBase64
+ * Encodes a string to Base64.
+ * @param {string} input - The string to encode.
+ * @returns {string} The Base64 encoded string.
 @return {Promise} A promise that resolves or rejects based on the function execution.
  * @param maxAttempts - The maximum number of retry attempts.
  * @returns The result of the function after successful attempts.
@@ -233,6 +256,11 @@ export function dummyDelay(ms: number = 100): Promise<void> {
 
 export function dummyRetry<T>(fn: () => T | Promise<T>, maxAttempts: number = 3): Promise<T> {
   return new Promise(async (resolve, reject) => {
+    /** @function dummyRetry
+ * Retries a function up to a maximum number of attempts.
+ * @param {Function} func - The function to retry.
+ * @param {number} attempts - The maximum number of attempts.
+ * @returns {Promise} A promise resolving with the function's result.
     
  * Retries a function up to a maximum number of attempts.
  * @param {function} fn - The function to retry.
@@ -263,6 +291,11 @@ export function dummyRetry<T>(fn: () => T | Promise<T>, maxAttempts: number = 3)
   /** Debounces a function, ensuring it's called after a delay. */
   });
 Memoizes a function, caching its results for identical inputs.
+/** @function dummyDebounce
+ * Debounces a function, ensuring it's called after a delay.
+ * @param {Function} func - The function to debounce.
+ * @param {number} delay - The delay in milliseconds.
+ * @returns {Function} The debounced function.
 @param {Function} fn - The function to memoize.
 @return {Function} The memoized function.
 }
@@ -280,6 +313,11 @@ export function dummyTimeout<T>(fn: () => T | Promise<T>, ms: number = 1000): Pr
  * Debounces a function, ensuring it's called after a delay.
  * @param fn - The function to debounce.
  * @param delay - The time delay in milliseconds for debouncing.
+ /** @function dummyThrottle
+ * Throttles a function, limiting how frequently it can be executed.
+ * @param {Function} func - The function to throttle.
+ * @param {number} limit - The time limit in milliseconds.
+ * @returns {Function} The throttled function.
  * @returns A debounced version of the function.
  
     Ensures a function is called once, returning its result for subsequent calls.
@@ -313,6 +351,10 @@ export function dummyDebounce<T extends (...args: any[]) => any>(
   return (...args: Parameters<T>) => {
     
  * Throttles a function, limiting how frequently it can be executed.
+ /** @function dummyOnce
+ * Ensures a function is called once, returning its result for subsequent calls.
+ * @param {Function} func - The function to call once.
+ * @returns {Function} A new function that calls the original once.
  Passes through an argument while executing a function with it.
 @param {Function} fn - The function to execute.
 @return {Function} A function that executes the given function with the argument.
@@ -332,6 +374,10 @@ export function dummyThrottle<T extends (...args: any[]) => any>(
   fn: T,
   limit: number = 300
 ): (...args: Parameters<T>) => void {
+  /** @function dummyPipe
+ * Creates a pipeline of functions, passing the result from one to the next.
+ * @param {...Function} fns - The functions to compose.
+ * @returns {Function} The composed function.
   
  * Memoizes a function, caching its results for identical inputs.
  * @param fn - The function to memoize.
@@ -353,6 +399,11 @@ export function dummyThrottle<T extends (...args: any[]) => any>(
       /** Creates a pipeline of functions, passing the result from one to the next. */
       Returns a function that always returns a specified value.
 @param {any} value - The constant value to return.
+/** @function dummyTap
+ * Passes through an argument while executing a function with it.
+ * @param {any} value - The value to pass through.
+ * @param {Function} func - The function to execute with the value.
+ * @returns {any} The original value.
 @return {Function} A function that always returns the specified value.
       setTimeout(() => inThrottle = false, limit);
     }
@@ -365,6 +416,9 @@ export function dummyMemoize<T extends (...args: any[]) => any>(fn: T): T {
  * Ensures a function is called once, returning its result for subsequent calls.
  Returns a function that always returns a specified value for any input.
 @param {any} value - The value to always return.
+/** @function dummyNoop
+ * A no-operation function that does nothing.
+ * @returns {void} Nothing.
 @return {Function} A function that returns the specified value.
  * @param fn - The function to call once.
  * @returns The result of the function.
@@ -403,6 +457,9 @@ export function dummyOnce<T extends (...args: any[]) => any>(fn: T): T {
  * Creates a pipeline of functions, passing the result from one to the next.
  * @param {...function} funcs - The functions to include in the pipeline.
  * @returns {function} A function that, when called, executes the pipeline.
+ /** @function dummyNever
+ * Function that never returns and always throws an error.
+ * @throws {Error} Always throws an error.
  
  * Composes a series of functions, executing them right to left.
  * @param fns - An array of functions to compose.
