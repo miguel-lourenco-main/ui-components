@@ -29,6 +29,7 @@ export function dummyUser(id?: string): { id: string; name: string; email: strin
  * @returns {Object} A product object containing id, name, and price.
  */
  * @returns {Object} An object representing a dummy product.
+ /** * Generates a dummy product object with an id, name, and price. * @returns {Object} A dummy product object containing id, name, and price. */
  */
  */
  */
@@ -39,6 +40,7 @@ export function dummyProduct(id?: string): { id: string; name: string; price: nu
     id: id || `product_${Math.random().toString(36).substring(2, 15)}`,
     /**
  * Generates a dummy post object with an id, title, and content.
+ /** * Generates a dummy post object with an id, title, and content. * @returns {Object} A dummy post object containing id, title, and content. */
  /**
  * Generates a dummy post object with an id, title, and content.
  * @returns {Object} A post object containing id, title, and content.
