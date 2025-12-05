@@ -35,6 +35,12 @@ export function dummyProduct(id?: string): { id: string; name: string; price: nu
     id: id || `product_${Math.random().toString(36).substring(2, 15)}`,
     /**
  * Generates a dummy post object with an id, title, and content.
+ /**
+ * Generates a dummy post object with properties: id, title, and content.
+ *
+ * @returns {Object} The dummy post object.
+ */
+
  * @returns {Object} An object representing a dummy post with properties: id, title, and content.
  */
     name: 'x'.repeat(10),
