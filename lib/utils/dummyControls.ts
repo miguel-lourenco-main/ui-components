@@ -15,6 +15,12 @@ export function dummyDebounce<T extends (...args: any[]) => any>(
     timeoutId = setTimeout(() => fn(...args), delay);
   };
 /**
+ /**
+ * Creates a throttled function that only invokes the provided function at most once per every specified limit.
+ * @param {Function} func - The function to be throttled.
+ * @param {number} limit - The time limit in milliseconds.
+ * @returns {Function} A new throttled function.
+ */
  * Creates a throttled function that only invokes the provided function at most once per every specified limit.
  *
  * @param fn - The function to throttle.
