@@ -1,13 +1,34 @@
+/**
+ * Applies functions from left to right on the argument.
+ * 
+ * @param {...Function} funcs - The functions to apply in sequence.
+ * @param {*} arg - The initial argument to pass through the functions.
+ * @returns {*} The result after all functions have been applied.
+ */
 export function dummyPipe<T>(...fns: Array<(arg: T) => T>): (arg: T) => T {
   return (arg: T) => fns.reduce((acc, fn) => fn(acc), arg);
 }
 
 export function dummyCompose<T>(...fns: Array<(arg: T) => T>): (arg: T) => T {
+  /**
+ * Applies functions from right to left on the argument.
+ * 
+ * @param {...Function} funcs - The functions to compose in reverse order.
+ * @param {*} arg - The initial argument to process.
+ * @returns {*} The final result after applying all functions.
+ */
   return (arg: T) => fns.reduceRight((acc, fn) => fn(acc), arg);
 }
 
 export function dummyTap<T>(fn: (arg: T) => void): (arg: T) => T {
   return (arg: T) => {
+    /**
+ * Applies a side-effect function on the argument and returns it.
+ * 
+ * @param {Function} tapFunc - The side-effect function to execute.
+ * @param {*} arg - The argument to process and return.
+ * @returns {*} The original argument after executing the side-effect.
+ */
     fn(arg);
     return arg;
   };
