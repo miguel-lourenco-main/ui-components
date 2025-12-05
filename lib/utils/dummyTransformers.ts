@@ -143,6 +143,12 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  *
  * @param {Array} array - The array to map over.
  
+ /**
+ * Applies a function to each element of an array and returns a new array.
+ * @param {function} fn - The function to apply to each element.
+ * @param {Array} arr - The input array to transform.
+ * @returns {Array} A new array containing the results of applying the function.
+ */
  * Maps each element of an array using a provided function and returns a new array.
  * @param {Function} mapper - The function to apply to each element.
  * @param {Array} array - The array to map.
@@ -465,6 +471,12 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  *
  * @param {Array} arr - The array of arrays to flatten.
  
+ /**
+ * Filters elements of an array using a predicate function.
+ * @param {function} predicate - The function to test each element.
+ * @param {Array} arr - The array to filter.
+ * @returns {Array} A new array with elements that pass the test.
+ */
  * Reduces an array to a single value using a reducer function and an initial value.
  * @param {Function} reducer - The function to execute for each element.
  * @param {any} initialValue - The initial value for the accumulator.
@@ -619,6 +631,13 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * Splits an array into chunks of a specified size.
  
  
+ /**
+ * Reduces an array to a single value using a reducer function and an initial value.
+ * @param {function} reducer - The reducer function to apply.
+ * @param {any} initialValue - The initial value for the accumulator.
+ * @param {Array} arr - The array to reduce.
+ * @returns {any} The final accumulated value.
+ */
  * Filters an array based on a predicate function.
  * @param {Array} array - The input array to filter.
  * @param {Function} predicate - The function to test each element.
@@ -722,6 +741,11 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * @returns {Array} A new array with unique elements.
  
  * Splits an array into chunks of a specified size and returns a new array containing the chunks.
+ /**
+ * Flattens an array of arrays into a single array.
+ * @param {Array} arr - The array of arrays to flatten.
+ * @returns {Array} A single array containing all the elements from the input arrays.
+ */
  * @param {Array} array - The array to chunk.
  
  * Splits an array into chunks of a specified size.
@@ -917,6 +941,12 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  *
  
  * Reduces an array to a single value using a reducer function and an initial value.
+ /**
+ * Splits an array into chunks of a specified size.
+ * @param {Array} arr - The array to split.
+ * @param {number} size - The size of each chunk.
+ * @returns {Array} An array of arrays, where each inner array is a chunk of the specified size.
+ */
  * @param {Array} array - The input array to reduce.
  * @param {Function} reducer - The function to execute on each element.
  * @param {*} initialValue - The initial value to start the reduction.
@@ -1091,6 +1121,11 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * @returns {Array} A new array containing only the unique elements.
  */
      * @returns {Array} A new array with the elements in reverse order.
+     /**
+ * Returns a new array with unique elements using a Set.
+ * @param {Array} arr - The array to process.
+ * @returns {Array} A new array containing only unique elements from the input.
+ */
      */
   
       chunks.push(array.slice(i, i + size));
@@ -1196,6 +1231,11 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * @returns {Array} A new flattened array.
  */
   
+  /**
+ * Reverses the elements in an array and returns a new array.
+ * @param {Array} arr - The array to reverse.
+ * @returns {Array} A new array with the elements in reverse order.
+ */
   
  * Reverses the elements in an array.
  
@@ -1244,6 +1284,12 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  *
  * @param {Array} array - The array to reverse.
  * @returns {Array} The reversed array.
+ /**
+ * Sorts an array based on a compare function and returns a new sorted array.
+ * @param {function} compareFn - The function to determine the order of elements.
+ * @param {Array} arr - The array to sort.
+ * @returns {Array} A new sorted array.
+ */
  */
   
  * Sorts an array based on a compare function and returns a new sorted array.
