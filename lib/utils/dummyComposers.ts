@@ -62,6 +62,13 @@ export function dummyCompose<T>(...fns: Array<(arg: T) => T>): (arg: T) => T {
   /**
  * Composes and applies functions from right to left on the argument.
  * 
+ /**
+ * Executes a side-effect function on the provided argument and returns the original argument.
+ * 
+ * @param {any} arg - The argument to be processed.
+ * @param {Function} effect - A side-effect function to be executed.
+ * @returns {any} The original argument provided.
+ */
  
   /**
    * Executes a side-effect function on the provided argument and returns the original argument.
