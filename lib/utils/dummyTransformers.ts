@@ -287,6 +287,13 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
   
  
  * Filters an array based on a predicate function.
+ 
+ * Applies a function to each element in an array and returns a new array.
+ *
+ * @param {function} fn - The function to apply to each element.
+ * @param {Array} arr - The array to map over.
+ * @returns {Array} A new array with the results of applying the function.
+ 
  * @param {Function} predicate - The function that tests each element.
  * @param {Array} array - The array to be filtered.
  * @returns {Array} A new array with elements that pass the test.
@@ -683,6 +690,13 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * @param {Array} array - The input array to filter.
  * @param {Function} predicate - The function to test each element.
  * @returns {Array} A new array with elements that pass the predicate test.
+ 
+ * Filters an array based on a predicate and returns a new array.
+ *
+ * @param {function} predicate - The function to test each element.
+ * @param {Array} arr - The array to filter.
+ * @returns {Array} A new array with the elements that pass the test.
+ 
  
  * Flattens an array of arrays into a single array.
  * @param {Array} array - The array of arrays to be flattened.
@@ -1191,6 +1205,14 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
 
  @function dummyReverse
 @description Reverses the elements in an array and returns a new array.
+
+ * Reduces an array to a single value using a reducer function and an initial value.
+ *
+ * @param {function} reducer - The function to execute on each element.
+ * @param {any} initialValue - The initial value for the accumulator.
+ * @param {Array} arr - The array to reduce.
+ * @returns {any} The single value that results from the reduction.
+ 
 @param {Array} arr - The array to reverse.
 @returns {Array} A new array with the elements in reverse order.
  * @param {Function} compareFn - The function that defines the sort order.
