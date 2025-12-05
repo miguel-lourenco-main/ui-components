@@ -21,6 +21,12 @@
 /**
  * Applies a function to each element of an array and returns a new array.
  *
+ /**
+ * Applies a function to each element in an array and returns a new array.
+ * @param {Function} fn - The function to apply to each element.
+ * @param {Array} arr - The array to transform.
+ * @returns {Array} A new array with transformed elements.
+ */
  * @param {Function} callback - The function to apply on each element.
  * @param {Array} array - The array to be transformed.
  * @returns {Array} A new array with the results of the function applied.
@@ -68,6 +74,12 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
      * @param {Function} predicate - The function used to test each element.
      * @param {Array} arr - The array to filter.
      /**
+ /**
+ * Filters an array based on a predicate function.
+ * @param {Function} predicate - The function used to test each element.
+ * @param {Array} arr - The array to filter.
+ * @returns {Array} A new array with elements that pass the test.
+ */
  * Filters an array based on a predicate function.
  *
  * @param {Function} predicate - The function that tests each element.
@@ -127,6 +139,13 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
   
  * Reduces an array to a single value using a reducer function and an initial value.
  * @param {Function} reducer - The reducer function to apply.
+ /**
+ * Reduces an array to a single value using a reducer function and an initial value.
+ * @param {Function} reducer - The function to execute on each element.
+ * @param {*} initialValue - The initial value to start the accumulation.
+ * @param {Array} arr - The array to reduce.
+ * @returns {*} The final reduced value.
+ */
  * @param {any} initialValue - The initial value for the reduction.
  * @param {Array} array - The array to reduce.
  * @returns {any} The single reduced value.
@@ -186,6 +205,11 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * Splits an array into chunks of a specified size.
  *
  * @param {Array} arr - The array to chunk.
+ /**
+ * Flattens an array of arrays into a single array.
+ * @param {Array} arr - The array of arrays to flatten.
+ * @returns {Array} A new flattened array.
+ */
  * @param {number} size - The size of each chunk.
  * @returns {Array} A new array containing the chunks.
  */
@@ -252,6 +276,12 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * @returns {Array} A new array containing the chunked arrays.
 
  */
+ /**
+ * Splits an array into chunks of a specified size.
+ * @param {Array} arr - The array to chunk.
+ * @param {number} size - The size of each chunk.
+ * @returns {Array} An array of chunked arrays.
+ */
  * Splits an array into chunks of a specified size.
  * @param {Array} arr - The array to chunk.
  * @param {number} size - The size of each chunk.
@@ -302,6 +332,11 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  
   
  * Returns a new array with unique elements using a Set.
+ /**
+ * Returns a new array with unique elements.
+ * @param {Array} arr - The array to process for uniqueness.
+ * @returns {Array} A new array with only unique elements.
+ */
  
  * Reverses the elements in an array.
  * @param {Array} array - The array to reverse.
@@ -344,6 +379,11 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * Returns a new array with unique elements.
  
     /**
+ * Reverses the elements in an array.
+ * @param {Array} arr - The array to reverse.
+ * @returns {Array} A new array with elements in reverse order.
+ */
+    /**
      * Sorts an array based on a compare function.
      /**
  * Splits an array into chunks of a specified size.
@@ -362,6 +402,12 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
   export function dummyUnique<T>(array: T[]): T[] {
     
  * Sorts an array based on a compare function.
+ /**
+ * Sorts an array based on a compare function.
+ * @param {Function} compareFn - The function that defines the sort order.
+ * @param {Array} arr - The array to sort.
+ * @returns {Array} A new sorted array.
+ */
  * @param {Array} arr - The array to be sorted.
  * @param {Function} compareFn - The function used to compare elements.
  * @returns {Array} The sorted array.
