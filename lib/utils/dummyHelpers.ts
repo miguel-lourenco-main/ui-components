@@ -22,6 +22,8 @@ export function dummyObject(keys: string[]): Record<string, any> {
   return obj;
 }
 /** Creates a date object offset by a specified number of days. */
+Generates a random email address with a specified domain.
+@return {string} A randomly generated email address.
 
 export function dummyDate(daysOffset: number = 0): Date {
   const date = new Date();
@@ -29,6 +31,9 @@ export function dummyDate(daysOffset: number = 0): Date {
   return date;
 }
 /** Generates a random email address with a specified domain. */
+Generates a random ID string with a specified prefix.
+@param {string} prefix - The prefix for the generated ID.
+@return {string} A randomly generated ID string.
 
 export function dummyEmail(domain: string = 'test.com'): string {
   Returns a null value.
@@ -78,6 +83,10 @@ export function dummyAsyncFunction<T = any>(returnValue: T = undefined as T, del
     await new Promise(resolve => setTimeout(resolve, delay));
     return returnValue;
   };
+Generates a nested object with specified depth and width.
+@param {number} depth - The depth of the nested object.
+@param {number} width - The width at each nesting level.
+@return {Object} A nested object.
 /** Creates an Error object with a specified message. */
 }
 
@@ -97,6 +106,8 @@ export function dummyUser(id?: string): { id: string; name: string; email: strin
 
 Generates a nested object with specified depth and width.
 
+Generates a random UUID.
+@return {string} A randomly generated UUID.
 @returns {Object} The generated nested object.
 /** Generates a nested object with specified depth and width. */
 export function dummyList<T>(count: number, generator: () => T): T[] {
@@ -108,6 +119,8 @@ export function dummyNestedObject(depth: number = 2, width: number = 3): any {
     return dummyString(5);
   }
   const obj: any = {};
+  Generates a random hex color string.
+@return {string} A randomly generated hex color code.
   for (let i = 0; i < width; i++) {
     /** Generates a random URL with specified domain and path. */
     obj[`key_${i}`] = dummyNestedObject(depth - 1, width);
@@ -116,6 +129,10 @@ export function dummyNestedObject(depth: number = 2, width: number = 3): any {
 }
 /** Generates a random US phone number. */
 
+Generates a placeholder image URL with specified dimensions.
+@param {number} width - The width of the image.
+@param {number} height - The height of the image.
+@return {string} A placeholder image URL.
 export function dummyUrl(domain: string = 'example.com', path: string = ''): string {
   return `https://${domain}${path || '/' + dummyString(5)}`;
 }
@@ -125,6 +142,9 @@ export function dummyUrl(domain: string = 'example.com', path: string = ''): str
  * @param {number} depth - The depth of the nested object.
  * @param {number} width - The width of each level in the nested object.
  * @returns {object} The generated nested object.
+ Converts an object to a JSON string.
+@param {Object} obj - The object to convert.
+@return {string} A JSON string representation of the object.
  
 
 export function dummyPhoneNumber(): string {
@@ -134,6 +154,9 @@ export function dummyPhoneNumber(): string {
 export function dummyUuid(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     /** Generates a random hex color string. */
+    Encodes a string to Base64.
+@param {string} str - The string to encode.
+@return {string} The Base64 encoded string.
     const r = Math.random() * 16 | 0;
     
  * Generates a random UUID.
@@ -168,6 +191,10 @@ export function dummyImageUrl(width: number = 200, height: number = 200): string
 export function dummyJsonString(obj: any = { test: 'value' }): string {
   
  * Converts an object to a JSON string.
+ Retries a function up to a maximum number of attempts.
+@param {Function} fn - The function to retry.
+@param {number} attempts - The maximum number of attempts.
+@return {Promise} A promise that resolves to the result of the function.
  * @param {object} obj - The object to convert.
  * @returns {string} The JSON string representation of the object.
  
@@ -187,6 +214,10 @@ export function dummyBase64(data: string = 'test'): string {
 
  * Retries a function up to a maximum number of attempts.
  * @param fn - The function to retry.
+ Executes a function with a timeout, rejecting if it exceeds max time.
+@param {Function} fn - The function to execute.
+@param {number} maxTime - The maximum time in milliseconds.
+@return {Promise} A promise that resolves or rejects based on the function execution.
  * @param maxAttempts - The maximum number of retry attempts.
  * @returns The result of the function after successful attempts.
  
@@ -206,6 +237,10 @@ export function dummyRetry<T>(fn: () => T | Promise<T>, maxAttempts: number = 3)
  * Retries a function up to a maximum number of attempts.
  * @param {function} fn - The function to retry.
  * @param {number} attempts - The maximum number of attempts.
+ Debounces a function, ensuring it's called after a delay.
+@param {Function} fn - The function to debounce.
+@param {number} delay - The time to wait before calling the function.
+@return {Function} The debounced function.
  * @returns {Promise<any>} A promise that resolves to the function's result.
  
     let lastError: any;
@@ -227,6 +262,9 @@ export function dummyRetry<T>(fn: () => T | Promise<T>, maxAttempts: number = 3)
     reject(lastError);
   /** Debounces a function, ensuring it's called after a delay. */
   });
+Memoizes a function, caching its results for identical inputs.
+@param {Function} fn - The function to memoize.
+@return {Function} The memoized function.
 }
 
  * Executes a function with a timeout, rejecting if it exceeds max time.
@@ -244,6 +282,9 @@ export function dummyTimeout<T>(fn: () => T | Promise<T>, ms: number = 1000): Pr
  * @param delay - The time delay in milliseconds for debouncing.
  * @returns A debounced version of the function.
  
+    Ensures a function is called once, returning its result for subsequent calls.
+@param {Function} fn - The function to call once.
+@return {Function} A function that returns the first call's result.
     new Promise<T>((_, reject) => 
       setTimeout(() => reject(new Error('Timeout')), ms)
     /** Throttles a function, limiting how frequently it can be executed. */
@@ -272,6 +313,9 @@ export function dummyDebounce<T extends (...args: any[]) => any>(
   return (...args: Parameters<T>) => {
     
  * Throttles a function, limiting how frequently it can be executed.
+ Passes through an argument while executing a function with it.
+@param {Function} fn - The function to execute.
+@return {Function} A function that executes the given function with the argument.
  * @param {function} fn - The function to throttle.
  * @param {number} limit - The time in milliseconds to wait between calls.
  * @returns {function} The throttled version of the function.
@@ -283,12 +327,17 @@ export function dummyDebounce<T extends (...args: any[]) => any>(
 
 export function dummyThrottle<T extends (...args: any[]) => any>(
   /** Ensures a function is called once, returning its result for subsequent calls. */
+  A no-operation function that does nothing.
+@return {Function} A function that performs no operation.
   fn: T,
   limit: number = 300
 ): (...args: Parameters<T>) => void {
   
  * Memoizes a function, caching its results for identical inputs.
  * @param fn - The function to memoize.
+ Returns the value passed to it.
+@param {any} value - The value to return.
+@return {any} The input value.
  * @returns A memoized version of the function.
  
   let inThrottle: boolean;
@@ -302,6 +351,9 @@ export function dummyThrottle<T extends (...args: any[]) => any>(
       fn(...args);
       inThrottle = true;
       /** Creates a pipeline of functions, passing the result from one to the next. */
+      Returns a function that always returns a specified value.
+@param {any} value - The constant value to return.
+@return {Function} A function that always returns the specified value.
       setTimeout(() => inThrottle = false, limit);
     }
   };
@@ -311,6 +363,9 @@ export function dummyThrottle<T extends (...args: any[]) => any>(
 export function dummyMemoize<T extends (...args: any[]) => any>(fn: T): T {
   
  * Ensures a function is called once, returning its result for subsequent calls.
+ Returns a function that always returns a specified value for any input.
+@param {any} value - The value to always return.
+@return {Function} A function that returns the specified value.
  * @param fn - The function to call once.
  * @returns The result of the function.
  
