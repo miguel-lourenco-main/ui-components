@@ -202,6 +202,12 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * Applies a given function to each element in an array and returns a new transformed array.
  *
  * @param {(function)} callback - The function to apply to each element.
+ 
+ * Maps each element of an array to a new array using a provided function.
+ * @param {Array} arr - The array to be mapped.
+ * @param {Function} fn - The function to apply to each element.
+ * @returns {Array} A new array with the results of applying the function.
+
  * @param {Array} array - The array to be transformed.
  * @returns {Array} A new array containing the transformed elements.
  */
@@ -506,6 +512,12 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * @returns {Array} A new array with elements that pass the predicate test.
 
  * 
+ 
+ * Filters an array based on a predicate function.
+ * @param {Array} arr - The array to be filtered.
+ * @param {Function} predicate - The function that determines whether an element should be included.
+ * @returns {Array} A new array containing elements that satisfy the predicate.
+
  * @param {Array} arr - The array of arrays to flatten.
  * @returns {Array} A new array with all sub-array elements concatenated.
  */
@@ -844,6 +856,13 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  
  * Reduces an array to a single value using a reducer function and an initial value.
  * @param {Function} reducer - The function to execute on each element.
+ 
+ * Reduces an array to a single value using a reducer function and an initial value.
+ * @param {Array} arr - The array to be reduced.
+ * @param {Function} reducer - The function that executes on each element.
+ * @param {any} initialValue - The initial value for the accumulator.
+ * @returns {any} The single value resulting from the reduction.
+
  * @param {any} initialValue - The initial value to start the reduction.
  * @param {Array} arr - The array to reduce.
  * @returns {any} The final reduced value.
@@ -1162,6 +1181,11 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * @param {Array} arr - The array to process.
  * @returns {Array} A new array containing only unique elements from the input array.
 /**
+ 
+ * Flattens an array of arrays into a single array.
+ * @param {Array} arr - The array to flatten.
+ * @returns {Array} A new array with all sub-array elements concatenated into it.
+
  * Splits an array into chunks of a specified size and returns an array of these chunks.
  *
  * @param {Array} arr - The array to split.
