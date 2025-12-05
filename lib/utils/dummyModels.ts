@@ -1,15 +1,27 @@
+/**
+ * Generates a dummy user object with an id, name, and email.
+ * @returns {Object} The dummy user object containing id, name, and email.
+ */
 export function dummyUser(id?: string): { id: string; name: string; email: string } {
   return {
     id: id || `user_${Math.random().toString(36).substring(2, 15)}`,
     name: 'x'.repeat(8),
     email: `user_${Math.random().toString(36).substring(7)}@test.com`,
   };
+/**
+ * Generates a dummy product object with an id, name, and price.
+ * @returns {Object} The dummy product object containing id, name, and price.
+ */
 }
 
 export function dummyProduct(id?: string): { id: string; name: string; price: number } {
   return {
     id: id || `product_${Math.random().toString(36).substring(2, 15)}`,
     name: 'x'.repeat(10),
+    /**
+ * Generates a dummy post object with an id, title, and content.
+ * @returns {Object} The dummy post object containing id, title, and content.
+ */
     price: Math.floor(Math.random() * 1000) + 10,
   };
 }
