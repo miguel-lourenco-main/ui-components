@@ -18,6 +18,13 @@
      * @returns {Array} A new array with the results of the applied function.
      */
   
+/**
+ * Applies a function to each element of an array and returns a new array.
+ *
+ * @param {Function} callback - The function to apply on each element.
+ * @param {Array} array - The array to be transformed.
+ * @returns {Array} A new array with the results of the function applied.
+ */
 
 export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
     
@@ -43,6 +50,13 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
      * Filters an array based on a predicate function.
      * @param {Function} predicate - The function used to test each element.
      * @param {Array} arr - The array to filter.
+     /**
+ * Filters an array based on a predicate function.
+ *
+ * @param {Function} predicate - The function that tests each element.
+ * @param {Array} array - The array to filter.
+ * @returns {Array} A new array containing elements that pass the test.
+ */
      
  * Filters an array based on a predicate function.
  * @param {Function} predicate - The function used to test each element.
@@ -86,6 +100,14 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
   
   
  /**
+ /**
+ * Reduces an array to a single value using a reducer function and an initial value.
+ *
+ * @param {Function} reducer - The function to execute on each element.
+ * @param {any} initialValue - The initial value for the reduction.
+ * @param {Array} array - The array to reduce.
+ * @returns {any} The reduced single value.
+ */
  * Flattens an array of arrays into a single array.
  *
  * @param {Array} arr - The array of arrays to flatten.
@@ -133,6 +155,12 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  
   export function dummyFlatten<T>(array: (T | T[])[]): T[] {
     return array.flat() as T[];
+  /**
+ * Flattens an array of arrays into a single array.
+ *
+ * @param {Array} array - The array of arrays to flatten.
+ * @returns {Array} A new single-level array with all elements.
+ */
   }
   
   
@@ -182,6 +210,13 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
      */
   
  * Sorts an array based on a compare function.
+ /**
+ * Splits an array into chunks of a specified size.
+ *
+ * @param {Array} array - The array to split.
+ * @param {number} chunkSize - The size of each chunk.
+ * @returns {Array} A new array containing the chunks.
+ */
  * @param {Function} compareFunction - The function to determine the order of elements.
  * @param {Array} array - The array to sort.
  * @returns {Array} A new sorted array.
@@ -236,6 +271,12 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * @returns {Array} The sorted array.
  
     return Array.from(new Set(array));
+  /**
+ * Returns a new array with unique elements using a Set.
+ *
+ * @param {Array} array - The array to filter unique elements from.
+ * @returns {Array} A new array with unique elements.
+ */
   }
   
   
@@ -254,4 +295,10 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * @returns {Array} The sorted array.
   export function dummySort<T>(array: T[], compareFn?: (a: T, b: T) => number): T[] {
     return [...array].sort(compareFn);
+  /**
+ * Reverses the elements in an array.
+ *
+ * @param {Array} array - The array to reverse.
+ * @returns {Array} The reversed array.
+ */
   }
