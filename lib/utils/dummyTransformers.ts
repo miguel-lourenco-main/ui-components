@@ -39,6 +39,10 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
   }
   
   
+ 
+ * Returns a new array with unique elements.
+ * @returns {Array} A new array containing only unique elements.
+ */
  * Splits an array into chunks of a specified size.
  * @param {Array} arr - The array to chunk.
  * @param {number} size - The size of each chunk.
