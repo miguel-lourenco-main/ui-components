@@ -60,6 +60,11 @@ export function dummyProduct(id?: string): { id: string; name: string; price: nu
  */
     price: Math.floor(Math.random() * 1000) + 10,
   };
+/**
+ * Generates a dummy post object with an id, title, and content.
+ *
+ * @returns {Object} An object representing a dummy post containing an id, title, and content.
+ */
 }
 
 export function dummyPost(id?: string): { id: string; title: string; content: string } {
