@@ -11,6 +11,12 @@ export function dummyPipe<T>(...fns: Array<(arg: T) => T>): (arg: T) => T {
 
 export function dummyCompose<T>(...fns: Array<(arg: T) => T>): (arg: T) => T {
   /**
+ /**
+ * Composes functions from right to left on the argument.
+ *
+ * @param {...Function} funcs - Functions to be composed.
+ * @returns {Function} A new function that represents the composition of the provided functions.
+ */
  /*
  * @function dummyCompose
  * @description Composes and applies functions from right to left on the argument.
