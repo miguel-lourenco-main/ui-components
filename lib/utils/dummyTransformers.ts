@@ -171,6 +171,12 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * Filters an array based on a predicate function.
  *
  * @param {Function} predicate - The function to test each element.
+ 
+ * Applies a function to each element in an array and returns a new array.
+ * @param {Function} fn - The function to apply to each element.
+ * @param {Array} arr - The array to transform.
+ * @returns {Array} A new array containing the results of applying fn to each element.
+
  * @param {Array} arr - The array to filter.
  * @returns {Array} A new array with filtered elements.
  */
@@ -481,6 +487,12 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  *
  /**
  * Flattens an array of arrays into a single array.
+ 
+ * Filters an array based on a predicate function.
+ * @param {Function} predicate - The function to determine if an element should be included.
+ * @param {Array} arr - The array to filter.
+ * @returns {Array} A new array with elements that pass the predicate test.
+
  * 
  * @param {Array} arr - The array of arrays to flatten.
  * @returns {Array} A new array with all sub-array elements concatenated.
@@ -805,6 +817,13 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  
  * Sorts an array based on a compare function.
  /**
+ 
+ * Reduces an array to a single value using a reducer function and an initial value.
+ * @param {Function} reducer - The function to execute on each element.
+ * @param {any} initialValue - The initial value to start the reduction.
+ * @param {Array} arr - The array to reduce.
+ * @returns {any} The final reduced value.
+
  * Splits an array into chunks of a specified size.
  *
  * @param {Array} array - The array to chunk.
@@ -1205,6 +1224,11 @@ export function dummyMap<T, U>(array: T[], fn: (item: T) => U): U[] {
  * Returns a new array with unique elements using a Set.
  *
  * @param {Array} arr - The array to filter for unique elements.
+ 
+ * Flattens an array of arrays into a single array.
+ * @param {Array} arr - The array to flatten.
+ * @returns {Array} A new flattened array.
+
  * @returns {Array} A new array containing only unique elements.
  */
   export function dummySort<T>(array: T[], compareFn?: (a: T, b: T) => number): T[] {
