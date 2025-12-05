@@ -111,6 +111,12 @@ export function dummyLessThanOrEqual(a: number, b: number): boolean {
    * Compares two values, returning -1, 0, or 1 based on their ordering.
    * @param {any} a - The first value to compare.
    /**
+ 
+ * Checks if the first number is less than the second.
+ * @param a - The first number.
+ * @param b - The second number.
+ * @returns True if a is less than b, otherwise false.
+ 
  * Checks if a number is between two other numbers, inclusive.
  * @param {number} number - The number to check.
  * @param {number} min - The minimum boundary.
@@ -151,6 +157,12 @@ export function dummyCompareBy<T>(a: T, b: T, keyFn: (item: T) => number | strin
 }
 
 
+   
+ * Compares two values, returning -1, 0, or 1 based on their ordering.
+ * @param a - The first value to compare.
+ * @param b - The second value to compare.
+ * @returns -1 if a < b, 1 if a > b, and 0 if they are equal.
+ 
    /**
  * Checks if two strings or arrays have the same length.
  * @param {string|array} value1 - The first string or array.
