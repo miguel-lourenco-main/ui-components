@@ -67,12 +67,6 @@ An n8n workflow runs on an Oracle VM that automatically analyzes code changes on
 
 This automation helps maintain high code quality and documentation standards throughout the project lifecycle.
 
-### 🧪 **Quality Assurance**
-- **End-to-End Testing**: Comprehensive Playwright test suite with visual regression testing
-- **Component Testing**: Individual component testing with multiple scenarios
-- **Cross-browser Compatibility**: Tested across different browsers and devices
-- **Performance Optimization**: Lazy loading and code splitting for optimal performance
-
 ## 🛠️ Technical Stack
 
 ### **Frontend Framework**
@@ -109,7 +103,6 @@ This automation helps maintain high code quality and documentation standards thr
 ### **Layout Components**
 - **Cards**: Flexible container components with headers and content
 - **Buttons**: Multiple variants (primary, secondary, outline, ghost)
-- **Data Tables**: Advanced table components with sorting and pagination
 
 
 ## 🔮 Future Enhancements
