@@ -105,6 +105,7 @@ pages:
     - lint
     - typecheck
     - build
+    - test
   environment:
     name: production
     url: $CI_PAGES_URL

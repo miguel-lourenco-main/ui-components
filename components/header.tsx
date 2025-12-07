@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { Moon, Sun, Menu, Github, Monitor } from "lucide-react"
 import { useTheme } from "next-themes"
@@ -34,9 +35,13 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center space-x-2">
-            <div className="h-8 w-8 bg-primary rounded-md flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">C</span>
-            </div>
+            <Image 
+              src="/icon.svg" 
+              alt="UI Components" 
+              width={32} 
+              height={32} 
+              className="h-8 w-8"
+            />
             <span className="font-bold text-xl">Components</span>
           </Link>
 
