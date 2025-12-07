@@ -109,5 +109,6 @@ pages:
     name: production
     url: $CI_PAGES_URL
   rules:
-    - if: $CI_MERGE_REQUEST_ID
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: never
+    - when: always
