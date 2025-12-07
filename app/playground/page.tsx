@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
 import ComponentSelector from '@/components/ComponentSelector';
 import LocalComponentRenderer from '@/components/LocalComponentRenderer';
 import CodeViewer from '@/components/code-viewer';
@@ -175,7 +175,7 @@ function ComponentPreview({
   rendererButtons 
 }: ComponentPreviewProps) {
   return (
-    <div className="h-full bg-muted flex flex-col">
+    <div className="h-full bg-muted flex flex-col" id="component-preview-area">
       <div className="w-full flex items-center justify-between p-4 pb-0">
         {rendererButtons}
       </div>
@@ -235,6 +235,11 @@ export default function PlaygroundPage() {
   const centerPanelRef = useRef<ImperativePanelHandle | null>(null);
 
   const searchParams = useSearchParams();
+  const pathname = usePathname();
+  
+  // Track if we're coming from outside the playground
+  const isInitialMount = useRef(true);
+  const previousPathname = useRef<string | null>(null);
 
   const { scrollDirection, isScrolled } = useScrollDirection()
 
@@ -250,6 +255,16 @@ export default function PlaygroundPage() {
     }
   }, [shouldSnap])
 
+  // Track pathname changes to detect navigation from outside
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      previousPathname.current = pathname;
+      return;
+    }
+    previousPathname.current = pathname;
+  }, [pathname]);
+
   useEffect(() => {
     if (!components || components.length === 0) return;
     const componentParam = searchParams.get('component');
@@ -263,7 +278,32 @@ export default function PlaygroundPage() {
     const exIdx = exampleParam ? Math.max(0, parseInt(exampleParam, 10) || 0) : 0;
     // Avoid redundant reselection that can cause remounts/state resets
     if (playgroundState.selectedComponent?.id === target.id && selectedExampleIndex === exIdx) return;
+    
+    // Check if we're coming from outside the playground
+    // If previousPathname is not '/playground', we're coming from outside
+    // On initial mount with example param, we should also scroll (likely coming from outside)
+    const comingFromOutside = previousPathname.current !== '/playground';
+    const hasExampleParam = exampleParam !== null;
+    const shouldScroll = comingFromOutside && hasExampleParam;
+    
     selectComponent(target, exIdx);
+    
+    // Scroll to preview area if coming from outside and example is selected
+    if (shouldScroll) {
+      // Use setTimeout to ensure the component is rendered before scrolling
+      setTimeout(() => {
+        const previewElement = document.getElementById('component-preview-area');
+        if (previewElement) {
+          previewElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          // Fallback: scroll to the playground container if preview area not found
+          const playgroundContainer = document.querySelector('[data-testid="component-preview"]')?.closest('.rounded-lg');
+          if (playgroundContainer) {
+            (playgroundContainer as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }
+      }, 100);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [components, searchParams]);
 
