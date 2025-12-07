@@ -32,7 +32,7 @@ const DEFAULT_ACCEPT = {
  * FilesDragNDrop Component
  * A reusable drag and drop component for file uploads with keyboard navigation support
  */
-export const FilesDragNDrop = forwardRef<
+const FilesDragNDrop = forwardRef<
   HTMLDivElement,
   FilesDragNDropProps & React.HTMLAttributes<HTMLDivElement>
 >(

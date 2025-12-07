@@ -12,7 +12,7 @@ import { SectionHeader } from "@/components/section-header"
 import { useComponentData } from "@/lib/hooks/use-component-data"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ComponentType } from "@/lib/componentTypes"
-import { ComponentPreview } from "@/components/component-preview"
+import ComponentPreview from "@/components/component-preview"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 

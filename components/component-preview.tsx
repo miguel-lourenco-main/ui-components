@@ -94,7 +94,7 @@ function pickPreviewExport(mod: any, itemName: string, size: PreviewSize): React
  * Runtime loader that selects and renders the correct preview snippet for a component
  * depending on where it is being shown (carousel, theme browser, or component page).
  */
-export function ComponentPreview({ componentId, context, themeId, overrideSize }: ComponentPreviewProps) {
+function ComponentPreview({ componentId, context, themeId, overrideSize }: ComponentPreviewProps) {
   const [PreviewComponent, setPreviewComponent] = useState<React.ComponentType | null>(null)
 
   const desiredSize = useMemo(() => getDesiredSize(context, overrideSize), [context, overrideSize])

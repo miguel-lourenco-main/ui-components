@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { ComponentPreview } from "@/components/component-preview"
+import ComponentPreview from "@/components/component-preview"
 import { useEffect, useRef } from "react"
 
 import { COMPONENTS_INDEX } from '@/lib/componentsIndex'
