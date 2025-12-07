@@ -47,6 +47,26 @@ The application features an **interactive playground** where users can experimen
 
 To keep the codebase maintainable, exported components, hooks, and utilities include concise JSDoc summaries that describe key props and behaviors. Inline comments are reserved for complex control flow (async orchestration, dynamic imports, performance-sensitive work) so future contributors understand the rationale behind non-obvious logic without wading through implementation details.
 
+
+## 🤖 Automated Code Documentation
+
+This project uses an automated code documentation workflow powered by **n8n**:
+
+### Overview
+An n8n workflow runs on an Oracle VM that automatically analyzes code changes on every push to the repository. The workflow:
+- **Triggers on Push**: Automatically runs when code is pushed to the repository
+- **Code Analysis**: Scans the codebase for uncommented code sections
+- **Comment Generation**: Automatically generates helpful comments based on the code logic
+- **Oracle VM Deployment**: Runs reliably on a dedicated Oracle virtual machine
+
+### Benefits
+- 📝 **Consistent Documentation**: Ensures code remains well-documented without manual effort
+- 🔄 **Automated Process**: No need to remember to add comments manually
+- 🎯 **Quality Assurance**: Helps maintain code quality standards across the project
+- ⚡ **Zero Overhead**: Runs in the background without impacting development workflow
+
+This automation helps maintain high code quality and documentation standards throughout the project lifecycle.
+
 ### 🧪 **Quality Assurance**
 - **End-to-End Testing**: Comprehensive Playwright test suite with visual regression testing
 - **Component Testing**: Individual component testing with multiple scenarios
