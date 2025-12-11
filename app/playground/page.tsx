@@ -65,7 +65,7 @@ function PanelToggleButton({
           !isMobile && isActive && "bg-primary/5 border-primary/30 ring-2 ring-primary/50",
         )}
         aria-pressed={isMobile ? isActive : undefined}
-        title={label === 'Properties' ? 'Show Properties' : `Show ${label}`}
+        title={`Show ${label}`}
       >
         <div className="flex items-center justify-center">
           {icon}
