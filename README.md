@@ -10,10 +10,8 @@
 [![React](https://img.shields.io/badge/React-18.3.1-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3.3-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4.17-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
-[![Radix UI](https://img.shields.io/badge/Radix_UI-Primitives-161618?style=flat-square&logo=radixui&logoColor=white)](https://www.radix-ui.com/)
-[![Monaco Editor](https://img.shields.io/badge/Monaco_Editor-Code_Viewer-007ACC?style=flat-square&logo=visualstudiocode&logoColor=white)](https://microsoft.github.io/monaco-editor/)
-[![Playwright](https://img.shields.io/badge/Playwright-Testing-green?style=flat-square&logo=playwright)](https://playwright.dev/)
-[![pnpm](https://img.shields.io/badge/pnpm-10.14.0-F69220?style=flat-square&logo=pnpm&logoColor=white)](https://pnpm.io/)
+[![Monaco Editor](https://img.shields.io/badge/Monaco_Editor-0.45.0-007ACC?style=flat-square&logo=visualstudiocode&logoColor=white)](https://microsoft.github.io/monaco-editor/)
+[![Playwright](https://img.shields.io/badge/Playwright-1.54.2-green?style=flat-square&logo=playwright)](https://playwright.dev/)
 
 
 
