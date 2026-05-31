@@ -1,32 +1,14 @@
 # Submodule `infra` is not part of the parent tree; `include:local` cannot see those paths on GitLab.
-# Pin `ref` to the infra consumer branch for jobs-quality; submodule commit tracks infra release (see `git ls-tree HEAD infra`).
+# Pin `ref` to match: `git ls-tree HEAD infra` (update both when bumping the submodule).
 include:
   - project: public-work4/infra
-    ref: consumer/ui-components
+    ref: 66fa719ae7119c77343c1baa0a13500deea70443
     file:
-      - ci/templates/fragments/toolchain-node-pnpm.gitlab-ci.yml
+      - ci/templates/base.gitlab-ci.yml
       - ci/templates/jobs-quality.gitlab-ci.yml
       - ci/templates/deploy-gitlab-pages.gitlab-ci.yml
 
-default:
-  interruptible: true
-
-stages:
-  - lint
-  - typecheck
-  - build
-  - test
-  - deploy
-
 variables:
-  NODE_ENV: production
-  PNPM_CACHE_FOLDER: .pnpm-store
-
-# deploy-gitlab-pages uses deploy_production; this app uses a deploy stage.
-pages:
-  stage: deploy
-  needs:
-    - job: lint_job
-    - job: typecheck_job
-    - job: build_job
-    - job: test
+  ENABLE_VERCEL_DEPLOY: "0"
+  ENABLE_COMMENT_MIRROR: "0"
+  ENABLE_CI_FIX: "0"
