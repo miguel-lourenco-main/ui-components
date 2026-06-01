@@ -1,121 +1,14 @@
-# GitLab CI/CD configuration for Next.js static export to GitLab Pages
-# Uses GitLab Pages Parallel Deployments for branch-specific preview URLs
-image: node:18
+# Submodule `infra` is not part of the parent tree; `include:local` cannot see those paths on GitLab.
+# Pin `ref` to match: `git ls-tree HEAD infra` (update both when bumping the submodule).
+include:
+  - project: public-work4/infra
+    ref: 66fa719ae7119c77343c1baa0a13500deea70443
+    file:
+      - ci/templates/base.gitlab-ci.yml
+      - ci/templates/jobs-quality.gitlab-ci.yml
+      - ci/templates/deploy-gitlab-pages.gitlab-ci.yml
 
-# Define variables
 variables:
-  NODE_ENV: production
-  CI_COMMIT_REF_SLUG: $CI_COMMIT_REF_SLUG
-
-# Cache node_modules for faster builds
-cache:
-  paths:
-    - node_modules/
-    - .next/cache/
-
-# Define stages
-stages:
-  - lint
-  - typecheck
-  - build
-  - test
-  - deploy
-
-# Lint job
-lint:
-  stage: lint
-  before_script:
-    - npm install -g pnpm@10.14.0
-    - pnpm install --frozen-lockfile
-  script:
-    - pnpm run lint
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: never
-    - when: always
-
-# Typecheck job
-typecheck:
-  stage: typecheck
-  before_script:
-    - npm install -g pnpm@10.14.0
-    - pnpm install --frozen-lockfile
-  script:
-    - pnpm run typecheck
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: never
-    - when: always
-
-# Build stage for all branches
-build:
-  stage: build
-  before_script:
-    - npm install -g pnpm@10.14.0
-    - pnpm install --frozen-lockfile
-  script:
-    - echo "Environment variables for debugging:"
-    - echo "NODE_ENV=$NODE_ENV"
-    - echo "CI_COMMIT_REF_SLUG=$CI_COMMIT_REF_SLUG"
-    - echo "CI_DEFAULT_BRANCH=$CI_DEFAULT_BRANCH"
-    - pnpm run build
-  artifacts:
-    paths:
-      - out/
-    expire_in: 1 hour
-  needs:
-    - lint
-    - typecheck
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: never
-    - when: always
-
-test:
-  stage: test
-  before_script:
-    - npm install -g pnpm@10.14.0
-    - pnpm install --frozen-lockfile
-    - pnpm exec playwright install --with-deps
-  script:
-    - pnpm test:e2e
-  artifacts:
-    when: always
-    paths:
-      - apps/e2e/playwright-report/
-    expire_in: 1 week
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: never
-    - when: always
-
-# Deploy to GitLab Pages - Production (main branch)
-pages:
-  stage: deploy
-  script:
-    - echo "Deploying to GitLab Pages Production..."
-    - echo "Production URL - ${CI_PAGES_URL}"
-    - ls -la out/  # Debug: List contents of out directory
-    - mkdir -p public
-    - cp -r out/* public/  # Copy contents of out directory to public directory
-    - ls -la public/  # Debug: List contents of public directory
-    - ls -la public/_next/static/chunks/ || echo "No chunks directory found"
-  artifacts:
-    paths:
-      - public/
-    expire_in: never
-  dependencies:
-    - build
-    #- test
-  needs:
-    - lint
-    - typecheck
-    - build
-    - test
-  environment:
-    name: production
-    url: $CI_PAGES_URL
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: never
-    - when: always
+  ENABLE_VERCEL_DEPLOY: "0"
+  ENABLE_COMMENT_MIRROR: "0"
+  ENABLE_CI_FIX: "0"
