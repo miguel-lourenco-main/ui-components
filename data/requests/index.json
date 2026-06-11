@@ -1,7 +1,539 @@
 {
   "version": 1,
-  "generatedAt": "2026-06-11T11:33:02.689Z",
+  "generatedAt": "2026-06-11T12:16:59.205Z",
   "requests": [
+    {
+      "id": "req-a0f8664a1327",
+      "type": "new_theme",
+      "status": "pending_review",
+      "title": "Add Portfolio theme",
+      "currentVersionId": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "createdAt": "2026-06-11T12:16:59.199Z",
+          "authorAgent": "my-cv-agent",
+          "rationale": "Capture the my-cv blue->purple gradient look as a reusable theme.",
+          "payload": {
+            "kind": "theme",
+            "theme": {
+              "id": "portfolio",
+              "name": "Portfolio",
+              "description": "Blue-to-purple gradients over slate neutrals, from the My CV site.",
+              "colors": {
+                "light": {
+                  "primary": "#2563eb",
+                  "secondary": "#7c3aed",
+                  "accent": "#9333ea",
+                  "background": "#ffffff",
+                  "foreground": "#0f172a",
+                  "muted": "#f8fafc",
+                  "border": "#e2e8f0"
+                },
+                "dark": {
+                  "primary": "#60a5fa",
+                  "secondary": "#a78bfa",
+                  "accent": "#c084fc",
+                  "background": "#0f172a",
+                  "foreground": "#f8fafc",
+                  "muted": "#1e293b",
+                  "border": "#334155"
+                }
+              },
+              "styles": {
+                "borderRadius": "0.75rem",
+                "fontWeight": "600",
+                "spacing": "comfortable"
+              },
+              "components": {
+                "light": {
+                  "button": {
+                    "primary": "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0",
+                    "secondary": "bg-slate-100 hover:bg-slate-200 text-slate-900 border-0",
+                    "outline": "border-blue-300 text-blue-700 hover:bg-blue-50 bg-transparent",
+                    "ghost": "text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                  },
+                  "card": {
+                    "base": "border-slate-200 bg-white shadow-sm",
+                    "header": "border-b border-slate-100",
+                    "content": "text-slate-600"
+                  },
+                  "form": {
+                    "input": "border-slate-300 focus:border-blue-500 focus:ring-blue-500 bg-white text-slate-900",
+                    "label": "text-slate-700 font-medium",
+                    "focus": "ring-blue-500"
+                  },
+                  "alert": {
+                    "base": "border-blue-200 bg-blue-50",
+                    "text": "text-blue-800"
+                  },
+                  "badge": {
+                    "base": "bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 border-blue-200",
+                    "text": "text-blue-800"
+                  }
+                },
+                "dark": {
+                  "button": {
+                    "primary": "bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 text-white border-0",
+                    "secondary": "bg-slate-800 hover:bg-slate-700 text-slate-100 border-0",
+                    "outline": "border-blue-400 text-blue-300 hover:bg-blue-950 bg-transparent",
+                    "ghost": "text-blue-300 hover:text-blue-200 hover:bg-blue-950"
+                  },
+                  "card": {
+                    "base": "border-slate-700 bg-slate-900 shadow-lg",
+                    "header": "border-b border-slate-700",
+                    "content": "text-slate-300"
+                  },
+                  "form": {
+                    "input": "border-slate-600 bg-slate-800 text-slate-100 focus:border-blue-400 focus:ring-blue-400",
+                    "label": "text-slate-300 font-medium",
+                    "focus": "ring-blue-400"
+                  },
+                  "alert": {
+                    "base": "border-blue-500 bg-blue-950",
+                    "text": "text-blue-200"
+                  },
+                  "badge": {
+                    "base": "bg-gradient-to-r from-blue-900 to-purple-900 text-blue-200 border-blue-500",
+                    "text": "text-blue-200"
+                  }
+                }
+              }
+            }
+          },
+          "validation": {
+            "valid": true,
+            "checkedAt": "2026-06-11T12:16:59.203Z",
+            "issues": [],
+            "checks": [
+              {
+                "name": "payload-kind",
+                "passed": true
+              },
+              {
+                "name": "theme",
+                "passed": true
+              }
+            ]
+          }
+        }
+      ],
+      "createdAt": "2026-06-11T12:16:59.199Z",
+      "updatedAt": "2026-06-11T12:16:59.203Z",
+      "idempotencyKey": "mycv:portfolio-theme"
+    },
+    {
+      "id": "req-80f75c51b822",
+      "type": "new_component",
+      "status": "pending_review",
+      "title": "Add ThemeToggle",
+      "currentVersionId": "v2",
+      "versions": [
+        {
+          "id": "v1",
+          "createdAt": "2026-06-11T12:16:59.186Z",
+          "authorAgent": "my-cv-agent",
+          "rationale": "my-cv has a theme switcher; adapt it to next-themes (used by this library).",
+          "payload": {
+            "kind": "component",
+            "meta": {
+              "id": "theme-toggle",
+              "name": "ThemeToggle",
+              "category": "actions",
+              "description": "Cycles light/dark/system themes using next-themes.",
+              "tags": [
+                "theme",
+                "button",
+                "action"
+              ],
+              "version": "1.0.0",
+              "author": "my-cv-agent",
+              "code": "\"use client\";\nimport { useTheme } from \"next-themes\";\nexport default function ThemeToggle( {\n  const { theme, setTheme } = useTheme();\n  return <button>broken</button>\n",
+              "dependencies": [
+                "next-themes",
+                "lucide-react"
+              ],
+              "props": []
+            },
+            "files": [
+              {
+                "path": "components/display-components/actions/ThemeToggle/ThemeToggle.tsx",
+                "contents": "\"use client\";\nimport { useTheme } from \"next-themes\";\nexport default function ThemeToggle( {\n  const { theme, setTheme } = useTheme();\n  return <button>broken</button>\n"
+              },
+              {
+                "path": "components/display-components/actions/ThemeToggle/ThemeToggle.meta.json",
+                "contents": "{}"
+              }
+            ]
+          },
+          "validation": {
+            "valid": false,
+            "checkedAt": "2026-06-11T12:16:59.188Z",
+            "issues": [
+              {
+                "code": "code.syntax_error",
+                "severity": "error",
+                "message": "Unexpected keyword 'const'.",
+                "path": "ThemeToggle.meta.json#code",
+                "location": {
+                  "line": 4,
+                  "column": 3
+                }
+              },
+              {
+                "code": "code.syntax_error",
+                "severity": "error",
+                "message": "Unexpected keyword 'const'.",
+                "path": "components/display-components/actions/ThemeToggle/ThemeToggle.tsx",
+                "location": {
+                  "line": 4,
+                  "column": 3
+                }
+              }
+            ],
+            "checks": [
+              {
+                "name": "payload-kind",
+                "passed": true
+              },
+              {
+                "name": "component-meta",
+                "passed": false
+              },
+              {
+                "name": "proposed-files",
+                "passed": true
+              },
+              {
+                "name": "file-syntax",
+                "passed": false
+              }
+            ]
+          }
+        },
+        {
+          "id": "v2",
+          "createdAt": "2026-06-11T12:16:59.192Z",
+          "authorAgent": "my-cv-agent",
+          "rationale": "Fix syntax error and use full next-themes implementation with icons.",
+          "payload": {
+            "kind": "component",
+            "meta": {
+              "id": "theme-toggle",
+              "name": "ThemeToggle",
+              "category": "actions",
+              "description": "Cycles light/dark/system themes using next-themes.",
+              "tags": [
+                "theme",
+                "button",
+                "action"
+              ],
+              "version": "1.0.1",
+              "author": "my-cv-agent",
+              "code": "\"use client\";\nimport { useEffect, useState } from \"react\";\nimport { useTheme } from \"next-themes\";\nimport { Sun, Moon, Monitor } from \"lucide-react\";\n\nexport default function ThemeToggle() {\n  const { theme, setTheme } = useTheme();\n  const [mounted, setMounted] = useState(false);\n  useEffect(() => setMounted(true), []);\n\n  if (!mounted) {\n    return (\n      <div className=\"w-9 h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800\" />\n    );\n  }\n\n  const next = theme === \"light\" ? \"dark\" : theme === \"dark\" ? \"system\" : \"light\";\n  const Icon = theme === \"dark\" ? Moon : theme === \"system\" ? Monitor : Sun;\n\n  return (\n    <button\n      onClick={() => setTheme(next)}\n      title={`Switch to ${next} mode`}\n      aria-label={`Switch to ${next} mode`}\n      className=\"inline-flex items-center justify-center w-9 h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2\"\n      data-testid=\"rendered-component-themetoggle\"\n    >\n      <Icon className=\"w-5 h-5\" />\n    </button>\n  );\n}\n",
+              "dependencies": [
+                "next-themes",
+                "lucide-react"
+              ],
+              "props": []
+            },
+            "files": [
+              {
+                "path": "components/display-components/actions/ThemeToggle/ThemeToggle.tsx",
+                "contents": "\"use client\";\nimport { useEffect, useState } from \"react\";\nimport { useTheme } from \"next-themes\";\nimport { Sun, Moon, Monitor } from \"lucide-react\";\n\nexport default function ThemeToggle() {\n  const { theme, setTheme } = useTheme();\n  const [mounted, setMounted] = useState(false);\n  useEffect(() => setMounted(true), []);\n\n  if (!mounted) {\n    return (\n      <div className=\"w-9 h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800\" />\n    );\n  }\n\n  const next = theme === \"light\" ? \"dark\" : theme === \"dark\" ? \"system\" : \"light\";\n  const Icon = theme === \"dark\" ? Moon : theme === \"system\" ? Monitor : Sun;\n\n  return (\n    <button\n      onClick={() => setTheme(next)}\n      title={`Switch to ${next} mode`}\n      aria-label={`Switch to ${next} mode`}\n      className=\"inline-flex items-center justify-center w-9 h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2\"\n      data-testid=\"rendered-component-themetoggle\"\n    >\n      <Icon className=\"w-5 h-5\" />\n    </button>\n  );\n}\n"
+              },
+              {
+                "path": "components/display-components/actions/ThemeToggle/ThemeToggle.meta.json",
+                "contents": "{}"
+              }
+            ]
+          },
+          "validation": {
+            "valid": true,
+            "checkedAt": "2026-06-11T12:16:59.196Z",
+            "issues": [],
+            "checks": [
+              {
+                "name": "payload-kind",
+                "passed": true
+              },
+              {
+                "name": "component-meta",
+                "passed": true
+              },
+              {
+                "name": "proposed-files",
+                "passed": true
+              },
+              {
+                "name": "file-syntax",
+                "passed": true
+              }
+            ]
+          }
+        }
+      ],
+      "createdAt": "2026-06-11T12:16:59.186Z",
+      "updatedAt": "2026-06-11T12:16:59.196Z",
+      "idempotencyKey": "mycv:theme-toggle"
+    },
+    {
+      "id": "req-9baf72fbd530",
+      "type": "new_component",
+      "status": "pending_review",
+      "title": "Add CollapsibleCard",
+      "currentVersionId": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "createdAt": "2026-06-11T12:16:59.174Z",
+          "authorAgent": "my-cv-agent",
+          "rationale": "my-cv uses a collapsible, animated card for nested sections; controllable open state makes it broadly reusable.",
+          "payload": {
+            "kind": "component",
+            "meta": {
+              "id": "collapsible-card",
+              "name": "CollapsibleCard",
+              "category": "layout",
+              "description": "A card with an animated expand/collapse body and controllable open state.",
+              "tags": [
+                "card",
+                "layout",
+                "disclosure"
+              ],
+              "version": "1.0.0",
+              "author": "my-cv-agent",
+              "code": "\"use client\";\nimport React, { useState } from \"react\";\nimport { motion, AnimatePresence } from \"framer-motion\";\nimport { ChevronDown } from \"lucide-react\";\n\nexport interface CollapsibleCardProps {\n  title: string;\n  defaultOpen?: boolean;\n  scrollable?: boolean;\n  children: React.ReactNode;\n  className?: string;\n  open?: boolean;\n  onToggle?: (nextOpen: boolean) => void;\n}\n\nexport default function CollapsibleCard({\n  title,\n  defaultOpen = true,\n  scrollable = false,\n  children,\n  className = \"\",\n  open,\n  onToggle,\n}: CollapsibleCardProps) {\n  const [internalOpen, setInternalOpen] = useState(defaultOpen);\n  const isControlled = open !== undefined;\n  const isOpen = isControlled ? open : internalOpen;\n  const handleToggle = () => {\n    if (isControlled) onToggle?.(!isOpen);\n    else setInternalOpen(!isOpen);\n  };\n\n  return (\n    <div\n      className={`border border-neutral-200 dark:border-neutral-800 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 overflow-hidden flex flex-col ${className}`}\n      data-testid=\"rendered-component-collapsiblecard\"\n    >\n      <button\n        onClick={handleToggle}\n        className=\"w-full flex items-center justify-between p-4 hover:bg-neutral-100 dark:hover:bg-neutral-700/50 transition-colors shrink-0\"\n        aria-expanded={isOpen}\n      >\n        <h4 className=\"font-semibold text-neutral-800 dark:text-neutral-100 text-left\">{title}</h4>\n        <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>\n          <ChevronDown className=\"size-5 text-neutral-600 dark:text-neutral-400 shrink-0\" />\n        </motion.div>\n      </button>\n      <AnimatePresence initial={false}>\n        {isOpen && (\n          <motion.div\n            initial={{ height: 0, opacity: 0 }}\n            animate={{ height: \"auto\", opacity: 1 }}\n            exit={{ height: 0, opacity: 0 }}\n            transition={{ duration: 0.2, ease: \"easeInOut\" }}\n            className={`overflow-hidden flex-1 ${scrollable ? \"flex flex-col\" : \"\"}`}\n          >\n            <div className={`p-4 pt-0 ${scrollable ? \"max-h-[400px] overflow-y-auto\" : \"\"}`}>\n              {children}\n            </div>\n          </motion.div>\n        )}\n      </AnimatePresence>\n    </div>\n  );\n}\n",
+              "dependencies": [
+                "framer-motion",
+                "lucide-react"
+              ],
+              "props": [
+                {
+                  "name": "title",
+                  "type": "string",
+                  "required": true,
+                  "description": "Header label."
+                },
+                {
+                  "name": "children",
+                  "type": [
+                    "component",
+                    "function"
+                  ],
+                  "required": true,
+                  "description": "Collapsible content."
+                },
+                {
+                  "name": "defaultOpen",
+                  "type": "boolean",
+                  "required": false,
+                  "defaultValue": true,
+                  "description": "Initial open state (uncontrolled)."
+                },
+                {
+                  "name": "open",
+                  "type": "boolean",
+                  "required": false,
+                  "description": "Controlled open state."
+                },
+                {
+                  "name": "scrollable",
+                  "type": "boolean",
+                  "required": false,
+                  "defaultValue": false,
+                  "description": "Constrain body height and scroll."
+                },
+                {
+                  "name": "className",
+                  "type": "string",
+                  "required": false,
+                  "description": "Extra CSS classes."
+                }
+              ]
+            },
+            "files": [
+              {
+                "path": "components/display-components/cards/CollapsibleCard/CollapsibleCard.tsx",
+                "contents": "\"use client\";\nimport React, { useState } from \"react\";\nimport { motion, AnimatePresence } from \"framer-motion\";\nimport { ChevronDown } from \"lucide-react\";\n\nexport interface CollapsibleCardProps {\n  title: string;\n  defaultOpen?: boolean;\n  scrollable?: boolean;\n  children: React.ReactNode;\n  className?: string;\n  open?: boolean;\n  onToggle?: (nextOpen: boolean) => void;\n}\n\nexport default function CollapsibleCard({\n  title,\n  defaultOpen = true,\n  scrollable = false,\n  children,\n  className = \"\",\n  open,\n  onToggle,\n}: CollapsibleCardProps) {\n  const [internalOpen, setInternalOpen] = useState(defaultOpen);\n  const isControlled = open !== undefined;\n  const isOpen = isControlled ? open : internalOpen;\n  const handleToggle = () => {\n    if (isControlled) onToggle?.(!isOpen);\n    else setInternalOpen(!isOpen);\n  };\n\n  return (\n    <div\n      className={`border border-neutral-200 dark:border-neutral-800 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 overflow-hidden flex flex-col ${className}`}\n      data-testid=\"rendered-component-collapsiblecard\"\n    >\n      <button\n        onClick={handleToggle}\n        className=\"w-full flex items-center justify-between p-4 hover:bg-neutral-100 dark:hover:bg-neutral-700/50 transition-colors shrink-0\"\n        aria-expanded={isOpen}\n      >\n        <h4 className=\"font-semibold text-neutral-800 dark:text-neutral-100 text-left\">{title}</h4>\n        <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>\n          <ChevronDown className=\"size-5 text-neutral-600 dark:text-neutral-400 shrink-0\" />\n        </motion.div>\n      </button>\n      <AnimatePresence initial={false}>\n        {isOpen && (\n          <motion.div\n            initial={{ height: 0, opacity: 0 }}\n            animate={{ height: \"auto\", opacity: 1 }}\n            exit={{ height: 0, opacity: 0 }}\n            transition={{ duration: 0.2, ease: \"easeInOut\" }}\n            className={`overflow-hidden flex-1 ${scrollable ? \"flex flex-col\" : \"\"}`}\n          >\n            <div className={`p-4 pt-0 ${scrollable ? \"max-h-[400px] overflow-y-auto\" : \"\"}`}>\n              {children}\n            </div>\n          </motion.div>\n        )}\n      </AnimatePresence>\n    </div>\n  );\n}\n"
+              },
+              {
+                "path": "components/display-components/cards/CollapsibleCard/CollapsibleCard.meta.json",
+                "contents": "{}"
+              }
+            ]
+          },
+          "validation": {
+            "valid": true,
+            "checkedAt": "2026-06-11T12:16:59.183Z",
+            "issues": [],
+            "checks": [
+              {
+                "name": "payload-kind",
+                "passed": true
+              },
+              {
+                "name": "component-meta",
+                "passed": true
+              },
+              {
+                "name": "proposed-files",
+                "passed": true
+              },
+              {
+                "name": "file-syntax",
+                "passed": true
+              }
+            ]
+          }
+        }
+      ],
+      "createdAt": "2026-06-11T12:16:59.174Z",
+      "updatedAt": "2026-06-11T12:16:59.183Z",
+      "idempotencyKey": "mycv:collapsible-card"
+    },
+    {
+      "id": "req-9213c6f87b14",
+      "type": "new_component",
+      "status": "pending_review",
+      "title": "Add Reveal animation wrapper",
+      "currentVersionId": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "createdAt": "2026-06-11T12:16:59.141Z",
+          "authorAgent": "my-cv-agent",
+          "rationale": "my-cv uses a Reveal wrapper everywhere for scroll-triggered fade/slide/zoom; it is generic and reusable.",
+          "payload": {
+            "kind": "component",
+            "meta": {
+              "id": "reveal",
+              "name": "Reveal",
+              "category": "animation",
+              "description": "Animates children into view on scroll (fade/slide/zoom) with configurable direction and timing.",
+              "tags": [
+                "animation",
+                "motion",
+                "scroll"
+              ],
+              "version": "1.0.0",
+              "author": "my-cv-agent",
+              "code": "\"use client\";\nimport React from \"react\";\nimport { motion } from \"framer-motion\";\n\ntype Direction = \"up\" | \"down\" | \"left\" | \"right\" | \"none\";\n\nexport interface RevealProps {\n  children: React.ReactNode;\n  delay?: number;\n  duration?: number;\n  className?: string;\n  direction?: Direction;\n  distance?: number;\n  type?: \"fade\" | \"slide\" | \"zoom\";\n  once?: boolean;\n}\n\nexport default function Reveal({\n  children,\n  delay = 0,\n  duration = 0.6,\n  className,\n  direction = \"up\",\n  distance = 24,\n  type = \"fade\",\n  once = true,\n}: RevealProps) {\n  const offset =\n    direction === \"up\"\n      ? { x: 0, y: distance }\n      : direction === \"down\"\n        ? { x: 0, y: -distance }\n        : direction === \"left\"\n          ? { x: distance, y: 0 }\n          : direction === \"right\"\n            ? { x: -distance, y: 0 }\n            : { x: 0, y: 0 };\n\n  const initial =\n    type === \"slide\"\n      ? { opacity: 0, ...offset }\n      : type === \"zoom\"\n        ? { opacity: 0, scale: 0.95 }\n        : { opacity: 0 };\n\n  return (\n    <motion.div\n      initial={initial}\n      whileInView={{ opacity: 1, x: 0, y: 0, scale: 1 }}\n      viewport={{ once, amount: 0.15 }}\n      transition={{ delay, duration, ease: [0.22, 1, 0.36, 1] }}\n      className={className}\n      data-testid=\"rendered-component-reveal\"\n    >\n      {children}\n    </motion.div>\n  );\n}\n",
+              "dependencies": [
+                "framer-motion"
+              ],
+              "props": [
+                {
+                  "name": "children",
+                  "type": [
+                    "component",
+                    "function"
+                  ],
+                  "required": true,
+                  "description": "Content to reveal."
+                },
+                {
+                  "name": "type",
+                  "type": "enum",
+                  "required": false,
+                  "defaultValue": "fade",
+                  "options": [
+                    "fade",
+                    "slide",
+                    "zoom"
+                  ],
+                  "description": "Animation style."
+                },
+                {
+                  "name": "direction",
+                  "type": "enum",
+                  "required": false,
+                  "defaultValue": "up",
+                  "options": [
+                    "up",
+                    "down",
+                    "left",
+                    "right",
+                    "none"
+                  ],
+                  "description": "Slide direction."
+                },
+                {
+                  "name": "delay",
+                  "type": "number",
+                  "required": false,
+                  "defaultValue": 0,
+                  "description": "Delay in seconds."
+                },
+                {
+                  "name": "duration",
+                  "type": "number",
+                  "required": false,
+                  "defaultValue": 0.6,
+                  "description": "Duration in seconds."
+                },
+                {
+                  "name": "distance",
+                  "type": "number",
+                  "required": false,
+                  "defaultValue": 24,
+                  "description": "Slide distance in px."
+                },
+                {
+                  "name": "once",
+                  "type": "boolean",
+                  "required": false,
+                  "defaultValue": true,
+                  "description": "Animate only once."
+                },
+                {
+                  "name": "className",
+                  "type": "string",
+                  "required": false,
+                  "description": "Extra CSS classes."
+                }
+              ]
+            },
+            "files": [
+              {
+                "path": "components/display-components/animation/Reveal/Reveal.tsx",
+                "contents": "\"use client\";\nimport React from \"react\";\nimport { motion } from \"framer-motion\";\n\ntype Direction = \"up\" | \"down\" | \"left\" | \"right\" | \"none\";\n\nexport interface RevealProps {\n  children: React.ReactNode;\n  delay?: number;\n  duration?: number;\n  className?: string;\n  direction?: Direction;\n  distance?: number;\n  type?: \"fade\" | \"slide\" | \"zoom\";\n  once?: boolean;\n}\n\nexport default function Reveal({\n  children,\n  delay = 0,\n  duration = 0.6,\n  className,\n  direction = \"up\",\n  distance = 24,\n  type = \"fade\",\n  once = true,\n}: RevealProps) {\n  const offset =\n    direction === \"up\"\n      ? { x: 0, y: distance }\n      : direction === \"down\"\n        ? { x: 0, y: -distance }\n        : direction === \"left\"\n          ? { x: distance, y: 0 }\n          : direction === \"right\"\n            ? { x: -distance, y: 0 }\n            : { x: 0, y: 0 };\n\n  const initial =\n    type === \"slide\"\n      ? { opacity: 0, ...offset }\n      : type === \"zoom\"\n        ? { opacity: 0, scale: 0.95 }\n        : { opacity: 0 };\n\n  return (\n    <motion.div\n      initial={initial}\n      whileInView={{ opacity: 1, x: 0, y: 0, scale: 1 }}\n      viewport={{ once, amount: 0.15 }}\n      transition={{ delay, duration, ease: [0.22, 1, 0.36, 1] }}\n      className={className}\n      data-testid=\"rendered-component-reveal\"\n    >\n      {children}\n    </motion.div>\n  );\n}\n"
+              },
+              {
+                "path": "components/display-components/animation/Reveal/Reveal.meta.json",
+                "contents": "{}"
+              }
+            ]
+          },
+          "validation": {
+            "valid": true,
+            "checkedAt": "2026-06-11T12:16:59.171Z",
+            "issues": [],
+            "checks": [
+              {
+                "name": "payload-kind",
+                "passed": true
+              },
+              {
+                "name": "component-meta",
+                "passed": true
+              },
+              {
+                "name": "proposed-files",
+                "passed": true
+              },
+              {
+                "name": "file-syntax",
+                "passed": true
+              }
+            ]
+          }
+        }
+      ],
+      "createdAt": "2026-06-11T12:16:59.141Z",
+      "updatedAt": "2026-06-11T12:16:59.172Z",
+      "idempotencyKey": "mycv:reveal"
+    },
     {
       "id": "req-3ee6bec0c5af",
       "type": "component_update",
