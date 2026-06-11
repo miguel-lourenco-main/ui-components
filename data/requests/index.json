@@ -1,0 +1,363 @@
+{
+  "version": 1,
+  "generatedAt": "2026-06-11T11:33:02.689Z",
+  "requests": [
+    {
+      "id": "req-3ee6bec0c5af",
+      "type": "component_update",
+      "status": "needs_changes",
+      "title": "Add loading state to Button",
+      "targetId": "button",
+      "currentVersionId": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "createdAt": "2026-06-11T11:33:02.682Z",
+          "authorAgent": "cursor-agent",
+          "rationale": "Support an async loading state on Button.",
+          "payload": {
+            "kind": "component",
+            "meta": {
+              "id": "button",
+              "name": "Button",
+              "category": "form",
+              "description": "Button with an added loading state.",
+              "props": [
+                {
+                  "name": "loading",
+                  "type": "boolean",
+                  "required": false,
+                  "defaultValue": false,
+                  "description": "Shows a loading label and disables the button."
+                }
+              ],
+              "tags": [
+                "interactive",
+                "form",
+                "action"
+              ],
+              "version": "1.1.0",
+              "author": "Agent",
+              "code": "import React from 'react';\n\ninterface ButtonProps {\n  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';\n  size?: 'sm' | 'md' | 'lg' | 'icon';\n  children: React.ReactNode | (() => React.ReactNode);\n  loading?: boolean;\n  className?: string;\n}\n\nexport default function Button({ variant = 'primary', children, loading = false }: ButtonProps) {\n  return (\n    <button disabled={loading} data-testid=\"rendered-component-button\">\n      {loading ? 'Loading...' : (typeof children === 'function' ? children() : children)}\n    </button>\n  );\n}\n"
+            },
+            "files": [
+              {
+                "path": "components/display-components/buttons/Button/Button.tsx",
+                "contents": "import React from 'react';\n\ninterface ButtonProps {\n  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';\n  size?: 'sm' | 'md' | 'lg' | 'icon';\n  children: React.ReactNode | (() => React.ReactNode);\n  loading?: boolean;\n  className?: string;\n}\n\nexport default function Button({ variant = 'primary', children, loading = false }: ButtonProps) {\n  return (\n    <button disabled={loading} data-testid=\"rendered-component-button\">\n      {loading ? 'Loading...' : (typeof children === 'function' ? children() : children)}\n    </button>\n  );\n}\n"
+              }
+            ]
+          },
+          "validation": {
+            "valid": true,
+            "checkedAt": "2026-06-11T11:33:02.687Z",
+            "issues": [
+              {
+                "code": "convention.missing_meta",
+                "severity": "warning",
+                "message": "No metadata file (<Name>.meta.json) found among proposed files."
+              }
+            ],
+            "checks": [
+              {
+                "name": "payload-kind",
+                "passed": true
+              },
+              {
+                "name": "component-meta",
+                "passed": true
+              },
+              {
+                "name": "proposed-files",
+                "passed": true
+              },
+              {
+                "name": "file-syntax",
+                "passed": true
+              },
+              {
+                "name": "update-target",
+                "passed": true
+              }
+            ]
+          }
+        }
+      ],
+      "createdAt": "2026-06-11T11:33:02.682Z",
+      "updatedAt": "2026-06-11T11:33:02.689Z",
+      "idempotencyKey": "seed:button-loading",
+      "reviewDecision": {
+        "decision": "needs_changes",
+        "reviewer": "maintainer",
+        "notes": "Keep the existing size/variant props; don't drop them in the update.",
+        "decidedAt": "2026-06-11T11:33:02.688Z"
+      }
+    },
+    {
+      "id": "req-5d8926524c36",
+      "type": "new_theme",
+      "status": "pending_review",
+      "title": "Add Ocean theme",
+      "currentVersionId": "v1",
+      "versions": [
+        {
+          "id": "v1",
+          "createdAt": "2026-06-11T11:33:02.670Z",
+          "authorAgent": "cursor-agent",
+          "rationale": "A calming blue/teal palette derived from Modern.",
+          "payload": {
+            "kind": "theme",
+            "theme": {
+              "id": "ocean",
+              "name": "Ocean",
+              "description": "Cool blues and teals inspired by the sea.",
+              "colors": {
+                "light": {
+                  "primary": "#3b82f6",
+                  "secondary": "#64748b",
+                  "accent": "#06b6d4",
+                  "background": "#ffffff",
+                  "foreground": "#0f172a",
+                  "muted": "#f8fafc",
+                  "border": "#e2e8f0"
+                },
+                "dark": {
+                  "primary": "#60a5fa",
+                  "secondary": "#94a3b8",
+                  "accent": "#22d3ee",
+                  "background": "#0f172a",
+                  "foreground": "#f8fafc",
+                  "muted": "#1e293b",
+                  "border": "#334155"
+                }
+              },
+              "styles": {
+                "borderRadius": "0.5rem",
+                "fontWeight": "500",
+                "spacing": "comfortable"
+              },
+              "components": {
+                "light": {
+                  "button": {
+                    "primary": "bg-blue-600 hover:bg-blue-700 text-white border-0",
+                    "secondary": "bg-slate-100 hover:bg-slate-200 text-slate-900 border-0",
+                    "outline": "border-blue-300 text-blue-700 hover:bg-blue-50 bg-transparent",
+                    "ghost": "text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                  },
+                  "card": {
+                    "base": "border-slate-200 bg-white shadow-sm hover:shadow-md transition-shadow",
+                    "header": "border-b border-slate-100",
+                    "content": "text-slate-600"
+                  },
+                  "form": {
+                    "input": "border-slate-300 focus:border-blue-500 focus:ring-blue-500 bg-white text-slate-900",
+                    "label": "text-slate-700 font-medium",
+                    "focus": "ring-blue-500"
+                  },
+                  "alert": {
+                    "base": "border-blue-200 bg-blue-50",
+                    "text": "text-blue-800"
+                  },
+                  "badge": {
+                    "base": "bg-blue-100 text-blue-800 border-blue-200",
+                    "text": "text-blue-800"
+                  }
+                },
+                "dark": {
+                  "button": {
+                    "primary": "bg-blue-500 hover:bg-blue-400 text-white border-0",
+                    "secondary": "bg-slate-800 hover:bg-slate-700 text-slate-100 border-0",
+                    "outline": "border-blue-400 text-blue-400 hover:bg-blue-950 bg-transparent",
+                    "ghost": "text-blue-400 hover:text-blue-300 hover:bg-blue-950"
+                  },
+                  "card": {
+                    "base": "border-slate-700 bg-slate-900 shadow-lg hover:shadow-xl transition-shadow",
+                    "header": "border-b border-slate-700",
+                    "content": "text-slate-300"
+                  },
+                  "form": {
+                    "input": "border-slate-600 bg-slate-800 text-slate-100 focus:border-blue-400 focus:ring-blue-400",
+                    "label": "text-slate-300 font-medium",
+                    "focus": "ring-blue-400"
+                  },
+                  "alert": {
+                    "base": "border-blue-500 bg-blue-950",
+                    "text": "text-blue-200"
+                  },
+                  "badge": {
+                    "base": "bg-blue-900 text-blue-200 border-blue-500",
+                    "text": "text-blue-200"
+                  }
+                }
+              }
+            }
+          },
+          "validation": {
+            "valid": true,
+            "checkedAt": "2026-06-11T11:33:02.680Z",
+            "issues": [],
+            "checks": [
+              {
+                "name": "payload-kind",
+                "passed": true
+              },
+              {
+                "name": "theme",
+                "passed": true
+              }
+            ]
+          }
+        }
+      ],
+      "createdAt": "2026-06-11T11:33:02.670Z",
+      "updatedAt": "2026-06-11T11:33:02.681Z",
+      "idempotencyKey": "seed:ocean"
+    },
+    {
+      "id": "req-32c0edc7d3cc",
+      "type": "new_component",
+      "status": "pending_review",
+      "title": "Add Badge component",
+      "currentVersionId": "v2",
+      "versions": [
+        {
+          "id": "v1",
+          "createdAt": "2026-06-11T11:33:02.650Z",
+          "authorAgent": "cursor-agent",
+          "rationale": "Initial proposal for a status badge.",
+          "payload": {
+            "kind": "component",
+            "meta": {
+              "id": "badge",
+              "name": "Badge",
+              "category": "data-display",
+              "description": "Compact status descriptor with semantic color variants.",
+              "props": [
+                {
+                  "name": "children",
+                  "type": [
+                    "component",
+                    "function"
+                  ],
+                  "required": true,
+                  "description": "Badge content."
+                },
+                {
+                  "name": "variant",
+                  "type": "enum",
+                  "required": false,
+                  "defaultValue": "default",
+                  "options": [
+                    "default",
+                    "success",
+                    "warning",
+                    "danger"
+                  ],
+                  "description": "Semantic color variant."
+                }
+              ],
+              "tags": [
+                "status",
+                "data-display"
+              ],
+              "version": "1.0.0",
+              "author": "Agent",
+              "code": "import React from 'react';\n\ninterface BadgeProps {\n  children: React.ReactNode;\n  variant?: 'default' | 'success' | 'warning' | 'danger';\n}\n\nexport default function Badge({ children, variant = 'default' }: BadgeProps) {\n  const styles = {\n    default: 'bg-gray-100 text-gray-800',\n    success: 'bg-green-100 text-green-800',\n    warning: 'bg-yellow-100 text-yellow-800',\n    danger: 'bg-red-100 text-red-800',\n  };\n  return (\n    <span\n      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[variant]}`}\n      data-testid=\"rendered-component-badge\"\n    >\n      {children}\n    </span>\n  );\n}\n"
+            },
+            "files": [
+              {
+                "path": "components/display-components/data/Badge/Badge.tsx",
+                "contents": "import React from 'react';\n\ninterface BadgeProps {\n  children: React.ReactNode;\n  variant?: 'default' | 'success' | 'warning' | 'danger';\n}\n\nexport default function Badge({ children, variant = 'default' }: BadgeProps) {\n  const styles = {\n    default: 'bg-gray-100 text-gray-800',\n    success: 'bg-green-100 text-green-800',\n    warning: 'bg-yellow-100 text-yellow-800',\n    danger: 'bg-red-100 text-red-800',\n  };\n  return (\n    <span\n      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[variant]}`}\n      data-testid=\"rendered-component-badge\"\n    >\n      {children}\n    </span>\n  );\n}\n"
+              },
+              {
+                "path": "components/display-components/data/Badge/Badge.meta.json",
+                "contents": "{}"
+              }
+            ]
+          }
+        },
+        {
+          "id": "v2",
+          "createdAt": "2026-06-11T11:33:02.652Z",
+          "authorAgent": "cursor-agent",
+          "rationale": "Added semantic variants (success, warning, danger).",
+          "payload": {
+            "kind": "component",
+            "meta": {
+              "id": "badge",
+              "name": "Badge",
+              "category": "data-display",
+              "description": "Compact status descriptor with semantic color variants.",
+              "props": [
+                {
+                  "name": "children",
+                  "type": [
+                    "component",
+                    "function"
+                  ],
+                  "required": true,
+                  "description": "Badge content."
+                },
+                {
+                  "name": "variant",
+                  "type": "enum",
+                  "required": false,
+                  "defaultValue": "default",
+                  "options": [
+                    "default",
+                    "success",
+                    "warning",
+                    "danger"
+                  ],
+                  "description": "Semantic color variant."
+                }
+              ],
+              "tags": [
+                "status",
+                "data-display"
+              ],
+              "version": "1.0.0",
+              "author": "Agent",
+              "code": "import React from 'react';\n\ninterface BadgeProps {\n  children: React.ReactNode;\n  variant?: 'default' | 'success' | 'warning' | 'danger';\n}\n\nexport default function Badge({ children, variant = 'default' }: BadgeProps) {\n  const styles = {\n    default: 'bg-gray-100 text-gray-800',\n    success: 'bg-green-100 text-green-800',\n    warning: 'bg-yellow-100 text-yellow-800',\n    danger: 'bg-red-100 text-red-800',\n  };\n  return (\n    <span\n      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[variant]}`}\n      data-testid=\"rendered-component-badge\"\n    >\n      {children}\n    </span>\n  );\n}\n"
+            },
+            "files": [
+              {
+                "path": "components/display-components/data/Badge/Badge.tsx",
+                "contents": "import React from 'react';\n\ninterface BadgeProps {\n  children: React.ReactNode;\n  variant?: 'default' | 'success' | 'warning' | 'danger';\n}\n\nexport default function Badge({ children, variant = 'default' }: BadgeProps) {\n  const styles = {\n    default: 'bg-gray-100 text-gray-800',\n    success: 'bg-green-100 text-green-800',\n    warning: 'bg-yellow-100 text-yellow-800',\n    danger: 'bg-red-100 text-red-800',\n  };\n  return (\n    <span\n      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[variant]}`}\n      data-testid=\"rendered-component-badge\"\n    >\n      {children}\n    </span>\n  );\n}\n"
+              },
+              {
+                "path": "components/display-components/data/Badge/Badge.meta.json",
+                "contents": "{}"
+              }
+            ]
+          },
+          "validation": {
+            "valid": true,
+            "checkedAt": "2026-06-11T11:33:02.669Z",
+            "issues": [],
+            "checks": [
+              {
+                "name": "payload-kind",
+                "passed": true
+              },
+              {
+                "name": "component-meta",
+                "passed": true
+              },
+              {
+                "name": "proposed-files",
+                "passed": true
+              },
+              {
+                "name": "file-syntax",
+                "passed": true
+              }
+            ]
+          }
+        }
+      ],
+      "createdAt": "2026-06-11T11:33:02.650Z",
+      "updatedAt": "2026-06-11T11:33:02.669Z",
+      "idempotencyKey": "seed:badge"
+    }
+  ]
+}

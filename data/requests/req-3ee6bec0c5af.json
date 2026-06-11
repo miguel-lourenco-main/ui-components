@@ -1,0 +1,90 @@
+{
+  "id": "req-3ee6bec0c5af",
+  "type": "component_update",
+  "status": "needs_changes",
+  "title": "Add loading state to Button",
+  "targetId": "button",
+  "currentVersionId": "v1",
+  "versions": [
+    {
+      "id": "v1",
+      "createdAt": "2026-06-11T11:33:02.682Z",
+      "authorAgent": "cursor-agent",
+      "rationale": "Support an async loading state on Button.",
+      "payload": {
+        "kind": "component",
+        "meta": {
+          "id": "button",
+          "name": "Button",
+          "category": "form",
+          "description": "Button with an added loading state.",
+          "props": [
+            {
+              "name": "loading",
+              "type": "boolean",
+              "required": false,
+              "defaultValue": false,
+              "description": "Shows a loading label and disables the button."
+            }
+          ],
+          "tags": [
+            "interactive",
+            "form",
+            "action"
+          ],
+          "version": "1.1.0",
+          "author": "Agent",
+          "code": "import React from 'react';\n\ninterface ButtonProps {\n  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';\n  size?: 'sm' | 'md' | 'lg' | 'icon';\n  children: React.ReactNode | (() => React.ReactNode);\n  loading?: boolean;\n  className?: string;\n}\n\nexport default function Button({ variant = 'primary', children, loading = false }: ButtonProps) {\n  return (\n    <button disabled={loading} data-testid=\"rendered-component-button\">\n      {loading ? 'Loading...' : (typeof children === 'function' ? children() : children)}\n    </button>\n  );\n}\n"
+        },
+        "files": [
+          {
+            "path": "components/display-components/buttons/Button/Button.tsx",
+            "contents": "import React from 'react';\n\ninterface ButtonProps {\n  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';\n  size?: 'sm' | 'md' | 'lg' | 'icon';\n  children: React.ReactNode | (() => React.ReactNode);\n  loading?: boolean;\n  className?: string;\n}\n\nexport default function Button({ variant = 'primary', children, loading = false }: ButtonProps) {\n  return (\n    <button disabled={loading} data-testid=\"rendered-component-button\">\n      {loading ? 'Loading...' : (typeof children === 'function' ? children() : children)}\n    </button>\n  );\n}\n"
+          }
+        ]
+      },
+      "validation": {
+        "valid": true,
+        "checkedAt": "2026-06-11T11:33:02.687Z",
+        "issues": [
+          {
+            "code": "convention.missing_meta",
+            "severity": "warning",
+            "message": "No metadata file (<Name>.meta.json) found among proposed files."
+          }
+        ],
+        "checks": [
+          {
+            "name": "payload-kind",
+            "passed": true
+          },
+          {
+            "name": "component-meta",
+            "passed": true
+          },
+          {
+            "name": "proposed-files",
+            "passed": true
+          },
+          {
+            "name": "file-syntax",
+            "passed": true
+          },
+          {
+            "name": "update-target",
+            "passed": true
+          }
+        ]
+      }
+    }
+  ],
+  "createdAt": "2026-06-11T11:33:02.682Z",
+  "updatedAt": "2026-06-11T11:33:02.689Z",
+  "idempotencyKey": "seed:button-loading",
+  "reviewDecision": {
+    "decision": "needs_changes",
+    "reviewer": "maintainer",
+    "notes": "Keep the existing size/variant props; don't drop them in the update.",
+    "decidedAt": "2026-06-11T11:33:02.688Z"
+  }
+}

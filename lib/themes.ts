@@ -1,3 +1,5 @@
+import customThemesData from "@/data/themes/custom.json"
+
 export interface Theme {
   id: string
   name: string
@@ -86,7 +88,7 @@ export interface Theme {
 export type ThemeMode = "light" | "dark"
 export type ThemeComponentKey = keyof Theme["components"]["light"]
 
-export const themes: Theme[] = [
+const baseThemes: Theme[] = [
   {
     id: "minimal",
     name: "Minimal",
@@ -597,6 +599,28 @@ export const themes: Theme[] = [
     },
   },
 ]
+
+interface CustomThemesFile {
+  version: number
+  themes: Theme[]
+}
+
+/**
+ * Merge published custom themes (from `data/themes/custom.json`) over the base
+ * themes. Custom entries with an existing id override the base theme, which is
+ * how approved theme updates are applied. This makes `themes` a simple registry
+ * (base + custom) consumed by both the UI and the agent-facing theme reader.
+ */
+function mergeCustomThemes(base: Theme[]): Theme[] {
+  const custom = (customThemesData as CustomThemesFile).themes ?? []
+  const byId = new Map<string, Theme>(base.map((theme) => [theme.id, theme]))
+  for (const theme of custom) {
+    byId.set(theme.id, theme)
+  }
+  return Array.from(byId.values())
+}
+
+export const themes: Theme[] = mergeCustomThemes(baseThemes)
 
 export function getTheme(themeId: string): Theme | undefined {
   return themes.find((theme) => theme.id === themeId)

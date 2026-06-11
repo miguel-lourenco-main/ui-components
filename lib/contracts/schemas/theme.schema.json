@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ui-components.dev/contracts/theme.schema.json",
+  "title": "ThemeContract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "name", "description", "colors", "styles", "components"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1, "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "name": { "type": "string", "minLength": 1 },
+    "description": { "type": "string", "minLength": 1 },
+    "colors": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["light", "dark"],
+      "properties": {
+        "light": { "$ref": "#/$defs/colorTokens" },
+        "dark": { "$ref": "#/$defs/colorTokens" }
+      }
+    },
+    "styles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["borderRadius", "fontWeight", "spacing"],
+      "properties": {
+        "borderRadius": { "type": "string", "minLength": 1 },
+        "fontWeight": { "type": "string", "minLength": 1 },
+        "spacing": { "type": "string", "minLength": 1 }
+      }
+    },
+    "components": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["light", "dark"],
+      "properties": {
+        "light": { "$ref": "#/$defs/componentStyles" },
+        "dark": { "$ref": "#/$defs/componentStyles" }
+      }
+    }
+  },
+  "$defs": {
+    "colorTokens": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary", "secondary", "accent", "background", "foreground", "muted", "border"],
+      "properties": {
+        "primary": { "type": "string", "minLength": 1 },
+        "secondary": { "type": "string", "minLength": 1 },
+        "accent": { "type": "string", "minLength": 1 },
+        "background": { "type": "string", "minLength": 1 },
+        "foreground": { "type": "string", "minLength": 1 },
+        "muted": { "type": "string", "minLength": 1 },
+        "border": { "type": "string", "minLength": 1 }
+      }
+    },
+    "componentStyles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["button", "card", "form", "alert", "badge"],
+      "properties": {
+        "button": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["primary", "secondary", "outline", "ghost"],
+          "properties": {
+            "primary": { "type": "string" },
+            "secondary": { "type": "string" },
+            "outline": { "type": "string" },
+            "ghost": { "type": "string" }
+          }
+        },
+        "card": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["base", "header", "content"],
+          "properties": {
+            "base": { "type": "string" },
+            "header": { "type": "string" },
+            "content": { "type": "string" }
+          }
+        },
+        "form": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["input", "label", "focus"],
+          "properties": {
+            "input": { "type": "string" },
+            "label": { "type": "string" },
+            "focus": { "type": "string" }
+          }
+        },
+        "alert": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["base", "text"],
+          "properties": {
+            "base": { "type": "string" },
+            "text": { "type": "string" }
+          }
+        },
+        "badge": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["base", "text"],
+          "properties": {
+            "base": { "type": "string" },
+            "text": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

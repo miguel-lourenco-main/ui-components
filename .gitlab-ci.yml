@@ -17,6 +17,7 @@ cache:
 stages:
   - lint
   - typecheck
+  - verify
   - build
   - test
   - deploy
@@ -47,6 +48,35 @@ typecheck:
       when: never
     - when: always
 
+# Validate the component/theme registry against the shared contracts/schemas
+validate_registry:
+  stage: verify
+  # Node 20+ required by the unit test toolchain (vitest); use it here too.
+  image: node:20
+  before_script:
+    - npm install -g pnpm@10.14.0
+    - pnpm install --frozen-lockfile
+  script:
+    - pnpm run validate:registry
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+    - when: always
+
+# Unit tests for contracts, registry readers, request store, validation, MCP handlers
+unit_test:
+  stage: verify
+  image: node:20
+  before_script:
+    - npm install -g pnpm@10.14.0
+    - pnpm install --frozen-lockfile
+  script:
+    - pnpm run test:unit
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: never
+    - when: always
+
 # Build stage for all branches
 build:
   stage: build
@@ -66,6 +96,8 @@ build:
   needs:
     - lint
     - typecheck
+    - validate_registry
+    - unit_test
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: never

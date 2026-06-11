@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ui-components.dev/contracts/component-request.schema.json",
+  "title": "ComponentRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "type", "status", "title", "currentVersionId", "versions", "createdAt", "updatedAt"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "type": {
+      "type": "string",
+      "enum": ["new_component", "component_update", "new_theme", "theme_update"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "validation_failed", "pending_review", "needs_changes", "approved", "rejected", "published"]
+    },
+    "title": { "type": "string", "minLength": 1 },
+    "targetId": { "type": "string", "minLength": 1 },
+    "currentVersionId": { "type": "string", "minLength": 1 },
+    "idempotencyKey": { "type": "string", "minLength": 1 },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "reviewDecision": { "$ref": "#/$defs/reviewDecision" },
+    "versions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/version" }
+    }
+  },
+  "$defs": {
+    "version": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "createdAt", "rationale", "payload"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "authorAgent": { "type": "string" },
+        "rationale": { "type": "string", "minLength": 1 },
+        "payload": { "$ref": "#/$defs/payload" },
+        "validation": { "$ref": "#/$defs/validationResult" }
+      }
+    },
+    "payload": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "meta", "files"],
+          "properties": {
+            "kind": { "const": "component" },
+            "meta": { "type": "object" },
+            "files": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["path", "contents"],
+                "properties": {
+                  "path": { "type": "string", "minLength": 1 },
+                  "contents": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "theme"],
+          "properties": {
+            "kind": { "const": "theme" },
+            "theme": { "type": "object" }
+          }
+        }
+      ]
+    },
+    "reviewDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "reviewer", "decidedAt"],
+      "properties": {
+        "decision": { "type": "string", "enum": ["approved", "rejected", "needs_changes"] },
+        "reviewer": { "type": "string", "minLength": 1 },
+        "notes": { "type": "string" },
+        "decidedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "validationResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["valid", "checkedAt", "issues", "checks"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "checkedAt": { "type": "string", "format": "date-time" },
+        "issues": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "message", "severity"],
+            "properties": {
+              "code": { "type": "string", "minLength": 1 },
+              "message": { "type": "string", "minLength": 1 },
+              "severity": { "type": "string", "enum": ["error", "warning"] },
+              "path": { "type": "string" },
+              "location": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["line", "column"],
+                "properties": {
+                  "line": { "type": "number" },
+                  "column": { "type": "number" }
+                }
+              }
+            }
+          }
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "passed"],
+            "properties": {
+              "name": { "type": "string", "minLength": 1 },
+              "passed": { "type": "boolean" },
+              "details": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
