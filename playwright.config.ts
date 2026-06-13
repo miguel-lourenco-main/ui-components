@@ -1,6 +1,12 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
+ * Port the test server binds to. Defaults to 3000; override with
+ * PLAYWRIGHT_PORT when another app already occupies it locally.
+ */
+const PORT = Number(process.env.PLAYWRIGHT_PORT ?? 3000);
+
+/**
  * CI-specific Playwright configuration that uses pre-built static files
  * instead of starting its own dev server.
  */
@@ -21,7 +27,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://localhost:3000',
+    baseURL: `http://localhost:${PORT}`,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -67,16 +73,16 @@ export default defineConfig({
         // GitLab Pages serves branch deployments from /<branch>/..., so we add a
         // symlink inside `out/` when a branch slug exists.
         command: process.env.CI_COMMIT_REF_SLUG
-          ? `bash -lc "cd out && ln -sfn . ${process.env.CI_COMMIT_REF_SLUG} && cd .. && npx --yes serve -l 3000 out"`
-          : 'npx --yes serve -l 3000 out',
-        url: 'http://localhost:3000',
+          ? `bash -lc "cd out && ln -sfn . ${process.env.CI_COMMIT_REF_SLUG} && cd .. && npx --yes serve -l ${PORT} out"`
+          : `npx --yes serve -l ${PORT} out`,
+        url: `http://localhost:${PORT}`,
         reuseExistingServer: true,
         stdout: 'pipe',
         stderr: 'pipe',
       }
     : {
-        command: 'pnpm dev',
-        url: 'http://localhost:3000',
+        command: `pnpm dev -- --port ${PORT}`,
+        url: `http://localhost:${PORT}`,
         reuseExistingServer: true, // Always reuse existing server to avoid port conflicts
         stdout: 'pipe',
         stderr: 'pipe',

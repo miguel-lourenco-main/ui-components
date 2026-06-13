@@ -12,3 +12,17 @@ variables:
   ENABLE_VERCEL_DEPLOY: "0"
   ENABLE_COMMENT_MIRROR: "0"
   ENABLE_CI_FIX: "0"
+
+# Local jobs on top of the shared templates (MCP feature):
+# registry contract validation and unit tests. Node 20+ required by vitest.
+validate_registry:
+  stage: test
+  extends: .node22_pnpm
+  script:
+    - pnpm run validate:registry
+
+unit_test:
+  stage: test
+  extends: .node22_pnpm
+  script:
+    - pnpm run test:unit

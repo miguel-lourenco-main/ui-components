@@ -16,6 +16,13 @@ import { Palette, Grid3X3, LayoutGrid, Sun, Moon, ArrowLeft } from "lucide-react
 import { StylishCarousel } from "@/components/ui/stylish-carousel"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { CodeBlock } from "@/components/code-block"
+import { FadeIn } from "@/components/motion/fade-in"
+import { StaggerGroup, StaggerItem } from "@/components/motion/stagger"
+import { cardLinkClassName } from "@/components/glow-card"
+import { cn } from "@/lib/utils"
+
+const toggleFocusClassName =
+  "outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
 
 const BLACKLIST = (indexJson.blacklist || []) as string[]
 const ALL_COMPONENT_IDS = ((indexJson.components || []) as Array<{ id: string }>).map((c) => c.id)
@@ -107,7 +114,7 @@ export default function ThemesPage() {
                                   style={{ backgroundColor: color }}
                                 ></div>
                                 <p className="lg:block hidden text-sm font-medium capitalize">{name}</p>
-                                <p className="lg:block hidden stext-xs text-muted-foreground font-mono">{color}</p>
+                                <p className="lg:block hidden text-xs text-muted-foreground font-mono">{color}</p>
                               </div>
                             ))}
                           </div>
@@ -148,9 +155,9 @@ export default function ThemesPage() {
 
           <div className="grid gap-6">
             {THEME_COMPONENT_TYPES.map((componentType) => (
-              <Link href={`/components/?component=${componentType.id}`} key={componentType.id}>
+              <Link href={`/components/?component=${componentType.id}`} key={componentType.id} className={cardLinkClassName}>
                 <Card
-                  className={`transition-all duration-200 cursor-pointer group hover:shadow-lg dark:hover:shadow-[0_14px_24px_-6px_rgba(255,255,255,0.18),_0_6px_10px_-4px_rgba(255,255,255,0.12),_0_0_0_1px_rgba(255,255,255,0.06)]`}
+                  className={`transition-all duration-300 ease-out-expo cursor-pointer group hover:border-[hsl(var(--glow)/0.4)] hover:shadow-glow-sm`}
                 >
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
@@ -212,11 +219,11 @@ export default function ThemesPage() {
 
   return (
     <div className="container px-4 py-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
+      <div className="max-w-6xl mx-auto">
+        <FadeIn className="text-center mb-12">
           <div className="flex w-full items-center justify-center mb-4 space-x-2">
-            <Palette className="h-6 w-6" />
-            <h1 className="text-4xl font-bold">Design Themes</h1>
+            <Palette className="h-6 w-6" aria-hidden />
+            <h1 className="text-display text-4xl font-bold">Design Themes</h1>
           </div>
           <p className="text-xl text-muted-foreground mb-8">
             Explore consistent design themes that span across all components
@@ -228,20 +235,22 @@ export default function ThemesPage() {
               <div className="flex border rounded-md overflow-hidden">
                 <button
                   onClick={() => setViewMode("grid")}
-                  className={`px-2 py-1 flex items-center ${
+                  className={`px-2 py-1 flex items-center ${toggleFocusClassName} ${
                     viewMode === "grid" ? "bg-muted text-foreground" : "hover:bg-muted/50"
                   }`}
                   aria-label="Grid view"
+                  aria-pressed={viewMode === "grid"}
                 >
                   <Grid3X3 className="h-3.5 w-3.5 mr-1" />
                   Grid
                 </button>
                 <button
                   onClick={() => setViewMode("gallery")}
-                  className={`px-2 py-1 flex items-center ${
+                  className={`px-2 py-1 flex items-center ${toggleFocusClassName} ${
                     viewMode === "gallery" ? "bg-muted text-foreground" : "hover:bg-muted/50"
                   }`}
                   aria-label="Gallery view"
+                  aria-pressed={viewMode === "gallery"}
                 >
                   <LayoutGrid className="h-3.5 w-3.5 mr-1" />
                   Gallery
@@ -258,10 +267,11 @@ export default function ThemesPage() {
                     // Set all themes to light
                     setThemeModes(Object.fromEntries(themes.map((t) => [t.id, "light"])) as Record<string, "light" | "dark">)
                   }}
-                  className={`px-2 py-1 flex items-center ${
+                  className={`px-2 py-1 flex items-center ${toggleFocusClassName} ${
                     colorMode === "light" ? "bg-muted text-foreground" : "hover:bg-muted/50"
                   }`}
                   aria-label="Light mode"
+                  aria-pressed={colorMode === "light"}
                 >
                   <Sun className="h-3.5 w-3.5 mr-1" />
                   Light
@@ -272,10 +282,11 @@ export default function ThemesPage() {
                     // Set all themes to dark
                     setThemeModes(Object.fromEntries(themes.map((t) => [t.id, "dark"])) as Record<string, "light" | "dark">)
                   }}
-                  className={`px-2 py-1 flex items-center ${
+                  className={`px-2 py-1 flex items-center ${toggleFocusClassName} ${
                     colorMode === "dark" ? "bg-muted text-foreground" : "hover:bg-muted/50"
                   }`}
                   aria-label="Dark mode"
+                  aria-pressed={colorMode === "dark"}
                 >
                   <Moon className="h-3.5 w-3.5 mr-1" />
                   Dark
@@ -283,20 +294,21 @@ export default function ThemesPage() {
               </div>
             </div>
           </div>
-        </div>
+        </FadeIn>
 
         {viewMode === "grid" ? (
           // Grid Layout
-          <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
+          <StaggerGroup className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
             {themes.map((theme, idx) => {
               const localMode = themeModes[theme.id] ?? colorMode
               const bg = theme.colors[localMode].background
               const fg = theme.colors[localMode].foreground
               const cssVars = computeThemeCssVars(theme, localMode)
               return (
-              <Link className="block" key={theme.id} href={`/themes?theme=${theme.id}`}>
+              <StaggerItem key={theme.id}>
+              <Link className={cardLinkClassName} href={`/themes?theme=${theme.id}`}>
                 <Card
-                  className={`transition-all duration-200 border border-border cursor-pointer group hover:shadow-lg dark:hover:shadow-[0_14px_24px_-6px_rgba(255,255,255,0.18),_0_6px_10px_-4px_rgba(255,255,255,0.12),_0_0_0_1px_rgba(255,255,255,0.06)] w-full`}
+                  className={`transition-all duration-300 ease-out-expo border border-border cursor-pointer group hover:border-[hsl(var(--glow)/0.4)] hover:shadow-glow-sm w-full`}
                 >
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
@@ -332,8 +344,9 @@ export default function ThemesPage() {
                           e.stopPropagation()
                           setThemeModes((prev) => ({ ...prev, [theme.id]: "light" }))
                         }}
-                        className={`px-2 py-1 rounded border ${localMode === "light" ? "bg-muted" : "hover:bg-muted/50"}`}
+                        className={`px-2 py-1 rounded border ${toggleFocusClassName} ${localMode === "light" ? "bg-muted" : "hover:bg-muted/50"}`}
                         aria-label="Set light mode for theme"
+                        aria-pressed={localMode === "light"}
                       >
                         <Sun className="h-3.5 w-3.5" />
                       </button>
@@ -343,8 +356,9 @@ export default function ThemesPage() {
                           e.stopPropagation()
                           setThemeModes((prev) => ({ ...prev, [theme.id]: "dark" }))
                         }}
-                        className={`px-2 py-1 rounded border ${localMode === "dark" ? "bg-muted" : "hover:bg-muted/50"}`}
+                        className={`px-2 py-1 rounded border ${toggleFocusClassName} ${localMode === "dark" ? "bg-muted" : "hover:bg-muted/50"}`}
                         aria-label="Set dark mode for theme"
+                        aria-pressed={localMode === "dark"}
                       >
                         <Moon className="h-3.5 w-3.5" />
                       </button>
@@ -389,8 +403,9 @@ export default function ThemesPage() {
                   </CardContent>
                 </Card>
               </Link>
+              </StaggerItem>
             )})}
-          </div>
+          </StaggerGroup>
         ) : (
           // Gallery Layout
           <div className="space-y-4">
@@ -400,7 +415,23 @@ export default function ThemesPage() {
               const fg = theme.colors[localMode].foreground
               const cssVars = computeThemeCssVars(theme, localMode)
               return (
-              <section onClick={() => router.push(`/themes?theme=${theme.id}`)} key={theme.id} className="hover:cursor-pointer rounded-lg p-6 space-y-6 bg-card border border-border hover:shadow-lg dark:hover:shadow-[0_14px_24px_-6px_rgba(255,255,255,0.18),_0_6px_10px_-4px_rgba(255,255,255,0.12),_0_0_0_1px_rgba(255,255,255,0.06)] transition-all duration-200">
+              <section
+                onClick={() => router.push(`/themes?theme=${theme.id}`)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault()
+                    router.push(`/themes?theme=${theme.id}`)
+                  }
+                }}
+                role="link"
+                tabIndex={0}
+                aria-label={`View ${theme.name} theme details`}
+                key={theme.id}
+                className={cn(
+                  "hover:cursor-pointer rounded-lg p-6 space-y-6 bg-card border border-border hover:border-[hsl(var(--glow)/0.4)] hover:shadow-glow-sm transition-all duration-300 ease-out-expo",
+                  toggleFocusClassName,
+                )}
+              >
                 <header className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
@@ -426,16 +457,24 @@ export default function ThemesPage() {
                     {/* Per-theme light/dark toggle for gallery view */}
                     <div className="flex items-center gap-1">
                       <button
-                        onClick={() => setThemeModes((prev) => ({ ...prev, [theme.id]: "light" }))}
-                        className={`px-2 py-0.5 rounded border ${localMode === "light" ? "bg-muted" : "hover:bg-muted/50"}`}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setThemeModes((prev) => ({ ...prev, [theme.id]: "light" }))
+                        }}
+                        className={`px-2 py-0.5 rounded border ${toggleFocusClassName} ${localMode === "light" ? "bg-muted" : "hover:bg-muted/50"}`}
                         aria-label="Set light mode for theme"
+                        aria-pressed={localMode === "light"}
                       >
                         <Sun className="h-3.5 w-3.5" />
                       </button>
                       <button
-                        onClick={() => setThemeModes((prev) => ({ ...prev, [theme.id]: "dark" }))}
-                        className={`px-2 py-0.5 rounded border ${localMode === "dark" ? "bg-muted" : "hover:bg-muted/50"}`}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setThemeModes((prev) => ({ ...prev, [theme.id]: "dark" }))
+                        }}
+                        className={`px-2 py-0.5 rounded border ${toggleFocusClassName} ${localMode === "dark" ? "bg-muted" : "hover:bg-muted/50"}`}
                         aria-label="Set dark mode for theme"
+                        aria-pressed={localMode === "dark"}
                       >
                         <Moon className="h-3.5 w-3.5" />
                       </button>

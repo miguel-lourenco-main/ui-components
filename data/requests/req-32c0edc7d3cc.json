@@ -1,0 +1,147 @@
+{
+  "id": "req-32c0edc7d3cc",
+  "type": "new_component",
+  "status": "pending_review",
+  "title": "Add Badge component",
+  "currentVersionId": "v2",
+  "versions": [
+    {
+      "id": "v1",
+      "createdAt": "2026-06-11T11:33:02.650Z",
+      "authorAgent": "cursor-agent",
+      "rationale": "Initial proposal for a status badge.",
+      "payload": {
+        "kind": "component",
+        "meta": {
+          "id": "badge",
+          "name": "Badge",
+          "category": "data-display",
+          "description": "Compact status descriptor with semantic color variants.",
+          "props": [
+            {
+              "name": "children",
+              "type": [
+                "component",
+                "function"
+              ],
+              "required": true,
+              "description": "Badge content."
+            },
+            {
+              "name": "variant",
+              "type": "enum",
+              "required": false,
+              "defaultValue": "default",
+              "options": [
+                "default",
+                "success",
+                "warning",
+                "danger"
+              ],
+              "description": "Semantic color variant."
+            }
+          ],
+          "tags": [
+            "status",
+            "data-display"
+          ],
+          "version": "1.0.0",
+          "author": "Agent",
+          "code": "import React from 'react';\n\ninterface BadgeProps {\n  children: React.ReactNode;\n  variant?: 'default' | 'success' | 'warning' | 'danger';\n}\n\nexport default function Badge({ children, variant = 'default' }: BadgeProps) {\n  const styles = {\n    default: 'bg-gray-100 text-gray-800',\n    success: 'bg-green-100 text-green-800',\n    warning: 'bg-yellow-100 text-yellow-800',\n    danger: 'bg-red-100 text-red-800',\n  };\n  return (\n    <span\n      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[variant]}`}\n      data-testid=\"rendered-component-badge\"\n    >\n      {children}\n    </span>\n  );\n}\n"
+        },
+        "files": [
+          {
+            "path": "components/display-components/data/Badge/Badge.tsx",
+            "contents": "import React from 'react';\n\ninterface BadgeProps {\n  children: React.ReactNode;\n  variant?: 'default' | 'success' | 'warning' | 'danger';\n}\n\nexport default function Badge({ children, variant = 'default' }: BadgeProps) {\n  const styles = {\n    default: 'bg-gray-100 text-gray-800',\n    success: 'bg-green-100 text-green-800',\n    warning: 'bg-yellow-100 text-yellow-800',\n    danger: 'bg-red-100 text-red-800',\n  };\n  return (\n    <span\n      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[variant]}`}\n      data-testid=\"rendered-component-badge\"\n    >\n      {children}\n    </span>\n  );\n}\n"
+          },
+          {
+            "path": "components/display-components/data/Badge/Badge.meta.json",
+            "contents": "{}"
+          }
+        ]
+      }
+    },
+    {
+      "id": "v2",
+      "createdAt": "2026-06-11T11:33:02.652Z",
+      "authorAgent": "cursor-agent",
+      "rationale": "Added semantic variants (success, warning, danger).",
+      "payload": {
+        "kind": "component",
+        "meta": {
+          "id": "badge",
+          "name": "Badge",
+          "category": "data-display",
+          "description": "Compact status descriptor with semantic color variants.",
+          "props": [
+            {
+              "name": "children",
+              "type": [
+                "component",
+                "function"
+              ],
+              "required": true,
+              "description": "Badge content."
+            },
+            {
+              "name": "variant",
+              "type": "enum",
+              "required": false,
+              "defaultValue": "default",
+              "options": [
+                "default",
+                "success",
+                "warning",
+                "danger"
+              ],
+              "description": "Semantic color variant."
+            }
+          ],
+          "tags": [
+            "status",
+            "data-display"
+          ],
+          "version": "1.0.0",
+          "author": "Agent",
+          "code": "import React from 'react';\n\ninterface BadgeProps {\n  children: React.ReactNode;\n  variant?: 'default' | 'success' | 'warning' | 'danger';\n}\n\nexport default function Badge({ children, variant = 'default' }: BadgeProps) {\n  const styles = {\n    default: 'bg-gray-100 text-gray-800',\n    success: 'bg-green-100 text-green-800',\n    warning: 'bg-yellow-100 text-yellow-800',\n    danger: 'bg-red-100 text-red-800',\n  };\n  return (\n    <span\n      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[variant]}`}\n      data-testid=\"rendered-component-badge\"\n    >\n      {children}\n    </span>\n  );\n}\n"
+        },
+        "files": [
+          {
+            "path": "components/display-components/data/Badge/Badge.tsx",
+            "contents": "import React from 'react';\n\ninterface BadgeProps {\n  children: React.ReactNode;\n  variant?: 'default' | 'success' | 'warning' | 'danger';\n}\n\nexport default function Badge({ children, variant = 'default' }: BadgeProps) {\n  const styles = {\n    default: 'bg-gray-100 text-gray-800',\n    success: 'bg-green-100 text-green-800',\n    warning: 'bg-yellow-100 text-yellow-800',\n    danger: 'bg-red-100 text-red-800',\n  };\n  return (\n    <span\n      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[variant]}`}\n      data-testid=\"rendered-component-badge\"\n    >\n      {children}\n    </span>\n  );\n}\n"
+          },
+          {
+            "path": "components/display-components/data/Badge/Badge.meta.json",
+            "contents": "{}"
+          }
+        ]
+      },
+      "validation": {
+        "valid": true,
+        "checkedAt": "2026-06-11T11:33:02.669Z",
+        "issues": [],
+        "checks": [
+          {
+            "name": "payload-kind",
+            "passed": true
+          },
+          {
+            "name": "component-meta",
+            "passed": true
+          },
+          {
+            "name": "proposed-files",
+            "passed": true
+          },
+          {
+            "name": "file-syntax",
+            "passed": true
+          }
+        ]
+      }
+    }
+  ],
+  "createdAt": "2026-06-11T11:33:02.650Z",
+  "updatedAt": "2026-06-11T11:33:02.669Z",
+  "idempotencyKey": "seed:badge"
+}

@@ -9,12 +9,20 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test:e2e": "pnpm exec playwright test",
-    "test:e2e:ui": "pnpm exec playwright test --ui"
+    "test:e2e:ui": "pnpm exec playwright test --ui",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
+    "validate:registry": "tsx scripts/validate-registry.ts",
+    "seed:requests": "tsx scripts/seed-requests.ts",
+    "publish:request": "tsx scripts/publish-request.ts",
+    "mcp": "tsx mcp/server.ts",
+    "mcp:dev": "tsx watch mcp/server.ts"
   },
   "dependencies": {
     "@babel/parser": "^7.28.0",
     "@babel/standalone": "^7.28.2",
     "@babel/traverse": "^7.28.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@monaco-editor/react": "^4.7.0",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -49,6 +57,8 @@
     "@wojtekmaj/react-hooks": "^2.0.1",
     "acorn": "^8.15.0",
     "acorn-walk": "^8.3.4",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -89,7 +99,9 @@
     "eslint-config-next": "14.0.4",
     "knip": "^5.71.0",
     "postcss": "^8.5.6",
-    "sharp": "^0.34.5"
+    "sharp": "^0.34.5",
+    "tsx": "^4.22.4",
+    "vitest": "^4.1.8"
   },
   "packageManager": "pnpm@10.14.0"
 }

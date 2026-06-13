@@ -27,14 +27,6 @@ export function PageTransition({ children }: PageTransitionProps) {
     prevIndexRef.current = currentIndex
   }, [currentIndex])
 
-  // Debug logs to inspect the values
-  console.log({
-    component: componentParam,
-    prevIndex,
-    currentIndex,
-    direction,
-  })
-
   const variants = {
     enter: (direction: number) => ({
       x: direction > 0 ? "100%" : "-100%",

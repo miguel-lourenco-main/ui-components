@@ -1,0 +1,155 @@
+{
+  "id": "req-80f75c51b822",
+  "type": "new_component",
+  "status": "pending_review",
+  "title": "Add ThemeToggle",
+  "currentVersionId": "v2",
+  "versions": [
+    {
+      "id": "v1",
+      "createdAt": "2026-06-11T12:16:59.186Z",
+      "authorAgent": "my-cv-agent",
+      "rationale": "my-cv has a theme switcher; adapt it to next-themes (used by this library).",
+      "payload": {
+        "kind": "component",
+        "meta": {
+          "id": "theme-toggle",
+          "name": "ThemeToggle",
+          "category": "actions",
+          "description": "Cycles light/dark/system themes using next-themes.",
+          "tags": [
+            "theme",
+            "button",
+            "action"
+          ],
+          "version": "1.0.0",
+          "author": "my-cv-agent",
+          "code": "\"use client\";\nimport { useTheme } from \"next-themes\";\nexport default function ThemeToggle( {\n  const { theme, setTheme } = useTheme();\n  return <button>broken</button>\n",
+          "dependencies": [
+            "next-themes",
+            "lucide-react"
+          ],
+          "props": []
+        },
+        "files": [
+          {
+            "path": "components/display-components/actions/ThemeToggle/ThemeToggle.tsx",
+            "contents": "\"use client\";\nimport { useTheme } from \"next-themes\";\nexport default function ThemeToggle( {\n  const { theme, setTheme } = useTheme();\n  return <button>broken</button>\n"
+          },
+          {
+            "path": "components/display-components/actions/ThemeToggle/ThemeToggle.meta.json",
+            "contents": "{}"
+          }
+        ]
+      },
+      "validation": {
+        "valid": false,
+        "checkedAt": "2026-06-11T12:16:59.188Z",
+        "issues": [
+          {
+            "code": "code.syntax_error",
+            "severity": "error",
+            "message": "Unexpected keyword 'const'.",
+            "path": "ThemeToggle.meta.json#code",
+            "location": {
+              "line": 4,
+              "column": 3
+            }
+          },
+          {
+            "code": "code.syntax_error",
+            "severity": "error",
+            "message": "Unexpected keyword 'const'.",
+            "path": "components/display-components/actions/ThemeToggle/ThemeToggle.tsx",
+            "location": {
+              "line": 4,
+              "column": 3
+            }
+          }
+        ],
+        "checks": [
+          {
+            "name": "payload-kind",
+            "passed": true
+          },
+          {
+            "name": "component-meta",
+            "passed": false
+          },
+          {
+            "name": "proposed-files",
+            "passed": true
+          },
+          {
+            "name": "file-syntax",
+            "passed": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "v2",
+      "createdAt": "2026-06-11T12:16:59.192Z",
+      "authorAgent": "my-cv-agent",
+      "rationale": "Fix syntax error and use full next-themes implementation with icons.",
+      "payload": {
+        "kind": "component",
+        "meta": {
+          "id": "theme-toggle",
+          "name": "ThemeToggle",
+          "category": "actions",
+          "description": "Cycles light/dark/system themes using next-themes.",
+          "tags": [
+            "theme",
+            "button",
+            "action"
+          ],
+          "version": "1.0.1",
+          "author": "my-cv-agent",
+          "code": "\"use client\";\nimport { useEffect, useState } from \"react\";\nimport { useTheme } from \"next-themes\";\nimport { Sun, Moon, Monitor } from \"lucide-react\";\n\nexport default function ThemeToggle() {\n  const { theme, setTheme } = useTheme();\n  const [mounted, setMounted] = useState(false);\n  useEffect(() => setMounted(true), []);\n\n  if (!mounted) {\n    return (\n      <div className=\"w-9 h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800\" />\n    );\n  }\n\n  const next = theme === \"light\" ? \"dark\" : theme === \"dark\" ? \"system\" : \"light\";\n  const Icon = theme === \"dark\" ? Moon : theme === \"system\" ? Monitor : Sun;\n\n  return (\n    <button\n      onClick={() => setTheme(next)}\n      title={`Switch to ${next} mode`}\n      aria-label={`Switch to ${next} mode`}\n      className=\"inline-flex items-center justify-center w-9 h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2\"\n      data-testid=\"rendered-component-themetoggle\"\n    >\n      <Icon className=\"w-5 h-5\" />\n    </button>\n  );\n}\n",
+          "dependencies": [
+            "next-themes",
+            "lucide-react"
+          ],
+          "props": []
+        },
+        "files": [
+          {
+            "path": "components/display-components/actions/ThemeToggle/ThemeToggle.tsx",
+            "contents": "\"use client\";\nimport { useEffect, useState } from \"react\";\nimport { useTheme } from \"next-themes\";\nimport { Sun, Moon, Monitor } from \"lucide-react\";\n\nexport default function ThemeToggle() {\n  const { theme, setTheme } = useTheme();\n  const [mounted, setMounted] = useState(false);\n  useEffect(() => setMounted(true), []);\n\n  if (!mounted) {\n    return (\n      <div className=\"w-9 h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800\" />\n    );\n  }\n\n  const next = theme === \"light\" ? \"dark\" : theme === \"dark\" ? \"system\" : \"light\";\n  const Icon = theme === \"dark\" ? Moon : theme === \"system\" ? Monitor : Sun;\n\n  return (\n    <button\n      onClick={() => setTheme(next)}\n      title={`Switch to ${next} mode`}\n      aria-label={`Switch to ${next} mode`}\n      className=\"inline-flex items-center justify-center w-9 h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2\"\n      data-testid=\"rendered-component-themetoggle\"\n    >\n      <Icon className=\"w-5 h-5\" />\n    </button>\n  );\n}\n"
+          },
+          {
+            "path": "components/display-components/actions/ThemeToggle/ThemeToggle.meta.json",
+            "contents": "{}"
+          }
+        ]
+      },
+      "validation": {
+        "valid": true,
+        "checkedAt": "2026-06-11T12:16:59.196Z",
+        "issues": [],
+        "checks": [
+          {
+            "name": "payload-kind",
+            "passed": true
+          },
+          {
+            "name": "component-meta",
+            "passed": true
+          },
+          {
+            "name": "proposed-files",
+            "passed": true
+          },
+          {
+            "name": "file-syntax",
+            "passed": true
+          }
+        ]
+      }
+    }
+  ],
+  "createdAt": "2026-06-11T12:16:59.186Z",
+  "updatedAt": "2026-06-11T12:16:59.196Z",
+  "idempotencyKey": "mycv:theme-toggle"
+}

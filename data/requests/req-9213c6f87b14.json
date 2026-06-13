@@ -1,0 +1,142 @@
+{
+  "id": "req-9213c6f87b14",
+  "type": "new_component",
+  "status": "pending_review",
+  "title": "Add Reveal animation wrapper",
+  "currentVersionId": "v1",
+  "versions": [
+    {
+      "id": "v1",
+      "createdAt": "2026-06-11T12:16:59.141Z",
+      "authorAgent": "my-cv-agent",
+      "rationale": "my-cv uses a Reveal wrapper everywhere for scroll-triggered fade/slide/zoom; it is generic and reusable.",
+      "payload": {
+        "kind": "component",
+        "meta": {
+          "id": "reveal",
+          "name": "Reveal",
+          "category": "animation",
+          "description": "Animates children into view on scroll (fade/slide/zoom) with configurable direction and timing.",
+          "tags": [
+            "animation",
+            "motion",
+            "scroll"
+          ],
+          "version": "1.0.0",
+          "author": "my-cv-agent",
+          "code": "\"use client\";\nimport React from \"react\";\nimport { motion } from \"framer-motion\";\n\ntype Direction = \"up\" | \"down\" | \"left\" | \"right\" | \"none\";\n\nexport interface RevealProps {\n  children: React.ReactNode;\n  delay?: number;\n  duration?: number;\n  className?: string;\n  direction?: Direction;\n  distance?: number;\n  type?: \"fade\" | \"slide\" | \"zoom\";\n  once?: boolean;\n}\n\nexport default function Reveal({\n  children,\n  delay = 0,\n  duration = 0.6,\n  className,\n  direction = \"up\",\n  distance = 24,\n  type = \"fade\",\n  once = true,\n}: RevealProps) {\n  const offset =\n    direction === \"up\"\n      ? { x: 0, y: distance }\n      : direction === \"down\"\n        ? { x: 0, y: -distance }\n        : direction === \"left\"\n          ? { x: distance, y: 0 }\n          : direction === \"right\"\n            ? { x: -distance, y: 0 }\n            : { x: 0, y: 0 };\n\n  const initial =\n    type === \"slide\"\n      ? { opacity: 0, ...offset }\n      : type === \"zoom\"\n        ? { opacity: 0, scale: 0.95 }\n        : { opacity: 0 };\n\n  return (\n    <motion.div\n      initial={initial}\n      whileInView={{ opacity: 1, x: 0, y: 0, scale: 1 }}\n      viewport={{ once, amount: 0.15 }}\n      transition={{ delay, duration, ease: [0.22, 1, 0.36, 1] }}\n      className={className}\n      data-testid=\"rendered-component-reveal\"\n    >\n      {children}\n    </motion.div>\n  );\n}\n",
+          "dependencies": [
+            "framer-motion"
+          ],
+          "props": [
+            {
+              "name": "children",
+              "type": [
+                "component",
+                "function"
+              ],
+              "required": true,
+              "description": "Content to reveal."
+            },
+            {
+              "name": "type",
+              "type": "enum",
+              "required": false,
+              "defaultValue": "fade",
+              "options": [
+                "fade",
+                "slide",
+                "zoom"
+              ],
+              "description": "Animation style."
+            },
+            {
+              "name": "direction",
+              "type": "enum",
+              "required": false,
+              "defaultValue": "up",
+              "options": [
+                "up",
+                "down",
+                "left",
+                "right",
+                "none"
+              ],
+              "description": "Slide direction."
+            },
+            {
+              "name": "delay",
+              "type": "number",
+              "required": false,
+              "defaultValue": 0,
+              "description": "Delay in seconds."
+            },
+            {
+              "name": "duration",
+              "type": "number",
+              "required": false,
+              "defaultValue": 0.6,
+              "description": "Duration in seconds."
+            },
+            {
+              "name": "distance",
+              "type": "number",
+              "required": false,
+              "defaultValue": 24,
+              "description": "Slide distance in px."
+            },
+            {
+              "name": "once",
+              "type": "boolean",
+              "required": false,
+              "defaultValue": true,
+              "description": "Animate only once."
+            },
+            {
+              "name": "className",
+              "type": "string",
+              "required": false,
+              "description": "Extra CSS classes."
+            }
+          ]
+        },
+        "files": [
+          {
+            "path": "components/display-components/animation/Reveal/Reveal.tsx",
+            "contents": "\"use client\";\nimport React from \"react\";\nimport { motion } from \"framer-motion\";\n\ntype Direction = \"up\" | \"down\" | \"left\" | \"right\" | \"none\";\n\nexport interface RevealProps {\n  children: React.ReactNode;\n  delay?: number;\n  duration?: number;\n  className?: string;\n  direction?: Direction;\n  distance?: number;\n  type?: \"fade\" | \"slide\" | \"zoom\";\n  once?: boolean;\n}\n\nexport default function Reveal({\n  children,\n  delay = 0,\n  duration = 0.6,\n  className,\n  direction = \"up\",\n  distance = 24,\n  type = \"fade\",\n  once = true,\n}: RevealProps) {\n  const offset =\n    direction === \"up\"\n      ? { x: 0, y: distance }\n      : direction === \"down\"\n        ? { x: 0, y: -distance }\n        : direction === \"left\"\n          ? { x: distance, y: 0 }\n          : direction === \"right\"\n            ? { x: -distance, y: 0 }\n            : { x: 0, y: 0 };\n\n  const initial =\n    type === \"slide\"\n      ? { opacity: 0, ...offset }\n      : type === \"zoom\"\n        ? { opacity: 0, scale: 0.95 }\n        : { opacity: 0 };\n\n  return (\n    <motion.div\n      initial={initial}\n      whileInView={{ opacity: 1, x: 0, y: 0, scale: 1 }}\n      viewport={{ once, amount: 0.15 }}\n      transition={{ delay, duration, ease: [0.22, 1, 0.36, 1] }}\n      className={className}\n      data-testid=\"rendered-component-reveal\"\n    >\n      {children}\n    </motion.div>\n  );\n}\n"
+          },
+          {
+            "path": "components/display-components/animation/Reveal/Reveal.meta.json",
+            "contents": "{}"
+          }
+        ]
+      },
+      "validation": {
+        "valid": true,
+        "checkedAt": "2026-06-11T12:16:59.171Z",
+        "issues": [],
+        "checks": [
+          {
+            "name": "payload-kind",
+            "passed": true
+          },
+          {
+            "name": "component-meta",
+            "passed": true
+          },
+          {
+            "name": "proposed-files",
+            "passed": true
+          },
+          {
+            "name": "file-syntax",
+            "passed": true
+          }
+        ]
+      }
+    }
+  ],
+  "createdAt": "2026-06-11T12:16:59.141Z",
+  "updatedAt": "2026-06-11T12:16:59.172Z",
+  "idempotencyKey": "mycv:reveal"
+}

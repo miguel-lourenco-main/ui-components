@@ -5,57 +5,70 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 98%;
-    --card-foreground: 0 0% 3.9%;
+    --foreground: 240 10% 8%;
+    --card: 0 0% 99%;
+    --card-foreground: 240 10% 8%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
+    --popover-foreground: 240 10% 8%;
+    --primary: 235 50% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 8% 96%;
+    --secondary-foreground: 240 10% 12%;
+    --muted: 240 8% 96%;
+    --muted-foreground: 240 5% 42%;
+    --accent: 240 8% 95%;
+    --accent-foreground: 240 10% 12%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
+    --border: 240 8% 89%;
+    --input: 240 8% 89%;
+    --ring: 235 50% 50%;
     --radius: 0.5rem;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+
+    /* App-shell-only tokens (never consumed inside components/ui primitives) */
+    --glow: 235 56% 60%;
+    --surface-elevated: 240 8% 98%;
+    --primary-text: 235 50% 46%;
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --dur-fast: 200ms;
+    --dur-base: 350ms;
   }
 
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 6%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --background: 240 20% 3%;
+    --foreground: 240 6% 93%;
+    --card: 240 9% 4.5%;
+    --card-foreground: 240 6% 93%;
+    --popover: 240 14% 4%;
+    --popover-foreground: 240 6% 93%;
+    --primary: 235 56% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 8% 10%;
+    --secondary-foreground: 240 6% 93%;
+    --muted: 240 8% 10%;
+    --muted-foreground: 222 6% 60%;
+    --accent: 240 8% 10%;
+    --accent-foreground: 240 6% 93%;
+    --destructive: 0 62.8% 40%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 22%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+    --border: 240 10% 12%;
+    --input: 240 10% 12%;
+    --ring: 235 70% 70%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+
+    /* App-shell-only tokens */
+    --glow: 235 56% 60%;
+    --surface-elevated: 240 8% 8%;
+    --primary-text: 235 70% 72%;
   }
 }
 
@@ -120,4 +133,72 @@
 
 .slide-in-right {
   animation: slideInFromRight 300ms ease-out forwards;
+}
+
+/* ---------------------------------------------------------------------------
+ * App-shell utilities (cinematic dark design language)
+ * ------------------------------------------------------------------------ */
+
+@layer utilities {
+  /* Display typography — the "Linear look" without a second font payload */
+  .text-display {
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    font-feature-settings: "cv11", "ss01";
+    text-wrap: balance;
+  }
+
+  /* Frosted-glass surface for sticky chrome */
+  .glass {
+    @apply border-border/50 bg-background/60 backdrop-blur-xl;
+  }
+
+  /* Headline gradient: foreground fading into indigo */
+  .gradient-text {
+    @apply bg-gradient-to-br from-foreground via-foreground to-[hsl(var(--glow))] bg-clip-text text-transparent;
+  }
+
+  /* Soft indigo halo behind primary CTAs */
+  .glow-primary {
+    box-shadow: 0 0 40px hsl(var(--glow) / 0.25);
+  }
+
+  /* Indigo text that passes AA in both modes (app-shell links/labels) */
+  .text-primary-accent {
+    color: hsl(var(--primary-text));
+  }
+}
+
+/* Ambient hero blobs — transform-only, GPU friendly */
+@keyframes blob-float-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(4rem, -3rem) scale(1.15); }
+  66% { transform: translate(-3rem, 2rem) scale(0.95); }
+}
+
+@keyframes blob-float-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  40% { transform: translate(-4rem, 3rem) scale(1.1); }
+  70% { transform: translate(3rem, -2rem) scale(0.9); }
+}
+
+@keyframes blob-float-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(2rem, 3rem) scale(1.2); }
+}
+
+.animate-blob-1 { animation: blob-float-1 22s var(--ease-out-expo) infinite; }
+.animate-blob-2 { animation: blob-float-2 26s var(--ease-out-expo) infinite; }
+.animate-blob-3 { animation: blob-float-3 18s var(--ease-out-expo) infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-blob-1,
+  .animate-blob-2,
+  .animate-blob-3,
+  .slide-in-left,
+  .slide-in-right,
+  .animate-marquee,
+  .animate-marquee-reverse {
+    animation: none !important;
+  }
 } 
