@@ -85,7 +85,11 @@ export function ComponentNavigation({ currentComponent }: ComponentNavigationPro
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
             {COMPONENTS.map((component) => (
-              <Link key={component.id} href={component.href} className="shrink-0">
+              <Link
+                key={component.id}
+                href={component.href}
+                className="shrink-0 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
                 <Card
                   className={cn(
                     "w-64 transition-all duration-200 hover:shadow-md cursor-pointer",

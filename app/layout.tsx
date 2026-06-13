@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from "@/components/theme-provider"
+import { MotionProvider } from "@/components/motion/motion-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { getPublicBaseUrl } from "@/lib/constants"
 
@@ -38,7 +39,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Performance optimizations */}
         <link rel="preconnect" href="https://cdn.jsdelivr.net" />
@@ -54,12 +55,14 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         
         {/* Prevent render blocking */}
-        <meta name="color-scheme" content="light" />
+        <meta name="color-scheme" content="dark light" />
       </head>
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <main className="flex justify-center flex-1 min-h-screen bg-background">{children}</main>
-          <Toaster />
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+          <MotionProvider>
+            <main className="flex justify-center flex-1 min-h-screen bg-background">{children}</main>
+            <Toaster />
+          </MotionProvider>
         </ThemeProvider>
       </body>
     </html>

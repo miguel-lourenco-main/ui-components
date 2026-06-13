@@ -18,6 +18,7 @@ import { ImperativePanelHandle } from 'react-resizable-panels'
 import { FullComponentInfo } from '@/lib/interfaces';
 import { Button } from '@/components/ui/button';
 import { useScrollDirection } from '@/lib/hooks/use-scroll-direction';
+import { smoothScrollTo } from '@/lib/smooth-scroll';
 import { useIsMobile } from '@/components/ui/use-mobile';
 import { cn } from '@/lib/utils';
 
@@ -60,21 +61,21 @@ function PanelToggleButton({
         variant={isMobile ? (isActive ? 'secondary' : 'ghost') : 'ghost'}
         className={cn(
           "min-w-10 h-10 px-2 m-.5 border rounded-lg text-muted-foreground relative",
-          "transition-all duration-300 ease-in-out",
-          "hover:scale-110 hover:shadow-md flex items-center justify-center",
-          !isMobile && isActive && "bg-primary/5 border-primary/30 ring-2 ring-primary/50",
+          "transition-[background-color,border-color,transform] duration-300 ease-out-expo",
+          "hover:bg-accent active:scale-[0.98] motion-reduce:transition-none flex items-center justify-center",
+          !isMobile && isActive && "bg-primary/10 border-primary/30 ring-1 ring-primary/40 text-foreground",
         )}
-        aria-pressed={isMobile ? isActive : undefined}
+        aria-pressed={isActive}
         title={`Show ${label}`}
       >
         <div className="flex items-center justify-center">
           {icon}
           <span
             className={cn(
-              "text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out overflow-hidden",
+              "text-xs font-medium whitespace-nowrap transition-[max-width,opacity,margin] duration-500 ease-out-expo overflow-hidden",
               hoveredButton === hoverKey
                 ? "max-w-[100px] opacity-100 ml-2"
-                : "w-0 opacity-0"
+                : "max-w-0 opacity-0"
             )}
           >
             {label}
@@ -248,10 +249,9 @@ export default function PlaygroundPage() {
   useEffect(() => {
     if (shouldSnap) {
       // Auto scroll to the editor area when the user swipes down quickly on mobile.
-      window.scrollTo({
-        top: document.documentElement.scrollHeight,
-        behavior: 'smooth'
-      })
+      // Custom eased scroll: native smooth scrolling covers this distance too
+      // abruptly and feels like the page is yanked away.
+      smoothScrollTo(document.documentElement.scrollHeight)
     }
   }, [shouldSnap])
 

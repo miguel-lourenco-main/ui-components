@@ -143,6 +143,13 @@ module.exports = {
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
   		},
+  		transitionTimingFunction: {
+  			'out-expo': 'cubic-bezier(0.16, 1, 0.3, 1)'
+  		},
+  		boxShadow: {
+  			glow: '0 0 40px hsl(var(--glow) / 0.25)',
+  			'glow-sm': '0 0 24px hsl(var(--glow) / 0.18)'
+  		},
     		keyframes: {
   			'accordion-down': {
   				from: {

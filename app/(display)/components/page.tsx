@@ -3,7 +3,11 @@
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { GlowCard, cardLinkClassName } from '@/components/glow-card'
+import { EmptyState } from '@/components/empty-state'
+import { FadeIn } from '@/components/motion/fade-in'
+import { StaggerGroup, StaggerItem } from '@/components/motion/stagger'
 import { COMPONENTS_INDEX } from '@/lib/componentsIndex'
 import ImprovedDynamicComponent from '@/components/improved-dynamic-component'
 import indexJson from '@/components/display-components/index.json'
@@ -11,7 +15,7 @@ import ComponentPreview from '@/components/component-preview'
 import { PageTransition } from '@/components/page-transition'
 import { ComponentNavigation } from '@/components/component-navigation'
 import { useRef } from 'react'
-import { Blocks } from 'lucide-react'
+import { Blocks, SearchX } from 'lucide-react'
 
 /**
  * Public components catalog route that either shows the grid of entries or,
@@ -32,7 +36,12 @@ export default function ComponentsPage() {
       return (
         <div className="container px-4 py-8">
           <div className="max-w-6xl mx-auto">
-            <div className="text-sm text-muted-foreground">Component not available.</div>
+            <EmptyState
+              icon={SearchX}
+              title="Component not available"
+              description="This component is not published in the catalog right now."
+              action={{ label: "Browse Components", href: "/components" }}
+            />
           </div>
         </div>
       )
@@ -55,24 +64,25 @@ export default function ComponentsPage() {
   return (
     <div className="container px-4 py-8">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12">
+        <FadeIn className="text-center mb-12">
           <div className="flex sm:flex-row sm:gap-x-2 gap-y-2 sm:gap-y-0 flex-col w-full items-center justify-center mb-4 space-x-2">
-            <Blocks className="size-9" />
-            <h1 className="text-4xl font-bold">Component Library</h1>
+            <Blocks className="size-9" aria-hidden />
+            <h1 className="text-display text-4xl font-bold">Component Library</h1>
           </div>
           <p className="text-xl text-muted-foreground mb-8">
             Browse our collection of beautifully designed components
           </p>
-        </div>
+        </FadeIn>
 
         <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Components</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <h2 className="text-display text-2xl font-bold mb-6">Components</h2>
+          <StaggerGroup className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {components.map((component) => (
-                <Link key={component.id} href={`/components?component=${component.id}`}>
-                  <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer group h-full">
+              <StaggerItem key={component.id} className="h-full">
+                <Link href={`/components?component=${component.id}`} className={`${cardLinkClassName} h-full`}>
+                  <GlowCard className="cursor-pointer group h-full">
                     <CardHeader>
-                      <CardTitle className="group-hover:text-primary transition-colors">
+                      <CardTitle className="group-hover:text-primary-accent transition-colors">
                         {component.name}
                       </CardTitle>
                       <CardDescription className="line-clamp-2">
@@ -99,19 +109,20 @@ export default function ComponentsPage() {
                         Version {component.version} • by {component.author}
                       </div>
                     </CardContent>
-                  </Card>
+                  </GlowCard>
                 </Link>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerGroup>
         </div>
 
         {components.length === 0 && (
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium text-muted-foreground mb-2">No components found</h3>
-            <p className="text-sm text-muted-foreground">
-              Components will appear here once they are added to the registry.
-            </p>
-          </div>
+          <EmptyState
+            icon={Blocks}
+            title="No components found"
+            description="Components will appear here once they are added to the registry."
+            action={{ label: "Open Playground", href: "/playground" }}
+          />
         )}
       </div>
     </div>

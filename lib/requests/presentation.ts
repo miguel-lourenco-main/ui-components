@@ -3,6 +3,16 @@
  * No filesystem/node dependencies so this is safe to import from client
  * components.
  */
+import type { LucideIcon } from "lucide-react";
+import {
+  AlertTriangle,
+  BadgeCheck,
+  Ban,
+  CheckCircle2,
+  Clock,
+  PencilLine,
+  XCircle,
+} from "lucide-react";
 import type {
   ProposedFile,
   RequestPayload,
@@ -19,6 +29,20 @@ export const STATUS_LABELS: Record<RequestStatus, string> = {
   approved: "Approved",
   rejected: "Rejected",
   published: "Published",
+};
+
+/**
+ * Icon shown alongside each status label so state isn't conveyed by color
+ * alone.
+ */
+export const STATUS_ICONS: Record<RequestStatus, LucideIcon> = {
+  draft: PencilLine,
+  validation_failed: XCircle,
+  pending_review: Clock,
+  needs_changes: AlertTriangle,
+  approved: CheckCircle2,
+  rejected: Ban,
+  published: BadgeCheck,
 };
 
 /**

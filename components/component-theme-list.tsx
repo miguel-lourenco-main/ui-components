@@ -26,7 +26,11 @@ export function ComponentThemeList({ componentType, componentName }: ComponentTh
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {themes.map((theme) => (
-          <Link key={theme.id} href={`/themes?theme=${theme.id}`}>
+          <Link
+            key={theme.id}
+            href={`/themes?theme=${theme.id}`}
+            className="block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
             <Card className="hover:shadow-md transition-all duration-200 cursor-pointer group">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm group-hover:text-primary transition-colors flex items-center justify-between">

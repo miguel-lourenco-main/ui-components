@@ -13,27 +13,28 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { CodeBlock } from "@/components/code-block"
 import { PageTransition } from "@/components/page-transition"
+import { RequestCard } from "@/components/request-card"
+import { RequestInteractivePreview } from "@/components/request-interactive-preview"
+import { RequestStatusBadge } from "@/components/request-status-badge"
+import { EmptyState } from "@/components/empty-state"
+import { FadeIn } from "@/components/motion/fade-in"
+import { StaggerGroup, StaggerItem } from "@/components/motion/stagger"
 import {
   ArrowLeft,
   GitPullRequestArrow,
   CheckCircle2,
+  Check,
+  X,
   XCircle,
   AlertTriangle,
 } from "lucide-react"
 import { REQUESTS, getRequestById } from "@/lib/requests/manifest-data"
-import {
-  STATUS_BADGE_CLASSES,
-  STATUS_LABELS,
-  payloadFiles,
-  primarySource,
-  versionSource,
-  previousVersion,
-} from "@/lib/requests/presentation"
-import { diffLines, diffStats } from "@/lib/requests/diff"
+import { payloadFiles, primarySource } from "@/lib/requests/presentation"
 import type {
   ComponentRequest,
   RequestType,
   RequestValidationResult,
+  ValidationIssue,
 } from "@/lib/contracts"
 
 const TYPE_LABELS: Record<RequestType, string> = {
@@ -43,13 +44,24 @@ const TYPE_LABELS: Record<RequestType, string> = {
   theme_update: "Theme update",
 }
 
-function StatusBadge({ request }: { request: ComponentRequest }) {
+function ValidationIssueItem({ issue }: { issue: ValidationIssue }) {
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_BADGE_CLASSES[request.status]}`}
-    >
-      {STATUS_LABELS[request.status]}
-    </span>
+    <li className="flex items-start gap-2">
+      {issue.severity === "error" ? (
+        <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" aria-label="Error" />
+      ) : (
+        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" aria-label="Warning" />
+      )}
+      <span>
+        <span className="font-mono text-xs text-muted-foreground">
+          {issue.code}
+        </span>{" "}
+        {issue.message}
+        {issue.path ? (
+          <span className="text-muted-foreground"> ({issue.path})</span>
+        ) : null}
+      </span>
+    </li>
   )
 }
 
@@ -59,11 +71,11 @@ function ValidationSummary({ result }: { result: RequestValidationResult }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2" role="status">
           {result.valid ? (
-            <CheckCircle2 className="h-5 w-5 text-green-600" />
+            <CheckCircle2 className="h-5 w-5 text-green-600" aria-hidden />
           ) : (
-            <XCircle className="h-5 w-5 text-red-600" />
+            <XCircle className="h-5 w-5 text-red-600" aria-hidden />
           )}
           Validation {result.valid ? "passed" : "failed"}
         </CardTitle>
@@ -78,83 +90,29 @@ function ValidationSummary({ result }: { result: RequestValidationResult }) {
             <Badge
               key={check.name}
               variant={check.passed ? "secondary" : "destructive"}
-              className="text-xs"
+              className="gap-1 text-xs"
             >
-              {check.passed ? "✓" : "✗"} {check.name}
+              {check.passed ? (
+                <Check className="h-3 w-3" aria-label="Passed" />
+              ) : (
+                <X className="h-3 w-3" aria-label="Failed" />
+              )}
+              {check.name}
             </Badge>
           ))}
         </div>
         {result.issues.length > 0 && (
           <ul className="space-y-1 text-sm">
-            {result.issues.map((issue, idx) => (
-              <li key={idx} className="flex items-start gap-2">
-                {issue.severity === "error" ? (
-                  <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
-                ) : (
-                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-                )}
-                <span>
-                  <span className="font-mono text-xs text-muted-foreground">
-                    {issue.code}
-                  </span>{" "}
-                  {issue.message}
-                  {issue.path ? (
-                    <span className="text-muted-foreground"> ({issue.path})</span>
-                  ) : null}
-                </span>
-              </li>
+            {errors.map((issue, idx) => (
+              <ValidationIssueItem key={`error-${idx}`} issue={issue} />
+            ))}
+            {warnings.map((issue, idx) => (
+              <ValidationIssueItem key={`warning-${idx}`} issue={issue} />
             ))}
           </ul>
         )}
       </CardContent>
     </Card>
-  )
-}
-
-function DiffView({ request }: { request: ComponentRequest }) {
-  const current = request.versions.find((v) => v.id === request.currentVersionId)
-  const prev = current
-    ? previousVersion(request.versions, current.id)
-    : undefined
-
-  if (!current || !prev) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        No previous version to compare. This is the first version of the request.
-      </p>
-    )
-  }
-
-  const lines = diffLines(versionSource(prev), versionSource(current))
-  const stats = diffStats(lines)
-
-  return (
-    <div className="space-y-2">
-      <div className="text-sm text-muted-foreground">
-        Comparing {prev.id} → {current.id} ·{" "}
-        <span className="text-green-600">+{stats.added}</span>{" "}
-        <span className="text-red-600">-{stats.removed}</span>
-      </div>
-      <pre className="w-full max-w-full overflow-x-auto rounded-lg bg-muted p-4 text-xs leading-relaxed">
-        {lines.map((line, idx) => (
-          <div
-            key={idx}
-            className={
-              line.type === "add"
-                ? "bg-green-500/15 text-green-700 dark:text-green-300"
-                : line.type === "remove"
-                  ? "bg-red-500/15 text-red-700 dark:text-red-300"
-                  : ""
-            }
-          >
-            <span className="select-none pr-2 text-muted-foreground">
-              {line.type === "add" ? "+" : line.type === "remove" ? "-" : " "}
-            </span>
-            {line.text || " "}
-          </div>
-        ))}
-      </pre>
-    </div>
   )
 }
 
@@ -176,8 +134,8 @@ function RequestDetail({ request }: { request: ComponentRequest }) {
 
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-3xl font-bold">{request.title}</h1>
-            <StatusBadge request={request} />
+            <h1 className="text-display text-3xl font-bold">{request.title}</h1>
+            <RequestStatusBadge status={request.status} />
           </div>
           <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
             <Badge variant="outline">{TYPE_LABELS[request.type]}</Badge>
@@ -193,7 +151,6 @@ function RequestDetail({ request }: { request: ComponentRequest }) {
                 Targets: {request.targetId}
               </Link>
             )}
-            <span>· {request.versions.length} version(s)</span>
             <span>· updated {new Date(request.updatedAt).toLocaleString()}</span>
           </div>
         </div>
@@ -218,14 +175,19 @@ function RequestDetail({ request }: { request: ComponentRequest }) {
 
         {current?.validation && <ValidationSummary result={current.validation} />}
 
+        {current && (
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold">Preview</h2>
+            <RequestInteractivePreview payload={current.payload} />
+          </div>
+        )}
+
         <Tabs defaultValue="source">
           <TabsList>
             <TabsTrigger value="source">Source</TabsTrigger>
             {files.length > 0 && (
               <TabsTrigger value="files">Files ({files.length})</TabsTrigger>
             )}
-            <TabsTrigger value="diff">Diff</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
           </TabsList>
 
           <TabsContent value="source" className="mt-4">
@@ -248,38 +210,6 @@ function RequestDetail({ request }: { request: ComponentRequest }) {
               ))}
             </TabsContent>
           )}
-
-          <TabsContent value="diff" className="mt-4">
-            <DiffView request={request} />
-          </TabsContent>
-
-          <TabsContent value="history" className="mt-4 space-y-3">
-            {[...request.versions].reverse().map((version) => (
-              <Card key={version.id}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center justify-between text-base">
-                    <span>
-                      {version.id}
-                      {version.id === request.currentVersionId && (
-                        <Badge variant="secondary" className="ml-2 text-xs">
-                          current
-                        </Badge>
-                      )}
-                    </span>
-                    <span className="text-xs font-normal text-muted-foreground">
-                      {new Date(version.createdAt).toLocaleString()}
-                    </span>
-                  </CardTitle>
-                  <CardDescription>{version.rationale}</CardDescription>
-                </CardHeader>
-                {version.authorAgent && (
-                  <CardContent className="pt-0 text-xs text-muted-foreground">
-                    by {version.authorAgent}
-                  </CardContent>
-                )}
-              </Card>
-            ))}
-          </TabsContent>
         </Tabs>
       </div>
     </PageTransition>
@@ -305,9 +235,13 @@ export default function RequestsPage() {
           >
             <ArrowLeft className="h-4 w-4" /> All requests
           </Link>
-          <p className="mt-6 text-sm text-muted-foreground">
-            Request not found.
-          </p>
+          <EmptyState
+            icon={GitPullRequestArrow}
+            title="Request not found"
+            description="This request may have been removed, or the link is out of date."
+            action={{ label: "View all requests", href: "/requests" }}
+            className="mt-6"
+          />
         </div>
       </div>
     )
@@ -326,67 +260,30 @@ export default function RequestsPage() {
   return (
     <div className="container px-4 py-8">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-12 text-center">
+        <FadeIn className="mb-12 text-center">
           <div className="mb-4 flex w-full items-center justify-center space-x-2">
-            <GitPullRequestArrow className="size-9" />
-            <h1 className="text-4xl font-bold">Component Requests</h1>
+            <GitPullRequestArrow className="size-9" aria-hidden />
+            <h1 className="text-display text-4xl font-bold">Component Requests</h1>
           </div>
           <p className="mb-8 text-xl text-muted-foreground">
             Agent-proposed components and themes awaiting review
           </p>
-        </div>
+        </FadeIn>
 
         {REQUESTS.length === 0 ? (
-          <div className="py-12 text-center">
-            <h3 className="mb-2 text-lg font-medium text-muted-foreground">
-              No requests yet
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Requests submitted by agents through the MCP server will appear
-              here.
-            </p>
-          </div>
+          <EmptyState
+            icon={GitPullRequestArrow}
+            title="No requests yet"
+            description="Requests submitted by agents through the MCP server will appear here."
+          />
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {REQUESTS.map((request) => {
-              const current = request.versions.find(
-                (v) => v.id === request.currentVersionId
-              )
-              return (
-                <Link key={request.id} href={`/requests?request=${request.id}`}>
-                  <Card className="group h-full cursor-pointer transition-all duration-200 hover:shadow-lg">
-                    <CardHeader>
-                      <div className="flex items-start justify-between gap-2">
-                        <CardTitle className="transition-colors group-hover:text-primary">
-                          {request.title}
-                        </CardTitle>
-                        <StatusBadge request={request} />
-                      </div>
-                      <CardDescription className="line-clamp-2">
-                        {current?.rationale}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex flex-col gap-y-3">
-                      <div className="flex flex-wrap gap-1">
-                        <Badge variant="outline" className="text-xs">
-                          {TYPE_LABELS[request.type]}
-                        </Badge>
-                        {request.targetId && (
-                          <Badge variant="secondary" className="text-xs">
-                            {request.targetId}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {request.versions.length} version(s) · updated{" "}
-                        {new Date(request.updatedAt).toLocaleDateString()}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              )
-            })}
-          </div>
+          <StaggerGroup className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {REQUESTS.map((request) => (
+              <StaggerItem key={request.id} className="h-full">
+                <RequestCard request={request} />
+              </StaggerItem>
+            ))}
+          </StaggerGroup>
         )}
       </div>
     </div>
