@@ -6,6 +6,7 @@ const [url, outPrefix] = process.argv.slice(2)
 const args = process.argv.slice(4)
 const mobile = args.includes('--mobile')
 const full = args.includes('--full')
+const reduced = args.includes('--reduced')
 const waitArg = args.find((a) => a.startsWith('--wait='))
 const extraWait = waitArg ? parseInt(waitArg.split('=')[1], 10) : 1200
 
@@ -21,6 +22,7 @@ const ctx = await browser.newContext({
   deviceScaleFactor: 2,
   isMobile: mobile,
   hasTouch: mobile,
+  reducedMotion: reduced ? 'reduce' : 'no-preference',
   userAgent: mobile
     ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
     : undefined,
