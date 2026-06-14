@@ -65,11 +65,14 @@ export function useCountUp<T extends HTMLElement = HTMLElement>(
     }
     setupGsap()
     const obj = { v: from }
+    // Leave the SSR'd final value in place until the trigger actually fires, so
+    // the number is never stuck at `from` if the trigger is missed.
     const st = ScrollTrigger.create({
       trigger: el,
       start: "top 85%",
       once: true,
       onEnter: () => {
+        render(from)
         gsap.to(obj, {
           v: target,
           duration,
@@ -78,7 +81,6 @@ export function useCountUp<T extends HTMLElement = HTMLElement>(
         })
       },
     })
-    render(from)
     return () => st.kill()
   }, [target, from, duration, format])
   return ref

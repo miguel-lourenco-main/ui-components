@@ -37,6 +37,11 @@
     --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
     --dur-fast: 200ms;
     --dur-base: 350ms;
+
+    /* Typeset direction — app-shell-only editorial tokens */
+    --ink: 240 10% 8%;
+    --type-accent: 235 56% 56%;
+    --ed-rule: 240 8% 80%;
   }
 
   .dark {
@@ -69,6 +74,11 @@
     --glow: 235 56% 60%;
     --surface-elevated: 240 8% 8%;
     --primary-text: 235 70% 72%;
+
+    /* Typeset direction — app-shell-only editorial tokens */
+    --ink: 240 6% 93%;
+    --type-accent: 235 75% 74%;
+    --ed-rule: 240 10% 18%;
   }
 }
 
@@ -201,4 +211,52 @@
   .animate-marquee-reverse {
     animation: none !important;
   }
+}
+
+/* ---------------------------------------------------------------------------
+ * TYPESET — kinetic variable-weight typography, editorial bento
+ * App-shell-only utilities; never consumed inside components/ui/* primitives.
+ * ------------------------------------------------------------------------ */
+
+@layer utilities {
+  .t-giant {
+    font-size: clamp(3rem, 14vw, 12rem);
+    line-height: 0.82;
+    letter-spacing: -0.05em;
+    font-weight: 800;
+  }
+  .t-display-2 {
+    font-size: clamp(2rem, 7vw, 5rem);
+    line-height: 0.96;
+    letter-spacing: -0.04em;
+    font-weight: 700;
+  }
+  .ed-mono {
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+  .ed-rule {
+    border-top: 1px solid hsl(var(--ed-rule));
+  }
+  .text-type-accent {
+    color: hsl(var(--type-accent));
+  }
+  /* Each kinetic letter animates its variable weight toward the cursor */
+  .kinetic-letter {
+    display: inline-block;
+    font-variation-settings: "wght" 600;
+    transition: font-variation-settings var(--dur-fast) linear;
+    will-change: font-variation-settings;
+  }
+  /* Outlined display type — ink stroke, transparent fill (editorial accent) */
+  .t-outline {
+    color: transparent;
+    -webkit-text-stroke: 1.5px hsl(var(--ink) / 0.55);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kinetic-letter { transition: none !important; }
 } 
