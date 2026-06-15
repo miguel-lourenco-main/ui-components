@@ -2,15 +2,18 @@
 
 import Link from "next/link"
 import { useEffect, useRef } from "react"
-import { ArrowUpRight } from "lucide-react"
+import { ArrowUpRight, Plus } from "lucide-react"
 import ThemedPreviewSurface from "@/components/themed-preview-surface"
 import { themes } from "@/lib/themes"
 import { gsap, setupGsap, prefersReducedMotion } from "@/lib/motion/gsap-setup"
 
 /**
- * The six themes as an editorial index. Each row reveals on scroll and links to
- * its detail. The themed preview is the existing isolated ThemedPreviewSurface;
- * GSAP only animates the OUTER row, so the inline CSS-var isolation is intact.
+ * The themes as an editorial index — count driven by the live `themes` array
+ * (built-ins + any user themes merged from data/themes/custom.json), so the
+ * section scales as users add their own. Each row reveals on scroll and links to
+ * its detail; a final row invites proposing a new theme through the agent
+ * pipeline. The themed preview is the isolated ThemedPreviewSurface; GSAP only
+ * animates the OUTER row, so the inline CSS-var isolation is intact.
  */
 export function ThemesList() {
   const rootRef = useRef<HTMLDivElement | null>(null)
@@ -37,7 +40,9 @@ export function ThemesList() {
         <div className="mb-10 flex items-end justify-between">
           <div>
             <span className="ed-mono text-type-accent">The type families</span>
-            <h2 className="t-display-2 mt-3">Six themes, one source.</h2>
+            <h2 className="t-display-2 mt-3">
+              <span className="tabular-nums">{themes.length}</span> themes, one source.
+            </h2>
           </div>
           <Link
             href="/themes"
@@ -80,6 +85,30 @@ export function ThemesList() {
               </div>
             </Link>
           ))}
+
+          {/* Future: users set their own. Proposed over MCP, validated, then merged. */}
+          <Link
+            href="/requests"
+            data-theme-row
+            className="group grid grid-cols-12 items-center gap-4 border-b border-dashed border-[hsl(var(--type-accent)/0.4)] py-6 outline-none transition-colors hover:bg-secondary/30 focus-visible:bg-secondary/30"
+          >
+            <span className="ed-mono col-span-2 text-type-accent md:col-span-1" aria-hidden>
+              <Plus className="h-4 w-4" />
+            </span>
+            <div className="col-span-10 md:col-span-4">
+              <h3 className="t-display-2 text-2xl text-type-accent md:text-3xl">Bring your own</h3>
+            </div>
+            <p className="col-span-8 hidden text-sm text-muted-foreground md:col-span-4 md:block">
+              Propose a theme over MCP — it&rsquo;s validated against the contract, reviewed, then set
+              into the library alongside these.
+            </p>
+            <div className="col-span-12 md:col-span-3">
+              <span className="ed-mono flex items-center justify-end gap-2 text-type-accent transition-opacity group-hover:opacity-80">
+                Open the pipeline
+                <ArrowUpRight className="h-5 w-5 shrink-0" aria-hidden />
+              </span>
+            </div>
+          </Link>
         </div>
       </div>
     </section>

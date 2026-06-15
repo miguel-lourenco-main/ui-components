@@ -9,28 +9,11 @@ import { useSplitReveal } from "@/lib/motion/hooks"
 import { ScrollTrigger, setupGsap, prefersReducedMotion } from "@/lib/motion/gsap-setup"
 import { TypesetHero } from "./typeset-hero"
 import { BentoShowcase } from "./bento-showcase"
-import { TypeMarquee } from "./type-marquee"
-import { TypeBeat } from "./type-beat"
 import { ThemesList } from "./themes-list"
-import { Dispatch } from "./dispatch"
+import { Transmission } from "./transmission"
 
 interface Props {
   stats: { components: number; themes: number; requests: number }
-}
-
-function Manifesto() {
-  const ref = useSplitReveal<HTMLHeadingElement>({ by: "lines" })
-  return (
-    <section className="relative w-full px-4 py-24 md:py-36">
-      <div className="container mx-auto max-w-5xl">
-        <h2 ref={ref} className="t-display-2 leading-[1.05]">
-          Most libraries hand you a grid of cards. This one is{" "}
-          <span className="text-type-accent">set like a magazine</span> — type first, components live,
-          code ready to lift.
-        </h2>
-      </div>
-    </section>
-  )
 }
 
 function Outro() {
@@ -57,7 +40,12 @@ function Outro() {
   )
 }
 
-/** Client orchestrator for the TYPESET landing. */
+/**
+ * Client orchestrator for the merged TYPESET landing. A tight five-beat
+ * narrative: masthead hero → live components you can operate → themes (yours
+ * included) → the agent pipeline → call to action. Each beat owns its own
+ * scroll animation and degrades to a static, readable state under reduced motion.
+ */
 export function TypesetLanding({ stats }: Props) {
   useSmoothScroll(true)
   useEffect(() => {
@@ -70,12 +58,9 @@ export function TypesetLanding({ stats }: Props) {
   return (
     <>
       <TypesetHero stats={stats} />
-      <TypeMarquee />
       <BentoShowcase />
-      <Manifesto />
-      <TypeBeat />
       <ThemesList />
-      <Dispatch />
+      <Transmission />
       <Outro />
     </>
   )
