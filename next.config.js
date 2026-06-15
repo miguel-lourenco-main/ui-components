@@ -85,6 +85,22 @@ const nextConfig = {
               priority: 30,
               enforce: true,
             },
+            // WebGL (three.js) — only loaded by the lazy 3D beats on the landing route
+            webgl: {
+              name: 'webgl',
+              test: /[\\/]node_modules[\\/](three)[\\/]/,
+              chunks: 'all',
+              priority: 28,
+              enforce: true,
+            },
+            // Scroll/animation FX (gsap + lenis + split-type) — landing route only
+            scrollFx: {
+              name: 'scroll-fx',
+              test: /[\\/]node_modules[\\/](gsap|lenis|split-type)[\\/]/,
+              chunks: 'all',
+              priority: 27,
+              enforce: true,
+            },
             // Large UI libraries grouped together
             ui: {
               name: 'ui-libs',
