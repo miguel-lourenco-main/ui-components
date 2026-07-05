@@ -6,6 +6,8 @@ import { FullComponentInfo } from '@/lib/interfaces';
 import { AlertTriangleIcon, RefreshCwIcon, LoaderIcon } from 'lucide-react';
 import { debugLog } from '@/lib/constants';
 import { convertPropsForRuntime } from '@/lib/utils/functionProps';
+import { buildComponentScope, compileModule } from '@/lib/compile/moduleCompiler';
+import type { CompileError } from '@/lib/compile/transform';
 import indexJson from '@/components/display-components/index.json';
 
 interface LocalComponentRendererProps {
@@ -13,6 +15,12 @@ interface LocalComponentRendererProps {
   props: Record<string, any>;
   onRetry: () => void;
   onPropChange?: (propName: string, value: any) => void;
+  /**
+   * When set (code mode), this TSX module drives the preview instead of the
+   * props: it is compiled against the loaded component module and rendered
+   * as-is — prop conversion and injected callbacks are skipped by design.
+   */
+  customCode?: string;
 }
 
 interface ComponentErrorBoundaryState {
@@ -88,10 +96,18 @@ export default function LocalComponentRenderer({
   props,
   onRetry,
   onPropChange,
+  customCode,
 }: LocalComponentRendererProps) {
   const [ComponentToRender, setComponentToRender] = useState<React.ComponentType<any> | null>(null);
+  const [componentModule, setComponentModule] = useState<any>(null);
+  const [componentPath, setComponentPath] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Code mode: last successfully compiled custom example + current compile error.
+  // Keeping the last good component on screen avoids flashing while typing.
+  const [CustomComponent, setCustomComponent] = useState<React.ComponentType<any> | null>(null);
+  const [compileError, setCompileError] = useState<CompileError | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -126,6 +142,8 @@ export default function LocalComponentRenderer({
         if (loadedComponent) {
           if (!isMounted) return;
           setComponentToRender(() => loadedComponent);
+          setComponentModule(mod);
+          setComponentPath(compPath);
           debugLog('general', `✅ Component ${component.name} loaded successfully`);
         } else {
           throw new Error(`Component export not found for ${component.name}`);
@@ -145,6 +163,31 @@ export default function LocalComponentRenderer({
       isMounted = false;
     };
   }, [component.id, component.name]); // Only reload when component changes, not props
+
+  // Code mode: debounce-compile the custom TSX module against the loaded module.
+  useEffect(() => {
+    if (!customCode || !componentModule) {
+      setCustomComponent(null);
+      setCompileError(null);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      const scope = buildComponentScope(component.name, componentModule, [
+        `@/components/display-components/${componentPath}/${component.name}`,
+      ]);
+      const result = compileModule(customCode, scope);
+      if (result.ok) {
+        setCustomComponent(() => result.Component);
+        setCompileError(null);
+      } else {
+        // Keep the last good component rendered; just surface the error.
+        setCompileError(result.error);
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [customCode, componentModule, componentPath, component.name]);
 
 
   const renderContent = () => {
@@ -209,6 +252,33 @@ export default function LocalComponentRenderer({
       );
     }
 
+    // Code mode: the compiled custom module drives the preview
+    if (customCode) {
+      return (
+        <div className="relative size-full flex items-center justify-center" data-testid="custom-code-preview">
+          {compileError && (
+            <div
+              className="absolute top-2 right-2 z-10 px-2 py-1 rounded bg-destructive/10 border border-destructive/40 text-destructive text-xs font-mono max-w-md truncate"
+              title={compileError.message}
+              data-testid="custom-code-error"
+            >
+              ⚠ Compile error{compileError.line ? ` (line ${compileError.line})` : ''}: {compileError.message}
+            </div>
+          )}
+          {CustomComponent ? (
+            <CustomComponent />
+          ) : compileError ? (
+            <div className="text-sm text-muted-foreground">Fix the compile error to see the preview.</div>
+          ) : (
+            <div className="flex items-center space-x-2 text-muted-foreground text-sm">
+              <LoaderIcon className="w-4 h-4 animate-spin" />
+              <span>Compiling…</span>
+            </div>
+          )}
+        </div>
+      );
+    }
+
     // Render the actual component
     try {
       // Convert FunctionPropValues to actual functions before passing to component
@@ -253,8 +323,8 @@ export default function LocalComponentRenderer({
   return (
     <div className="h-full flex flex-col items-center justify-center">
       {/* Component Frame */}
-      <div 
-        className="size-full flex items-center justify-center lg:px-24 2xl:px-32 p-6 bg-card rounded-lg border transition-all duration-300 border-border overflow-hidden"
+      <div
+        className="playground-canvas size-full flex items-center justify-center lg:px-24 2xl:px-32 p-6 bg-card rounded-lg border transition-all duration-300 border-border overflow-hidden"
       >
         <ComponentErrorBoundary onRetry={onRetry}>
             {renderContent()}

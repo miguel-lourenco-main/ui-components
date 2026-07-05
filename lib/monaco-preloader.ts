@@ -4,6 +4,11 @@
  */
 
 import { perf } from './performance';
+import { configureMonaco } from './monaco/setup';
+
+// Keep in sync with the monaco-editor version in package.json. Pinning the CDN
+// path prevents the app and the TS worker from silently drifting to a new major.
+const MONACO_CDN_PATH = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs';
 
 // Global state for Monaco preloading
 let monacoPreloadPromise: Promise<typeof import('@monaco-editor/react')> | null = null;
@@ -62,7 +67,8 @@ export function startMonacoPreload(): Promise<typeof import('@monaco-editor/reac
 
         // Use the loader to initialize Monaco
         const { loader } = module;
-        
+        loader.config({ paths: { vs: MONACO_CDN_PATH } });
+
         // Initialize Monaco Editor which will load all required chunks
         const monaco = await new Promise((resolve, reject) => {
           const timeout = setTimeout(() => {
@@ -72,7 +78,11 @@ export function startMonacoPreload(): Promise<typeof import('@monaco-editor/reac
           loader.init().then((monacoInstance: any) => {
             clearTimeout(timeout);
             console.log('✅ [Monaco Preloader] Monaco Editor core initialized');
-            
+
+            // Apply the shared global config (compiler options, types, themes)
+            // once, before any real editor mounts.
+            configureMonaco(monacoInstance);
+
             // Create a minimal editor to ensure all chunks are loaded
             try {
               const editor = monacoInstance.editor.create(tempContainer, {

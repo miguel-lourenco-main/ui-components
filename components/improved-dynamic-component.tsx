@@ -13,8 +13,7 @@ import { useComponentData } from "@/lib/hooks/use-component-data"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ComponentType } from "@/lib/componentTypes"
 import ComponentPreview from "@/components/component-preview"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { PlaygroundLink } from "@/components/playground-link"
 
 interface ImprovedDynamicComponentProps {
   componentId: string
@@ -42,8 +41,6 @@ export default function ImprovedDynamicComponent({ componentId, navRef }: Improv
     retry,
     isAllLoaded
   } = useComponentData(componentId)
-
-  const router = useRouter()
 
   const copyCode = async (code: string, id: string) => {
     await navigator.clipboard.writeText(code)
@@ -149,12 +146,14 @@ export default function ImprovedDynamicComponent({ componentId, navRef }: Improv
             <>
               <div className="flex w-full justify-between items-center gap-2">
                 <h1 className="text-4xl font-bold mb-4">{meta.name}</h1>
-                <Button variant="secondary" size="sm" onClick={() => {
-                  router.push(`/playground?component=${componentId}&example=0`)
-                }}>
-                  <Play className="h-4 w-4" />
+                <PlaygroundLink
+                  variant="secondary"
+                  size="sm"
+                  href={`/playground?component=${componentId}&example=0`}
+                  icon={<Play className="h-4 w-4" />}
+                >
                   Open in Playground
-                </Button>
+                </PlaygroundLink>
               </div>
               <p className="text-xl text-muted-foreground mb-6">{meta.description}</p>
 

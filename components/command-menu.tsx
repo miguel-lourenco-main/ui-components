@@ -10,6 +10,7 @@ import {
   Monitor,
   Moon,
   Palette,
+  Loader2,
   Search,
   Sun,
   Terminal,
@@ -40,8 +41,28 @@ const pages = [
  */
 export function CommandMenu() {
   const [open, setOpen] = React.useState(false)
+  const [pendingHref, setPendingHref] = React.useState<string | null>(null)
+  const [isPending, startTransition] = React.useTransition()
   const router = useRouter()
   const { setTheme } = useTheme()
+
+  // Keep the palette open with a spinner until the (potentially heavy) route is
+  // ready, then close it. Without this the dialog dismisses instantly and the
+  // user stares at the old page while the playground loads.
+  React.useEffect(() => {
+    if (!isPending && pendingHref) {
+      setPendingHref(null)
+      setOpen(false)
+    }
+  }, [isPending, pendingHref])
+
+  const navigate = React.useCallback(
+    (href: string) => {
+      setPendingHref(href)
+      startTransition(() => router.push(href))
+    },
+    [router]
+  )
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -91,9 +112,13 @@ export function CommandMenu() {
               <CommandItem
                 key={page.href}
                 value={`page ${page.name}`}
-                onSelect={() => runCommand(() => router.push(page.href))}
+                onSelect={() => navigate(page.href)}
               >
-                <page.icon className="mr-2 h-4 w-4" aria-hidden />
+                {pendingHref === page.href ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                ) : (
+                  <page.icon className="mr-2 h-4 w-4" aria-hidden />
+                )}
                 {page.name}
               </CommandItem>
             ))}
