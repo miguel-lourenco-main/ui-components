@@ -6,7 +6,7 @@
  * review UI can show diffs and auditability. See `transitions.ts` for the
  * allowed status lifecycle.
  */
-import type { ComponentMetaContract } from "./components";
+import type { ComponentMetaContract, ComponentPropContract } from "./components";
 import type { ThemeContract } from "./themes";
 import type { RequestValidationResult } from "./validation";
 
@@ -72,6 +72,25 @@ export interface ReviewDecision {
 }
 
 /**
+ * Snapshot of the component a `component_update` targets, captured when the
+ * request is created. Lets the review UI diff existing-vs-proposed and the
+ * API-compatibility check compare prop surfaces, without live filesystem access
+ * from the browser.
+ */
+export interface RequestBaseline {
+  /** Published component id this request targets. */
+  targetId: string;
+  /** ISO-8601 capture time. */
+  capturedAt: string;
+  /** Repo-relative path of the current primary source file. */
+  sourcePath: string;
+  /** The current on-disk `<Name>.tsx` source. */
+  source: string;
+  /** The current published prop surface. */
+  props: ComponentPropContract[];
+}
+
+/**
  * The top-level request record. `currentVersionId` always points at the latest
  * entry in `versions`. `targetId` references the published component/theme id
  * for update requests.
@@ -86,6 +105,11 @@ export interface ComponentRequest {
   currentVersionId: string;
   versions: RequestVersion[];
   reviewDecision?: ReviewDecision;
+  /**
+   * For `component_update` requests: a snapshot of the target component when the
+   * request was opened, used for the existing-vs-proposed diff.
+   */
+  baseline?: RequestBaseline;
   /** ISO-8601 timestamps. */
   createdAt: string;
   updatedAt: string;

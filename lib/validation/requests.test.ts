@@ -70,6 +70,24 @@ describe("validatePayload (component)", () => {
     expect(issues.some((i) => i.code === "target.missing")).toBe(true);
   });
 
+  it("flags removed props when updating a real component", () => {
+    // The proposal declares no props, dropping every prop the published Button
+    // exposes (including required ones).
+    const { issues, checks } = validatePayload(
+      "component_update",
+      goodComponentPayload(),
+      "button"
+    );
+    expect(
+      issues.some(
+        (i) => i.code === "api.prop_removed" && i.severity === "error"
+      )
+    ).toBe(true);
+    expect(
+      checks.some((c) => c.name === "api-compatibility" && !c.passed)
+    ).toBe(true);
+  });
+
   it("rejects mismatched payload kind for type", () => {
     const { issues } = validatePayload(
       "new_theme",

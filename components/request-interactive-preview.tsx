@@ -13,6 +13,8 @@ import {
   buildPreviewProps,
 } from "@/lib/requests/preview-props";
 import type { RequestPayload } from "@/lib/contracts";
+import { MoonIcon, SunIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface RequestInteractivePreviewProps {
   payload: RequestPayload;
@@ -34,24 +36,47 @@ function featureBooleanProps(meta: ComponentMetaContract) {
  * Detail-page preview with live prop controls and side-by-side feature comparisons.
  */
 function ThemeInteractivePreview({ payload }: { payload: Extract<RequestPayload, { kind: "theme" }> }) {
+  const [mode, setMode] = useState<"light" | "dark">("light");
   return (
-    <div className="space-y-3">
-      <div className="min-h-48 overflow-hidden rounded-lg border bg-muted/30">
-        <ProposalThemePreview theme={payload.theme} />
-      </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="overflow-hidden rounded-lg border">
-          <div className="border-b px-3 py-2 text-xs font-medium text-muted-foreground">
+    <div className="flex flex-col flex-1 space-y-3">
+      <div className="inline-flex items-center gap-2">
+        <div className="inline-flex rounded-lg border border-border bg-muted/30 p-0.5">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            aria-pressed={mode === "light"}
+            onClick={() => setMode("light")}
+            className={cn(
+              "h-8 gap-1.5 rounded-md px-3 text-xs transition-colors",
+              mode === "light"
+                ? "bg-amber-100 text-amber-950 shadow-sm hover:bg-amber-100 dark:bg-amber-500/20 dark:text-amber-100 dark:hover:bg-amber-500/20"
+                : "text-muted-foreground hover:bg-amber-50 hover:text-amber-900 dark:hover:bg-amber-500/10 dark:hover:text-amber-200"
+            )}
+          >
+            <SunIcon className="h-4 w-4 text-amber-500 dark:text-amber-400" />
             Light mode
-          </div>
-          <ProposalThemePreview theme={payload.theme} mode="light" />
-        </div>
-        <div className="overflow-hidden rounded-lg border">
-          <div className="border-b px-3 py-2 text-xs font-medium text-muted-foreground">
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            aria-pressed={mode === "dark"}
+            onClick={() => setMode("dark")}
+            className={cn(
+              "h-8 gap-1.5 rounded-md px-3 text-xs transition-colors",
+              mode === "dark"
+                ? "bg-slate-800 text-slate-100 shadow-sm hover:bg-slate-800 dark:bg-indigo-950 dark:text-indigo-100 dark:hover:bg-indigo-950"
+                : "text-muted-foreground hover:bg-slate-100 hover:text-slate-800 dark:hover:bg-slate-800/60 dark:hover:text-slate-200"
+            )}
+          >
+            <MoonIcon className="h-4 w-4 text-slate-500 dark:text-indigo-300" />
             Dark mode
-          </div>
-          <ProposalThemePreview theme={payload.theme} mode="dark" />
+          </Button>
         </div>
+      </div>
+      <div className="flex-1">
+        <ProposalThemePreview theme={payload.theme} mode={mode} />
       </div>
     </div>
   );
@@ -73,7 +98,7 @@ function ComponentInteractivePreview({
   }, [initialProps]);
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col flex-1 space-y-4">
       <div className="flex min-h-48 items-center justify-center rounded-lg border bg-muted/30 p-8">
         <ProposalComponentPreview
           source={source}

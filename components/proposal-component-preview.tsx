@@ -81,7 +81,7 @@ export function ProposalComponentPreview({
   return (
     <PreviewErrorBoundary fallback={fallback}>
       <div
-        className={`flex items-center justify-center ${getScaleClass(size)} origin-center ${propsOverride ? "" : "pointer-events-none"}`}
+        className={`flex size-full items-center justify-center ${getScaleClass(size)} origin-center ${propsOverride ? "" : "pointer-events-none"}`}
       >
         <Component {...previewProps} />
       </div>

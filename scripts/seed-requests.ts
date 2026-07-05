@@ -9,6 +9,7 @@
  */
 import fs from "node:fs";
 import { FileRequestStore } from "@/lib/requests";
+import { captureComponentBaseline } from "@/lib/requests/baseline";
 import { validatePayload } from "@/lib/validation";
 import { getTheme } from "@/lib/registry/themes";
 import { REQUESTS_DIR } from "@/lib/registry/paths";
@@ -142,7 +143,11 @@ async function createValidated(
   store: FileRequestStore,
   input: CreateRequestInput
 ) {
-  const request = await store.createRequest(input);
+  const baseline =
+    input.type === "component_update" && input.targetId
+      ? captureComponentBaseline(input.targetId)
+      : input.baseline;
+  const request = await store.createRequest({ ...input, baseline });
   const { issues, checks } = validatePayload(
     input.type,
     input.payload,
@@ -196,8 +201,11 @@ async function main(): Promise<void> {
     idempotencyKey: "seed:ocean",
   });
 
-  // 3. Component update -> needs_changes (reviewer feedback).
-  const buttonReq = await createValidated(store, {
+  // 3. Component update that regresses the target -> validation_failed. The
+  //    API-compatibility check catches it automatically: this proposal drops
+  //    every existing Button prop (children, variant, size, ...), so no reviewer
+  //    action is needed to flag it.
+  await createValidated(store, {
     type: "component_update",
     title: "Add loading state to Button",
     targetId: "button",
@@ -206,13 +214,15 @@ async function main(): Promise<void> {
     authorAgent: "cursor-agent",
     idempotencyKey: "seed:button-loading",
   });
+
+  // 4. Reviewer requests changes on a valid proposal -> needs_changes.
   const decision: ReviewDecision = {
     decision: "needs_changes",
     reviewer: "maintainer",
-    notes: "Keep the existing size/variant props; don't drop them in the update.",
+    notes: "Add a size prop and an aria-label before this ships.",
     decidedAt: new Date().toISOString(),
   };
-  await store.setReviewDecision(buttonReq.id, decision);
+  await store.setReviewDecision(badge.id, decision);
 
   const all = await store.listRequests();
   console.log(

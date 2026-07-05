@@ -30,6 +30,12 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
 
+    /* Semantic status colors (used for request status badges, validation, diffs) */
+    --success: 142 72% 34%;
+    --warning: 32 95% 40%;
+    --info: 217 91% 50%;
+    --danger: 0 74% 46%;
+
     /* App-shell-only tokens (never consumed inside components/ui primitives) */
     --glow: 235 56% 60%;
     --surface-elevated: 240 8% 98%;
@@ -69,6 +75,12 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+
+    /* Semantic status colors (brightened for contrast on dark tinted backgrounds) */
+    --success: 142 62% 55%;
+    --warning: 38 95% 60%;
+    --info: 217 91% 68%;
+    --danger: 0 84% 68%;
 
     /* App-shell-only tokens */
     --glow: 235 56% 60%;
@@ -276,4 +288,16 @@
 @media (prefers-reduced-motion: reduce) {
   .kinetic-letter { transition: none !important; }
   .caret::after { animation: none !important; opacity: 1 !important; }
+}
+/* Read-only signature shell lines in the playground code editors */
+.code-shell-line {
+  background: hsl(var(--muted) / 0.55);
+  opacity: 0.75;
+}
+
+/* Playground preview canvas — subtle theme-aware dot grid */
+.playground-canvas {
+  background-image: radial-gradient(hsl(var(--border) / 0.6) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: center center;
 }

@@ -15,6 +15,7 @@ import type {
 } from "@/lib/contracts";
 import { buildValidationResult, payloadKindForType } from "@/lib/contracts";
 import { getComponent } from "@/lib/registry/components";
+import { diffComponentApi } from "./api-compat";
 import { validateAgainstSchema } from "./schema";
 import { validateComponentMeta } from "./components";
 import { validateProposedFiles } from "./files";
@@ -72,7 +73,8 @@ export function validatePayload(
     checks.push({ name: "file-syntax", passed: codeOk });
 
     if (type === "component_update") {
-      const ok = !!targetId && !!getComponent(targetId);
+      const existing = targetId ? getComponent(targetId) : undefined;
+      const ok = !!existing;
       if (!ok) {
         issues.push({
           code: "target.missing",
@@ -81,6 +83,15 @@ export function validatePayload(
         });
       }
       checks.push({ name: "update-target", passed: ok });
+
+      if (existing) {
+        const apiIssues = diffComponentApi(existing.props, payload.meta.props ?? []);
+        issues.push(...apiIssues);
+        checks.push({
+          name: "api-compatibility",
+          passed: !apiIssues.some((i) => i.severity === "error"),
+        });
+      }
     }
   } else {
     const themeIssues = validateTheme(payload.theme, {

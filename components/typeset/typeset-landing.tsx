@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useEffect } from "react"
 import { ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { PlaygroundLink } from "@/components/playground-link"
 import { useSmoothScroll } from "@/lib/motion/lenis-provider"
 import { useSplitReveal } from "@/lib/motion/hooks"
 import { ScrollTrigger, setupGsap, prefersReducedMotion } from "@/lib/motion/gsap-setup"
@@ -30,9 +31,9 @@ function Outro() {
               Browse Components <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
             </Link>
           </Button>
-          <Button size="lg" variant="ghost" asChild className="w-fit">
-            <Link href="/playground">Open Playground</Link>
-          </Button>
+          <PlaygroundLink size="lg" variant="ghost" className="w-fit">
+            Open Playground
+          </PlaygroundLink>
         </div>
         <p className="ed-mono mt-14 text-muted-foreground">Typeset · Miguel Lourenço · 2026</p>
       </div>
