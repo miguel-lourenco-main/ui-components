@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useEffect, useRef } from "react"
 import { ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { PlaygroundLink } from "@/components/playground-link"
 import { useMagnetic } from "@/lib/motion/hooks"
 import { gsap, setupGsap, prefersReducedMotion } from "@/lib/motion/gsap-setup"
 import { KineticWeightText } from "./kinetic-weight-text"
@@ -77,9 +78,9 @@ export function TypesetHero({ stats }: HeroProps) {
                 </Link>
               </Button>
             </div>
-            <Button size="lg" variant="ghost" asChild className="w-fit">
-              <Link href="/playground">Open Playground</Link>
-            </Button>
+            <PlaygroundLink size="lg" variant="ghost" className="w-fit">
+              Open Playground
+            </PlaygroundLink>
           </div>
         </div>
 

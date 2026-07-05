@@ -1,7 +1,7 @@
 {
   "id": "req-3ee6bec0c5af",
   "type": "component_update",
-  "status": "needs_changes",
+  "status": "validation_failed",
   "title": "Add loading state to Button",
   "targetId": "button",
   "currentVersionId": "v1",
@@ -44,16 +44,66 @@
         ]
       },
       "validation": {
-        "valid": true,
-        "checkedAt": "2026-06-11T11:33:02.687Z",
+        "valid": false,
+        "checkedAt": "2026-07-05T01:01:03.527Z",
         "issues": [
           {
             "code": "convention.missing_meta",
             "severity": "warning",
             "message": "No metadata file (<Name>.meta.json) found among proposed files."
+          },
+          {
+            "code": "api.prop_removed",
+            "severity": "error",
+            "message": "Update removes required prop \"children\" present in the current component.",
+            "path": "children"
+          },
+          {
+            "code": "api.prop_removed",
+            "severity": "warning",
+            "message": "Update removes prop \"variant\" present in the current component.",
+            "path": "variant"
+          },
+          {
+            "code": "api.prop_removed",
+            "severity": "warning",
+            "message": "Update removes prop \"size\" present in the current component.",
+            "path": "size"
+          },
+          {
+            "code": "api.prop_removed",
+            "severity": "warning",
+            "message": "Update removes prop \"onClick\" present in the current component.",
+            "path": "onClick"
+          },
+          {
+            "code": "api.prop_removed",
+            "severity": "warning",
+            "message": "Update removes prop \"title\" present in the current component.",
+            "path": "title"
+          },
+          {
+            "code": "api.prop_removed",
+            "severity": "warning",
+            "message": "Update removes prop \"disabled\" present in the current component.",
+            "path": "disabled"
+          },
+          {
+            "code": "api.prop_removed",
+            "severity": "warning",
+            "message": "Update removes prop \"className\" present in the current component.",
+            "path": "className"
           }
         ],
         "checks": [
+          {
+            "name": "request-schema",
+            "passed": true
+          },
+          {
+            "name": "current-version",
+            "passed": true
+          },
           {
             "name": "payload-kind",
             "passed": true
@@ -73,18 +123,93 @@
           {
             "name": "update-target",
             "passed": true
+          },
+          {
+            "name": "api-compatibility",
+            "passed": false
           }
         ]
       }
     }
   ],
   "createdAt": "2026-06-11T11:33:02.682Z",
-  "updatedAt": "2026-06-11T11:33:02.689Z",
+  "updatedAt": "2026-07-05T01:01:03.544Z",
   "idempotencyKey": "seed:button-loading",
   "reviewDecision": {
     "decision": "needs_changes",
     "reviewer": "maintainer",
     "notes": "Keep the existing size/variant props; don't drop them in the update.",
     "decidedAt": "2026-06-11T11:33:02.688Z"
+  },
+  "baseline": {
+    "targetId": "button",
+    "capturedAt": "2026-07-05T01:01:03.526Z",
+    "sourcePath": "components/display-components/buttons/Button/Button.tsx",
+    "source": "import React from 'react';\n\ninterface ButtonProps {\n  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';\n  size?: 'sm' | 'md' | 'lg' | 'icon';\n  children: React.ReactNode | (() => React.ReactNode);\n  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;\n  title?: string;\n  disabled?: boolean;\n  className?: string;\n}\n\nexport default function Button({\n  variant = 'primary',\n  size = 'sm',\n  children,\n  onClick,\n  title,\n  disabled = false,\n  className = ''\n}: ButtonProps) {\n  const baseStyles = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none';\n  \n  const variantStyles = {\n    primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',\n    secondary: 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500',\n    outline: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-blue-500',\n    ghost: 'text-gray-600 hover:bg-gray-100 focus:ring-gray-500'\n  };\n  \n  const sizeStyles = {\n    sm: 'px-3 py-2 text-sm',\n    md: 'px-4 py-2 text-base',\n    lg: 'px-6 py-3 text-lg',\n    icon: 'p-2'\n  };\n  \n  const combinedClassName = `${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`.trim();\n  \n  return (\n    <button\n      className={combinedClassName}\n      onClick={onClick}\n      disabled={disabled}\n      data-testid=\"rendered-component-button\"\n      title={title}\n    >\n      {typeof children === 'function' ? children() : children}\n    </button>\n  );\n} ",
+    "props": [
+      {
+        "name": "children",
+        "type": [
+          "component",
+          "function"
+        ],
+        "required": true,
+        "description": "React.ReactNode content for the button — either JSX or a function returning JSX (e.g., () => <... />)"
+      },
+      {
+        "name": "variant",
+        "type": "enum",
+        "required": false,
+        "defaultValue": "primary",
+        "options": [
+          "primary",
+          "secondary",
+          "outline",
+          "ghost"
+        ],
+        "description": "Button style variant"
+      },
+      {
+        "name": "size",
+        "type": "enum",
+        "required": false,
+        "defaultValue": "md",
+        "options": [
+          "sm",
+          "md",
+          "lg"
+        ],
+        "description": "Button size"
+      },
+      {
+        "name": "onClick",
+        "type": "function",
+        "required": false,
+        "description": "Click handler function",
+        "functionSignature": {
+          "params": "event: React.MouseEvent<HTMLButtonElement>",
+          "returnType": "void"
+        }
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "required": false,
+        "description": "Button title"
+      },
+      {
+        "name": "disabled",
+        "type": "boolean",
+        "required": false,
+        "defaultValue": false,
+        "description": "Whether the button is disabled"
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "required": false,
+        "description": "Additional CSS classes"
+      }
+    ]
   }
 }

@@ -63,6 +63,9 @@ temp/
 # Turbo
 .turbo
 
+# git-steward backups
+.git-steward-backups/
+
 # Generated files
 lib/generated-registry.json 
 test-results/

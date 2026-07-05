@@ -2,11 +2,10 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Component, FullComponentInfo, PropDefinition } from '@/lib/interfaces';
-import { RefreshCwIcon, InfoIcon, EyeIcon, AlertTriangle, Settings, X } from 'lucide-react';
+import { RefreshCwIcon, InfoIcon, EyeIcon, AlertTriangle, Settings, X, ChevronDown } from 'lucide-react';
 import { debugLog } from '@/lib/constants';
 import TooltipComponent from '@/components/ui/tooltip-component';
-import FunctionPropEditor from './FunctionPropEditor';
-import ComponentPropEditor from './ComponentPropEditor';
+import CodePropEditor from './prop-editors/CodePropEditor';
 import { LinkPreview } from './link-preview';
 import { cn } from '@/lib/utils';
 
@@ -17,13 +16,16 @@ interface PropsPanelProps {
   onSelectExample?: (exampleIndex: number) => void;
   selectedExampleIndex?: number;
   triggerPropsButton?: () => void;
+  /** True while the code panel's Edit Live fork drives the preview. */
+  codeModeActive?: boolean;
+  onExitCodeMode?: () => void;
 }
 
 /**
  * Main control surface for editing props inside the playground. It renders specialized
  * editors for functions/components plus default controls for primitive types.
  */
-export default function PropsPanel({ component, values, onChange, onSelectExample, selectedExampleIndex = -1, triggerPropsButton }: PropsPanelProps) {
+export default function PropsPanel({ component, values, onChange, onSelectExample, selectedExampleIndex = -1, triggerPropsButton, codeModeActive = false, onExitCodeMode }: PropsPanelProps) {
   const [expandedProps, setExpandedProps] = useState<Set<string>>(new Set());
   const [showOptionalProps, setShowOptionalProps] = useState<boolean>(true);
 
@@ -106,10 +108,31 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
         </div>
       </div>
 
+      {codeModeActive && (
+        <div
+          className="flex items-start justify-between gap-2 px-4 py-3 bg-amber-500/10 border-b border-amber-500/30 text-xs text-amber-700 dark:text-amber-400"
+          data-testid="code-mode-banner"
+        >
+          <span>
+            The preview is driven by the code editor — changes here won&apos;t apply until you
+            reset to props.
+          </span>
+          {onExitCodeMode && (
+            <button
+              onClick={onExitCodeMode}
+              className="shrink-0 underline underline-offset-2 hover:no-underline font-medium"
+            >
+              Reset to props
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Resizable Content Area */}
       <div className="flex-1 overflow-hidden">
         <div className="h-full overflow-y-auto">
           <PropsList
+            componentId={component.id}
             requiredProps={requiredProps}
             optionalProps={optionalProps}
             values={values}
@@ -127,6 +150,7 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
 
 // New component for rendering props list
 interface PropsListProps {
+  componentId: string;
   requiredProps: PropDefinition[];
   optionalProps: PropDefinition[];
   values: Record<string, any>;
@@ -140,8 +164,9 @@ interface PropsListProps {
 /**
  * Splits required vs optional props and renders the correct editor for each entry.
  */
-function PropsList({ 
-  requiredProps, 
+function PropsList({
+  componentId,
+  requiredProps,
   optionalProps, 
   values, 
   expandedProps, 
@@ -155,26 +180,23 @@ function PropsList({
       {/* Required Props */}
       {requiredProps.length > 0 && (
         <div>
-          <div className="bg-destructive/40 p-3 w-fit mb-4 rounded-r-lg">
-            <h4 className="text-base font-semibold text-foreground flex items-center">
-              <AlertTriangle className="size-5 mr-2" />
-              Required Properties
+          <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle className="size-3.5 text-amber-500" />
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Required
             </h4>
+            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground tabular-nums">
+              {requiredProps.length}
+            </span>
+            <div className="h-px flex-1 bg-border" />
           </div>
           <div className="space-y-4 ml-2">
             {requiredProps.map(prop => (
-              prop.type === 'function' ? (
-                <FunctionPropEditor
+              prop.type === 'function' || prop.type === 'component' ? (
+                <CodePropEditor
                   key={prop.name}
-                  prop={prop}
-                  value={values[prop.name]}
-                  onChange={(value) => onPropChange(prop.name, value)}
-                  isExpanded={expandedProps.has(prop.name)}
-                  onToggleExpansion={() => onToggleExpansion(prop.name)}
-                />
-              ) : prop.type === 'component' ? (
-                <ComponentPropEditor
-                  key={prop.name}
+                  mode={prop.type === 'component' ? 'component' : 'function'}
+                  componentId={componentId}
                   prop={prop}
                   value={values[prop.name]}
                   onChange={(value) => onPropChange(prop.name, value)}
@@ -199,31 +221,34 @@ function PropsList({
       {/* Optional Props */}
       {optionalProps.length > 0 && (
         <div>
-          <div onClick={onToggleOptionalProps} className={cn("bg-primary/5 w-fit p-3 mb-4 rounded-r-lg cursor-pointer hover:bg-primary/10", showOptionalProps && "bg-primary/10 hover:bg-primary/20")}>
-            <div className="flex gap-8 items-center justify-between">
-              <div>
-                <h4 className="text-base font-semibold text-primary flex items-center">
-                  <Settings className="size-5 mr-2" />
-                  Optional Properties
-                </h4>
-              </div>
-            </div>
-          </div>
+          <button
+            onClick={onToggleOptionalProps}
+            aria-expanded={showOptionalProps}
+            className="group flex w-full cursor-pointer items-center gap-2 mb-3"
+          >
+            <Settings className="size-3.5 text-muted-foreground" />
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors duration-200 group-hover:text-foreground">
+              Optional
+            </h4>
+            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground tabular-nums">
+              {optionalProps.length}
+            </span>
+            <div className="h-px flex-1 bg-border" />
+            <ChevronDown
+              className={cn(
+                'size-4 text-muted-foreground transition-transform duration-200 motion-reduce:transition-none',
+                !showOptionalProps && '-rotate-90'
+              )}
+            />
+          </button>
           {showOptionalProps && (
             <div className="space-y-4 ml-2">
               {optionalProps.map(prop => (
-                prop.type === 'function' ? (
-                  <FunctionPropEditor
+                prop.type === 'function' || prop.type === 'component' ? (
+                  <CodePropEditor
                     key={prop.name}
-                    prop={prop}
-                    value={values[prop.name]}
-                    onChange={(value) => onPropChange(prop.name, value)}
-                    isExpanded={expandedProps.has(prop.name)}
-                    onToggleExpansion={() => onToggleExpansion(prop.name)}
-                  />
-                ) : prop.type === 'component' ? (
-                  <ComponentPropEditor
-                    key={prop.name}
+                    mode={prop.type === 'component' ? 'component' : 'function'}
+                    componentId={componentId}
                     prop={prop}
                     value={values[prop.name]}
                     onChange={(value) => onPropChange(prop.name, value)}

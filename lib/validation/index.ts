@@ -10,4 +10,5 @@ export * from "./code";
 export * from "./files";
 export * from "./components";
 export * from "./themes";
+export * from "./api-compat";
 export * from "./requests";

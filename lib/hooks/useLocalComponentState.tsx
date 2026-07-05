@@ -19,13 +19,20 @@ interface UseLocalComponentStateReturn {
   selectedExampleIndex: number;
   loading: boolean;
   error: string | null;
-  
+  /** 'props' = panel-driven preview (default); 'code' = the editable code panel drives the preview. */
+  codeMode: 'props' | 'code';
+  /** The forked usage code while codeMode === 'code'. */
+  customCode: string;
+
   // Actions
   loadComponents: () => Promise<void>;
   selectComponent: (component: FullComponentInfo, exampleIndex?: number) => void;
   selectExample: (exampleIndex: number) => void;
   updateProps: (props: Record<string, any>) => void;
   resetToDefaults: () => void;
+  enterCodeMode: () => void;
+  updateCustomCode: (code: string) => void;
+  exitCodeMode: () => void;
   
   togglePropsPanel: () => void;
   toggleCodePanel: () => void;
@@ -66,6 +73,11 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
 
   // Track which example is currently selected (0 for first example, -1 for none/default)
   const [selectedExampleIndex, setSelectedExampleIndex] = useState<number>(-1);
+
+  // Code mode: when 'code', the editable code panel owns the preview and the
+  // props panel is suspended. One-way fork — editing props/examples exits it.
+  const [codeMode, setCodeMode] = useState<'props' | 'code'>('props');
+  const [customCode, setCustomCode] = useState<string>('');
   // Build id -> normalized path map from index.json for resolving component source
   const idToPath: Record<string, string> = (indexJson.components || []).reduce(
     (acc: Record<string, string>, item: { id: string; path: string }) => {
@@ -438,6 +450,11 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
       exampleIndex,
     });
 
+    // Selecting a component or example always returns to props-driven preview;
+    // the code-mode fork would otherwise silently go stale.
+    setCodeMode('props');
+    setCustomCode('');
+
     const defaultProps = component.props.reduce((acc, prop) => {
       if (prop.defaultValue !== undefined) {
         // For component props with string defaults, wrap into a FunctionPropValue
@@ -669,6 +686,37 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
 
 
   /**
+   * Enter code mode: fork the usage part of the generated code (everything
+   * before the appended implementation source) into an editable module that
+   * imports the selected component from '@playground/component'.
+   */
+  const enterCodeMode = useCallback(() => {
+    const component = playgroundState.selectedComponent;
+    if (!component) return;
+
+    const marker = '/* ===== Component Implementation:';
+    const markerIndex = playgroundState.currentCode.indexOf(marker);
+    const usage = (markerIndex >= 0
+      ? playgroundState.currentCode.slice(0, markerIndex)
+      : playgroundState.currentCode
+    ).trimEnd();
+
+    const seed = `import React from 'react';\nimport { ${component.name} } from '@playground/component';\n\n${usage}\n`;
+    setCustomCode(seed);
+    setCodeMode('code');
+  }, [playgroundState.selectedComponent, playgroundState.currentCode]);
+
+  const updateCustomCode = useCallback((code: string) => {
+    setCustomCode(code);
+  }, []);
+
+  /** Leave code mode and return to the props-driven preview. */
+  const exitCodeMode = useCallback(() => {
+    setCodeMode('props');
+    setCustomCode('');
+  }, []);
+
+  /**
    * Toggle props panel visibility
    */
   const togglePropsPanel = useCallback(() => {
@@ -741,6 +789,11 @@ export function useLocalComponentState(): UseLocalComponentStateReturn {
     selectExample,
     updateProps,
     resetToDefaults,
+    codeMode,
+    customCode,
+    enterCodeMode,
+    updateCustomCode,
+    exitCodeMode,
     togglePropsPanel,
     toggleCodePanel,
     toggleExamplesPanel,

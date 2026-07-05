@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useSearchParams, usePathname } from 'next/navigation';
 import ComponentSelector from '@/components/ComponentSelector';
 import LocalComponentRenderer from '@/components/LocalComponentRenderer';
-import CodeViewer from '@/components/code-viewer';
+import CodePanel from '@/components/CodePanel';
 import PropsPanel from '@/components/PropsPanel';
 
 import { useLocalComponentState } from '@/lib/hooks/useLocalComponentState';
@@ -60,9 +60,10 @@ function PanelToggleButton({
         onClick={onClick}
         variant={isMobile ? (isActive ? 'secondary' : 'ghost') : 'ghost'}
         className={cn(
-          "min-w-10 h-10 px-2 m-.5 border rounded-lg text-muted-foreground relative",
+          "min-w-10 h-10 px-2 m-.5 border border-transparent rounded-lg text-muted-foreground relative",
           "transition-[background-color,border-color,transform] duration-300 ease-out-expo",
-          "hover:bg-accent active:scale-[0.98] motion-reduce:transition-none flex items-center justify-center",
+          "hover:bg-accent hover:text-foreground active:scale-[0.98] motion-reduce:transition-none flex items-center justify-center",
+          isMobile && "border-border",
           !isMobile && isActive && "bg-primary/10 border-primary/30 ring-1 ring-primary/40 text-foreground",
         )}
         aria-pressed={isActive}
@@ -162,23 +163,43 @@ interface ComponentPreviewProps {
   onRetry: () => void;
   onPropChange: (propName: string, value: any) => void;
   rendererButtons: React.ReactNode;
+  customCode?: string;
+  /** Shown as one-click starters in the empty state. */
+  quickPicks?: FullComponentInfo[];
+  onQuickSelect?: (component: FullComponentInfo) => void;
 }
 
 /**
  * Wrapper around `LocalComponentRenderer` that supplies preview chrome,
  * retry wiring, and the empty-state message.
  */
-function ComponentPreview({ 
-  selectedComponent, 
-  currentProps, 
-  onRetry, 
+function ComponentPreview({
+  selectedComponent,
+  currentProps,
+  onRetry,
   onPropChange,
-  rendererButtons 
+  rendererButtons,
+  customCode,
+  quickPicks,
+  onQuickSelect,
 }: ComponentPreviewProps) {
   return (
     <div className="h-full bg-muted flex flex-col" id="component-preview-area">
-      <div className="w-full flex items-center justify-between p-4 pb-0">
+      <div className="w-full flex items-center justify-between gap-3 p-4 pb-0">
         {rendererButtons}
+        {selectedComponent && (
+          <div className="hidden md:flex items-center gap-2 min-w-0 text-xs text-muted-foreground">
+            {customCode && (
+              <span className="shrink-0 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-500 font-medium">
+                Live code
+              </span>
+            )}
+            <span className="font-mono truncate">
+              {selectedComponent.name}
+              <span className="text-muted-foreground/60"> v{selectedComponent.version}</span>
+            </span>
+          </div>
+        )}
       </div>
       <div className="flex-1 p-6" data-testid="component-preview">
         {selectedComponent ? (
@@ -187,12 +208,31 @@ function ComponentPreview({
             props={currentProps}
             onRetry={onRetry}
             onPropChange={onPropChange}
+            customCode={customCode}
           />
         ) : (
-          <div className="h-full flex items-center justify-center text-muted-foreground">
-            <div className="text-center">
-              <PlayIcon className="w-16 h-16 mx-auto mb-4 text-muted-foreground/50" />
-              <p className="text-lg">Select a component to get started</p>
+          <div className="playground-canvas h-full flex items-center justify-center rounded-lg border border-border bg-card text-muted-foreground">
+            <div className="text-center px-6">
+              <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-2xl border border-border bg-muted">
+                <PlayIcon className="size-6 text-muted-foreground" />
+              </div>
+              <p className="text-lg font-medium text-foreground mb-1">Pick a component to start</p>
+              <p className="text-sm text-muted-foreground mb-5">
+                Tweak props, edit handlers, or take over the code entirely.
+              </p>
+              {quickPicks && quickPicks.length > 0 && onQuickSelect && (
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  {quickPicks.map((component) => (
+                    <button
+                      key={component.id}
+                      onClick={() => onQuickSelect(component)}
+                      className="cursor-pointer px-3 py-1.5 text-sm rounded-lg border border-border bg-background text-foreground hover:border-primary/40 hover:bg-primary/5 transition-colors duration-200"
+                    >
+                      {component.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -217,8 +257,13 @@ export default function PlaygroundPage() {
     selectExample,
     updateProps,
     resetToDefaults,
+    codeMode,
+    customCode,
+    enterCodeMode,
+    updateCustomCode,
+    exitCodeMode,
     togglePropsPanel,
-    toggleCodePanel,  
+    toggleCodePanel,
     toggleExamplesPanel,
     toggleSearchPanel,
     setSearchQuery,
@@ -399,9 +444,9 @@ export default function PlaygroundPage() {
 
   const rendererButtons = (): React.ReactNode => {
     return playgroundState.selectedComponent ? (
-      <div className="flex w-full items-center justify-start">
+      <div className="flex w-fit items-center justify-start">
         {!isMobile && (
-          <div className="flex w-fit items-center justify-end space-x-2">
+          <div className="flex w-fit items-center gap-0.5 rounded-xl border border-border bg-card/70 p-1 shadow-sm backdrop-blur-sm">
             {panelConfigs.map(({ id, label, Icon, desktopActive, onClick }) => (
               <PanelToggleButton
                 key={id}
@@ -508,12 +553,22 @@ export default function PlaygroundPage() {
                           onSelectExample={selectExample}
                           selectedExampleIndex={selectedExampleIndex}
                           triggerPropsButton={triggerPropsButton}
+                          codeModeActive={codeMode === 'code'}
+                          onExitCodeMode={exitCodeMode}
                         />
                       </div>
                     )}
                     {activeTopPanel === 'code' && playgroundState.selectedComponent && (
                       <div className="h-full flex flex-col">
-                        <CodeViewer value={playgroundState.currentCode} language="typescript" title="Component Code" />
+                        <CodePanel
+                          component={playgroundState.selectedComponent}
+                          generatedCode={playgroundState.currentCode}
+                          codeMode={codeMode}
+                          customCode={customCode}
+                          onEnterCodeMode={enterCodeMode}
+                          onUpdateCustomCode={updateCustomCode}
+                          onExitCodeMode={exitCodeMode}
+                        />
                       </div>
                     )}
                     {activeTopPanel === 'examples' && playgroundState.selectedComponent && (
@@ -576,6 +631,9 @@ export default function PlaygroundPage() {
                     }}
                     onPropChange={handlePropChange}
                     rendererButtons={rendererButtons()}
+                    customCode={codeMode === 'code' ? customCode : undefined}
+                    quickPicks={components.slice(0, 4)}
+                    onQuickSelect={selectComponent}
                   />
                 </ResizablePanel>
               </ResizablePanelGroup>
@@ -611,6 +669,9 @@ export default function PlaygroundPage() {
                       }}
                       onPropChange={handlePropChange}
                       rendererButtons={rendererButtons()}
+                      customCode={codeMode === 'code' ? customCode : undefined}
+                      quickPicks={components.slice(0, 4)}
+                      onQuickSelect={selectComponent}
                     />
                   </ResizablePanel>
 
@@ -618,7 +679,15 @@ export default function PlaygroundPage() {
 
                   <ResizablePanel id="code-desktop" collapsible collapsedSize={0} ref={codePanelRef} defaultSize={playgroundState.showCode ? 40 : 0} minSize={0} maxSize={playgroundState.showCode ? 40 : 0} className="bg-card border-t border-border">
                     <div className="h-full flex flex-col">
-                      <CodeViewer value={playgroundState.currentCode} language="typescript" title="Component Code" />
+                      <CodePanel
+                        component={playgroundState.selectedComponent}
+                        generatedCode={playgroundState.currentCode}
+                        codeMode={codeMode}
+                        customCode={customCode}
+                        onEnterCodeMode={enterCodeMode}
+                        onUpdateCustomCode={updateCustomCode}
+                        onExitCodeMode={exitCodeMode}
+                      />
                     </div>
                   </ResizablePanel>
                 </ResizablePanelGroup>
@@ -643,6 +712,8 @@ export default function PlaygroundPage() {
                       onSelectExample={selectExample}
                       selectedExampleIndex={selectedExampleIndex}
                       triggerPropsButton={triggerPropsButton}
+                      codeModeActive={codeMode === 'code'}
+                      onExitCodeMode={exitCodeMode}
                     />
                   )}
                 </div>

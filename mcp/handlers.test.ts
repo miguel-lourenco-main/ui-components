@@ -87,6 +87,30 @@ describe("MCP handlers", () => {
     expect(res.request.status).toBe("pending_review");
   });
 
+  it("returns a baseline and apiCompatibility summary for a component_update that drops props", async () => {
+    const args = {
+      ...goodComponentArgs(),
+      type: "component_update",
+      targetId: "button",
+      idempotencyKey: "button-update-test",
+      // No props declared -> drops every prop the published Button exposes.
+      meta: { ...goodComponentArgs().meta, props: [] },
+    };
+    const res = (await handlers.create_component_request(args)) as CreateResult & {
+      baseline?: { targetId: string };
+      apiCompatibility?: {
+        passed: boolean;
+        lostProps: Array<{ prop?: string; severity: string }>;
+      };
+    };
+    expect(res.baseline?.targetId).toBe("button");
+    expect(res.apiCompatibility?.passed).toBe(false);
+    expect(
+      res.apiCompatibility?.lostProps.some((p) => p.severity === "error")
+    ).toBe(true);
+    expect(res.validation.valid).toBe(false);
+  });
+
   it("creates an invalid request (path traversal) as validation_failed", async () => {
     const args = goodComponentArgs();
     args.files[0].path = "../../etc/passwd";

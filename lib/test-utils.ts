@@ -1,7 +1,8 @@
 import { expect } from '@playwright/test';
 
-export const VALID_FUNCTION_TEST = 'Status: ✅ Valid function - will appear in generated code';
-export const INVALID_FUNCTION_TEST = 'Status: ❌ Invalid function - will not appear in generated code';
+export const VALID_FUNCTION_TEST = 'Status: ✅ Valid - will appear in generated code';
+// Syntax-error statuses append the error location/message, so match by prefix.
+export const INVALID_FUNCTION_TEST = 'Status: ❌ Not applied — syntax error';
 
 // Helper functions for common UI interactions
 export const getPropControl = (page: any, propName: string) => {
@@ -152,7 +153,7 @@ export const waitForComponentStability = async (page: any, propName?: string, ex
       const status = getFunctionPropStatus(page, propName);
       await expect.poll(async () => {
         const statusText = await status.textContent();
-        return statusText === VALID_FUNCTION_TEST || statusText === INVALID_FUNCTION_TEST;
+        return statusText === VALID_FUNCTION_TEST || (statusText ?? '').startsWith(INVALID_FUNCTION_TEST);
       }, {
         message: `Function validation for ${propName} did not complete`,
         timeout: timeoutMs,

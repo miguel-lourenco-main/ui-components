@@ -128,6 +128,7 @@ export class FileRequestStore implements RequestStore {
       targetId: input.targetId,
       currentVersionId: versionId,
       versions: [version],
+      baseline: input.baseline,
       createdAt: now,
       updatedAt: now,
       idempotencyKey: input.idempotencyKey,

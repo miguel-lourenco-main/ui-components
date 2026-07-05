@@ -2,7 +2,7 @@
 # Pin `ref` to match: `git ls-tree HEAD infra` (update both when bumping the submodule).
 include:
   - project: public-work4/infra
-    ref: a603120f2e6eecedb0065496568f772d2b40fe6f
+    ref: 800ea5fcd24ad807e03cdcdd9ce9729ed590b159
     file:
       - ci/templates/base.gitlab-ci.yml
       - ci/templates/jobs-quality.gitlab-ci.yml
@@ -19,10 +19,14 @@ validate_registry:
   stage: test
   extends: .node22_pnpm
   script:
+    - ci_banner "🧾 Registry Validation" "pnpm run validate:registry"
     - pnpm run validate:registry
+    - ci_ok "Registry contract valid"
 
 unit_test:
   stage: test
   extends: .node22_pnpm
   script:
+    - ci_banner "🧪 Unit Tests" "pnpm run test:unit (vitest)"
     - pnpm run test:unit
+    - ci_ok "Unit tests passed"

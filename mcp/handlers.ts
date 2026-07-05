@@ -13,6 +13,7 @@ import {
 } from "@/lib/registry/components";
 import { getTheme, listThemeSummaries, listThemes } from "@/lib/registry/themes";
 import { validatePayload } from "@/lib/validation";
+import { captureComponentBaseline } from "@/lib/requests/baseline";
 import { buildValidationResult } from "@/lib/contracts";
 import type {
   ComponentMetaContract,
@@ -104,6 +105,29 @@ async function validateAndAttach(
   return { request: updated, validation };
 }
 
+/**
+ * Compact API-compatibility summary for the create/update response, so a
+ * requesting agent immediately sees which existing props its proposal drops and
+ * can self-correct. Undefined for non-update requests (no `api-compatibility`
+ * check ran).
+ */
+function summarizeApiCompatibility(validation: RequestValidationResult) {
+  const check = validation.checks.find((c) => c.name === "api-compatibility");
+  if (!check) return undefined;
+  const apiIssues = validation.issues.filter((i) => i.code.startsWith("api."));
+  return {
+    passed: check.passed,
+    lostProps: apiIssues
+      .filter((i) => i.code === "api.prop_removed")
+      .map((i) => ({ prop: i.path, severity: i.severity })),
+    issues: apiIssues.map((i) => ({
+      code: i.code,
+      severity: i.severity,
+      message: i.message,
+    })),
+  };
+}
+
 export interface McpHandlers {
   [tool: string]: (args: Args) => Promise<unknown>;
 }
@@ -177,6 +201,11 @@ export function createHandlers(store: RequestStore): McpHandlers {
           ? "component_update"
           : "new_component";
 
+      const baseline =
+        type === "component_update" && targetId
+          ? captureComponentBaseline(targetId)
+          : undefined;
+
       const request = await store.createRequest({
         type,
         title,
@@ -185,8 +214,14 @@ export function createHandlers(store: RequestStore): McpHandlers {
         payload: { kind: "component", meta, files },
         authorAgent: optionalString(args, "authorAgent"),
         idempotencyKey: optionalString(args, "idempotencyKey"),
+        baseline,
       });
-      return validateAndAttach(store, request);
+      const result = await validateAndAttach(store, request);
+      return {
+        ...result,
+        baseline: result.request.baseline,
+        apiCompatibility: summarizeApiCompatibility(result.validation),
+      };
     },
 
     update_component_request: async (args) => {
@@ -199,7 +234,12 @@ export function createHandlers(store: RequestStore): McpHandlers {
         payload: { kind: "component", meta, files },
         authorAgent: optionalString(args, "authorAgent"),
       });
-      return validateAndAttach(store, request);
+      const result = await validateAndAttach(store, request);
+      return {
+        ...result,
+        baseline: result.request.baseline,
+        apiCompatibility: summarizeApiCompatibility(result.validation),
+      };
     },
 
     create_theme_request: async (args) => {

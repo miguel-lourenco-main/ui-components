@@ -118,7 +118,7 @@ export const TOOL_DEFS: ToolDef[] = [
   {
     name: "create_component_request",
     description:
-      "Propose a new component or an update to an existing one. Provide an idempotencyKey to dedupe; calling again with the same key updates the existing request. Returns the request and its validation result.",
+      "Propose a new component or an update to an existing one. Provide an idempotencyKey to dedupe; calling again with the same key updates the existing request. For a component_update, first fetch the current component with get_component/get_component_code(targetId) and keep the change additive: preserve every existing prop (removing a required prop fails validation; removing an optional one warns). Returns the request, its validation result, a baseline snapshot of the current component, and an apiCompatibility summary of any props your proposal drops.",
     inputSchema: {
       type: "object",
       required: ["title", "rationale", "meta", "files"],
@@ -141,7 +141,7 @@ export const TOOL_DEFS: ToolDef[] = [
   {
     name: "update_component_request",
     description:
-      "Append a new version to an existing component request (only when draft/validation_failed/needs_changes). Returns the request and its validation result.",
+      "Append a new version to an existing component request (only when draft/validation_failed/needs_changes). For updates to a published component, keep the change additive — preserve the existing props from get_component(targetId); removing a required prop fails validation. Returns the request, its validation result, a baseline snapshot, and an apiCompatibility summary of any dropped props.",
     inputSchema: {
       type: "object",
       required: ["id", "rationale", "meta", "files"],
