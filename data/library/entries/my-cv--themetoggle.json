@@ -1,0 +1,25 @@
+{
+  "id": "my-cv--themetoggle",
+  "name": "ThemeToggle",
+  "description": "Theme toggle button component that cycles through light, dark, and system themes.\nPrevents hydration mismatch by only rendering after mount.\nDisplays appropriate icon based on current theme state.",
+  "category": "navigation",
+  "tags": [],
+  "props": [],
+  "propsExtends": [],
+  "dependencies": [],
+  "localImports": [
+    "../lib/theme-provider"
+  ],
+  "source": {
+    "project": "my-cv",
+    "repo": "https://gitlab.com/public-work4/my-cv",
+    "path": "app/components/ThemeToggle.tsx",
+    "commit": "c706fb8a83da84d7e1d8f895db7343d4b3801b33",
+    "exportKind": "default"
+  },
+  "code": "'use client'\n\nimport { useTheme } from '../lib/theme-provider'\nimport { useEffect, useState } from 'react'\n\n/**\n * Theme toggle button component that cycles through light, dark, and system themes.\n * Prevents hydration mismatch by only rendering after mount.\n * Displays appropriate icon based on current theme state.\n * \n * @example\n * ```tsx\n * <ThemeToggle />\n * ```\n */\nexport default function ThemeToggle() {\n  const { theme, setTheme } = useTheme()\n  // Track mount state to prevent hydration mismatch\n  const [mounted, setMounted] = useState(false)\n\n  useEffect(() => {\n    setMounted(true)\n  }, [])\n\n  // Render placeholder until mounted to avoid hydration issues\n  if (!mounted) {\n    return (\n      <div className=\"w-9 h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800\"></div>\n    )\n  }\n\n  // Cycle through themes: light -> dark -> system -> light\n  const toggleTheme = () => {\n    console.log('toggleTheme', theme)\n    if (theme === 'light') {\n      setTheme('dark')\n    } else if (theme === 'dark') {\n      setTheme('system')\n    } else {\n      setTheme('light')\n    }\n  }\n\n  const getIcon = () => {\n    switch (theme) {\n      case 'light':\n        return (\n          <svg className=\"w-5 h-5\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">\n            <path strokeLinecap=\"round\" strokeLinejoin=\"round\" strokeWidth=\"2\" d=\"M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z\" />\n          </svg>\n        )\n      case 'dark':\n        return (\n          <svg className=\"w-5 h-5\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">\n            <path strokeLinecap=\"round\" strokeLinejoin=\"round\" strokeWidth=\"2\" d=\"M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z\" />\n          </svg>\n        )\n      case 'system':\n        return (\n          <svg className=\"w-5 h-5\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">\n            <path strokeLinecap=\"round\" strokeLinejoin=\"round\" strokeWidth=\"2\" d=\"M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z\" />\n          </svg>\n        )\n      default:\n        return null\n    }\n  }\n\n  const getTitle = () => {\n    switch (theme) {\n      case 'light':\n        return 'Switch to dark mode'\n      case 'dark':\n        return 'Switch to system mode'\n      case 'system':\n        return 'Switch to light mode'\n      default:\n        return 'Toggle theme'\n    }\n  }\n\n  return (\n    <button\n      onClick={toggleTheme}\n      className=\"inline-flex items-center justify-center w-9 h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800\"\n      title={getTitle()}\n      aria-label={getTitle()}\n    >\n      {getIcon()}\n    </button>\n  )\n} ",
+  "contentHash": "3e99f830a4da9fa6ea5fec6c5a988c889012800875d04f4c06bcedffbdcf6a36",
+  "notes": [],
+  "importedAt": "2026-10-16T11:29:16.058Z",
+  "updatedAt": "2026-10-16T11:29:16.058Z"
+}

@@ -13,6 +13,7 @@
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
     "validate:registry": "tsx scripts/validate-registry.ts",
+    "library:import": "tsx scripts/import-components.ts",
     "seed:requests": "tsx scripts/seed-requests.ts",
     "publish:request": "tsx scripts/publish-request.ts",
     "mcp": "tsx mcp/server.ts",
@@ -93,6 +94,7 @@
     "vaul": "^1.1.2"
   },
   "devDependencies": {
+    "@babel/types": "^7.28.2",
     "@playwright/test": "^1.54.2",
     "@types/babel__traverse": "^7.28.0",
     "@types/node": "^20.19.10",
