@@ -2,7 +2,7 @@
  * File-backed component library store and import pipeline (Node-only).
  *
  * Entries live at `data/library/entries/<id>.json`; `data/library/index.json`
- * is regenerated from them after every import. Importing is idempotent: the id
+ * (light rows, no source) is regenerated from them after every import. Importing is idempotent: the id
  * is derived from project + component name, so re-importing a file updates the
  * existing entry, and an entry whose content did not change keeps its
  * timestamps (the manifest does not churn).
@@ -16,6 +16,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type {
   LibraryComponent,
+  LibraryIndexEntry,
   LibraryLocalEnrichment,
   LibraryLocalOverlay,
   LibraryManifest,
@@ -29,7 +30,8 @@ import { notesForComponent, type VaultNote } from "./vault";
 export const LIBRARY_DIR = path.join(REPO_ROOT, "data", "library");
 /** Subdirectory of the library dir that holds local-only (gitignored) data. */
 export const LOCAL_SUBDIR = "local";
-const MANIFEST_VERSION = 1;
+/** v2: rows are `LibraryIndexEntry` (no source or prop contracts). */
+const MANIFEST_VERSION = 2;
 const SOURCE_EXTENSIONS = new Set([".tsx", ".jsx"]);
 const SKIP_DIRS = new Set(["node_modules", ".next", ".git", "dist", "build", "out", "coverage", ".turbo"]);
 const SKIP_FILE = /\.(test|spec|stories|examples)\.[jt]sx?$|\.d\.ts$/;
@@ -174,11 +176,17 @@ function writeLocalOverlay(dir: string, overlay: LibraryLocalOverlay): void {
   fs.writeFileSync(file, `${JSON.stringify({ ...overlay, entries }, null, 2)}\n`);
 }
 
+/** The light manifest row for an entry. */
+export function toIndexEntry(entry: LibraryComponent): LibraryIndexEntry {
+  const { code: _code, props, propsExtends: _ext, localImports: _local, ...rest } = entry;
+  return { ...rest, propNames: props.map((p) => p.name) };
+}
+
 /** Rebuild `index.json` from the stored entries. Deterministic for unchanged entries. */
 export function writeManifest(dir = LIBRARY_DIR): LibraryManifest {
-  const components = readLibrary(dir).sort(
-    (a, b) => a.source.project.localeCompare(b.source.project) || a.name.localeCompare(b.name)
-  );
+  const components = readLibrary(dir)
+    .sort((a, b) => a.source.project.localeCompare(b.source.project) || a.name.localeCompare(b.name))
+    .map(toIndexEntry);
   const generatedAt = components.reduce((max, c) => (c.updatedAt > max ? c.updatedAt : max), "1970-01-01T00:00:00.000Z");
   const manifest: LibraryManifest = { version: MANIFEST_VERSION, generatedAt, components };
   fs.mkdirSync(dir, { recursive: true });

@@ -40,6 +40,7 @@ describe("applyLocalOverlay", () => {
 });
 
 describe("committed library data", () => {
+  // Guards for the data in the repo: what the public build serves.
   const root = path.resolve(__dirname, "../../data/library");
   const files = [
     path.join(root, "index.json"),
@@ -51,6 +52,19 @@ describe("committed library data", () => {
       const text = fs.readFileSync(file, "utf8");
       for (const field of VAULT_FIELDS) expect(text, file).not.toContain(`"${field}"`);
       expect(text, file).not.toContain('"excerpt"');
+    }
+  });
+
+  it("keeps the manifest light and in sync with the per-entry files", () => {
+    const manifest = JSON.parse(fs.readFileSync(path.join(root, "index.json"), "utf8"));
+    expect(manifest.version).toBe(2);
+    const ids = manifest.components.map((c: { id: string }) => c.id).sort();
+    const entryIds = fs.readdirSync(path.join(root, "entries")).map((f) => f.replace(/\.json$/, "")).sort();
+    expect(ids).toEqual(entryIds);
+    for (const row of manifest.components) {
+      expect(row).not.toHaveProperty("code");
+      expect(row).not.toHaveProperty("props");
+      expect(Array.isArray(row.propNames)).toBe(true);
     }
   });
 

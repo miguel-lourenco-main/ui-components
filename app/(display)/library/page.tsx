@@ -22,7 +22,7 @@ import { PageTransition } from "@/components/page-transition"
 import { ProposalComponentPreview } from "@/components/proposal-component-preview"
 import { LibraryBrowser } from "@/components/library-browser"
 import { RelativeTime } from "@/components/relative-time"
-import { LIBRARY, getLibraryComponent, sourceUrl, toPreviewMeta } from "@/lib/library/manifest-data"
+import { LIBRARY, loadLibraryEntry, sourceUrl, toPreviewMeta } from "@/lib/library/manifest-data"
 import type { LibraryEntryView, LibraryProp } from "@/lib/contracts"
 
 function formatDefault(prop: LibraryProp): string {
@@ -240,34 +240,62 @@ function LibraryDetail({ entry }: { entry: LibraryEntryView }) {
   )
 }
 
+type DetailState =
+  | { status: "loading"; id: string }
+  | { status: "ready"; id: string; entry: LibraryEntryView }
+  | { status: "missing"; id: string }
+
+/** Loads the entry's full JSON (lazily, per id) and renders its detail. */
+function LibraryDetailLoader({ id }: { id: string }) {
+  const [state, setState] = useState<DetailState>({ status: "loading", id })
+
+  useEffect(() => {
+    let cancelled = false
+    setState({ status: "loading", id })
+    loadLibraryEntry(id).then((entry) => {
+      if (!cancelled) setState(entry ? { status: "ready", id, entry } : { status: "missing", id })
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [id])
+
+  if (state.id !== id || state.status === "loading") {
+    return (
+      <p className="text-muted-foreground" role="status">
+        Loading component…
+      </p>
+    )
+  }
+  if (state.status === "ready") return <LibraryDetail entry={state.entry} />
+  return (
+    <>
+      <Link
+        href="/library"
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="h-4 w-4" /> Library
+      </Link>
+      <EmptyState
+        icon={Puzzle}
+        title="Component not found"
+        description="It may have been removed from the library, or the link is out of date."
+        action={{ label: "Browse the library", href: "/library" }}
+        className="mt-6"
+      />
+    </>
+  )
+}
+
 function LibraryPageInner() {
   const searchParams = useSearchParams()
   const id = searchParams.get("id")
-  const selected = id ? getLibraryComponent(id) : undefined
 
   if (id) {
     return (
       <div className="container px-4 py-8">
         <div className="mx-auto max-w-6xl">
-          {selected ? (
-            <LibraryDetail entry={selected} />
-          ) : (
-            <>
-              <Link
-                href="/library"
-                className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-              >
-                <ArrowLeft className="h-4 w-4" /> Library
-              </Link>
-              <EmptyState
-                icon={Puzzle}
-                title="Component not found"
-                description="It may have been removed from the library, or the link is out of date."
-                action={{ label: "Browse the library", href: "/library" }}
-                className="mt-6"
-              />
-            </>
-          )}
+          <LibraryDetailLoader id={id} />
         </div>
       </div>
     )

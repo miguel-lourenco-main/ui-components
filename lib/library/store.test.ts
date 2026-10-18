@@ -59,8 +59,13 @@ describe("importComponents", () => {
       importedAt: "2026-01-01T00:00:00.000Z",
     });
     expect(entry.source.path).toMatch(/components\/Badge\.tsx$/);
-    expect(entry.code).toBe(BADGE);
-    expect(fs.existsSync(path.join(libDir, "entries", "demo--badge.json"))).toBe(true);
+    // The manifest row is light; the full entry (source, props) is its own file.
+    expect(entry).not.toHaveProperty("code");
+    expect(entry).not.toHaveProperty("props");
+    expect(entry.propNames).toEqual(["tone"]);
+    const full = JSON.parse(fs.readFileSync(path.join(libDir, "entries", "demo--badge.json"), "utf8"));
+    expect(full.code).toBe(BADGE);
+    expect(full.props.map((p: { name: string }) => p.name)).toEqual(["tone"]);
   });
 
   it("is idempotent: re-import without changes keeps timestamps, a source change updates in place", () => {

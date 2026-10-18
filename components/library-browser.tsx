@@ -16,7 +16,7 @@ import {
 import { EmptyState } from "@/components/empty-state";
 import { GlowCard, cardLinkClassName } from "@/components/glow-card";
 import { StaggerGroup, StaggerItem } from "@/components/motion/stagger";
-import type { LibraryEntryView } from "@/lib/contracts";
+import type { LibraryIndexView } from "@/lib/contracts";
 
 const ALL = "__all__";
 
@@ -24,7 +24,7 @@ function uniqueSorted(values: string[]): string[] {
   return Array.from(new Set(values)).sort((a, b) => a.localeCompare(b));
 }
 
-function matches(entry: LibraryEntryView, q: string): boolean {
+function matches(entry: LibraryIndexView, q: string): boolean {
   if (!q) return true;
   return [
     entry.name,
@@ -33,11 +33,11 @@ function matches(entry: LibraryEntryView, q: string): boolean {
     entry.source.project,
     entry.source.path,
     ...entry.tags,
-    ...entry.props.map((p) => p.name),
+    ...entry.propNames,
   ].some((value) => value.toLowerCase().includes(q));
 }
 
-function LibraryCard({ entry }: { entry: LibraryEntryView }) {
+function LibraryCard({ entry }: { entry: LibraryIndexView }) {
   return (
     <Link href={`/library?id=${entry.id}`} className={`${cardLinkClassName} h-full`} data-testid="library-card">
       <GlowCard className="group h-full cursor-pointer">
@@ -61,7 +61,7 @@ function LibraryCard({ entry }: { entry: LibraryEntryView }) {
         <CardContent className="flex flex-wrap items-center gap-1.5 pt-0 text-xs">
           <Badge variant="secondary">{entry.category}</Badge>
           <span className="text-muted-foreground">
-            {entry.props.length} prop{entry.props.length === 1 ? "" : "s"}
+            {entry.propNames.length} prop{entry.propNames.length === 1 ? "" : "s"}
           </span>
           {entry.notes.length > 0 && (
             <span className="inline-flex items-center gap-1 text-muted-foreground">
@@ -85,7 +85,7 @@ function LibraryCard({ entry }: { entry: LibraryEntryView }) {
  * the ingested components. Pure derivation from the static manifest, so it is
  * safe to prerender.
  */
-export function LibraryBrowser({ components }: { components: LibraryEntryView[] }) {
+export function LibraryBrowser({ components }: { components: LibraryIndexView[] }) {
   const [query, setQuery] = useState("");
   const [project, setProject] = useState(ALL);
   const [category, setCategory] = useState(ALL);
