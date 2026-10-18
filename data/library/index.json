@@ -1,0 +1,1003 @@
+{
+  "version": 1,
+  "generatedAt": "2026-10-16T11:29:18.171Z",
+  "components": [
+    {
+      "id": "my-cv--basebutton",
+      "name": "BaseButton",
+      "description": "Base button component with theme support and click feedback.\nRenders as an anchor tag if href is provided, otherwise as a button.\nFeatures visual feedback on click with theme-specific styling.",
+      "category": "actions",
+      "tags": [],
+      "props": [
+        {
+          "name": "className",
+          "tsType": "string",
+          "required": false,
+          "type": "string",
+          "description": "Additional CSS classes"
+        },
+        {
+          "name": "href",
+          "tsType": "string",
+          "required": false,
+          "type": "string",
+          "description": "Link URL (renders as anchor tag if provided)"
+        },
+        {
+          "name": "children",
+          "tsType": "React.ReactNode",
+          "required": true,
+          "type": "component",
+          "description": "Button content"
+        },
+        {
+          "name": "theme",
+          "tsType": "ButtonTheme",
+          "required": false,
+          "type": "object",
+          "description": "Color theme for the button",
+          "defaultValue": "orange"
+        },
+        {
+          "name": "onClick",
+          "tsType": "() => void",
+          "required": false,
+          "type": "function",
+          "functionSignature": {
+            "params": "",
+            "returnType": "void"
+          },
+          "description": "Click handler function"
+        },
+        {
+          "name": "target",
+          "tsType": "string",
+          "required": false,
+          "type": "string",
+          "description": "Link target attribute",
+          "defaultValue": "_blank"
+        },
+        {
+          "name": "rel",
+          "tsType": "string",
+          "required": false,
+          "type": "string",
+          "description": "Link rel attribute",
+          "defaultValue": "noopener noreferrer"
+        },
+        {
+          "name": "aria-label",
+          "tsType": "string",
+          "required": false,
+          "type": "string",
+          "description": "Accessible label for screen readers and scrapers"
+        },
+        {
+          "name": "data-contact",
+          "tsType": "string",
+          "required": false,
+          "type": "string",
+          "description": "Machine-readable contact type for scrapers (e.g. gitlab, linkedin, email)"
+        }
+      ],
+      "propsExtends": [],
+      "dependencies": [],
+      "localImports": [
+        "../lib/utils"
+      ],
+      "source": {
+        "project": "my-cv",
+        "repo": "https://gitlab.com/public-work4/my-cv",
+        "path": "app/components/Button.tsx",
+        "commit": "c706fb8a83da84d7e1d8f895db7343d4b3801b33",
+        "exportKind": "default"
+      },
+      "code": "\"use client\";\n\nimport { cn } from \"../lib/utils\";\nimport { useState } from \"react\";\n\n/**\n * Available button theme color options.\n */\nexport type ButtonTheme = \n  | \"orange\" \n  | \"blue\" \n  | \"green\" \n  | \"purple\" \n  | \"red\" \n  | \"gray\" \n  | \"default\";\n\n/**\n * Props for the BaseButton component.\n */\nexport interface BaseButtonProps {\n  /** Additional CSS classes */\n  className?: string;\n  /** Link URL (renders as anchor tag if provided) */\n  href?: string;\n  /** Button content */\n  children: React.ReactNode;\n  /** Color theme for the button */\n  theme?: ButtonTheme;\n  /** Click handler function */\n  onClick?: () => void;\n  /** Link target attribute */\n  target?: string;\n  /** Link rel attribute */\n  rel?: string;\n  /** Accessible label for screen readers and scrapers */\n  \"aria-label\"?: string;\n  /** Machine-readable contact type for scrapers (e.g. gitlab, linkedin, email) */\n  \"data-contact\"?: string;\n}\n\n/**\n * Base classes shared across all button themes.\n */\nconst baseThemeClasses = \"text-slate-800 font-bold dark:text-slate-200\";\n\n/**\n * Theme styles mapping for each button theme.\n * Includes base styles and clicked state styles.\n * Class names are explicit to ensure Tailwind CSS can detect them at build time.\n */\nconst themeStyles: Record<ButtonTheme, { base: string; clicked: string }> = {\n  orange: {\n    base: baseThemeClasses,\n    clicked: \"scale-95 bg-orange-50 dark:bg-orange-900/20\"\n  },\n  blue: {\n    base: baseThemeClasses,\n    clicked: \"scale-95 bg-blue-50 dark:bg-blue-900/20\"\n  },\n  green: {\n    base: baseThemeClasses,\n    clicked: \"scale-95 bg-green-50 dark:bg-green-900/20\"\n  },\n  purple: {\n    base: baseThemeClasses,\n    clicked: \"scale-95 bg-purple-50 dark:bg-purple-900/20\"\n  },\n  red: {\n    base: baseThemeClasses,\n    clicked: \"scale-95 bg-red-50 dark:bg-red-900/20\"\n  },\n  gray: {\n    base: baseThemeClasses,\n    clicked: \"scale-95 bg-gray-50 dark:bg-gray-900/20\"\n  },\n  default: {\n    base: baseThemeClasses,\n    clicked: \"scale-95 bg-slate-50 dark:bg-slate-900/20\"\n  }\n};\n\n/**\n * Base button component with theme support and click feedback.\n * Renders as an anchor tag if href is provided, otherwise as a button.\n * Features visual feedback on click with theme-specific styling.\n * \n * @param props - BaseButton component props\n * @param props.className - Additional CSS classes\n * @param props.href - Link URL (renders as anchor if provided)\n * @param props.children - Button content\n * @param props.theme - Color theme (default: \"orange\")\n * @param props.onClick - Click handler function\n * @param props.target - Link target (default: \"_blank\")\n * @param props.rel - Link rel attribute (default: \"noopener noreferrer\")\n * \n * @example\n * ```tsx\n * <BaseButton href=\"https://example.com\" theme=\"blue\" onClick={() => console.log('clicked')}>\n *   Click Me\n * </BaseButton>\n * ```\n */\nexport default function BaseButton({\n  className,\n  href,\n  children,\n  theme = \"orange\",\n  onClick,\n  target = \"_blank\",\n  rel = \"noopener noreferrer\",\n  \"aria-label\": ariaLabel,\n  \"data-contact\": dataContact,\n}: BaseButtonProps) {\n  // Track click state for visual feedback\n  const [isClicked, setIsClicked] = useState(false);\n\n  const handleClick = () => {\n    setIsClicked(true);\n    onClick?.();\n    \n    // Reset visual feedback after 2 seconds\n    setTimeout(() => {\n      setIsClicked(false);\n    }, 2000);\n  };\n\n  const themeStyle = themeStyles[theme];\n\n  return (\n    <a\n      href={href}\n      aria-label={ariaLabel}\n      data-contact={dataContact}\n      className={cn(\n        \"flex items-center rounded-md px-4 py-2 space-x-2 transition-all duration-200 hover:scale-125 active:scale-95\",\n        themeStyle.base,\n        isClicked && themeStyle.clicked,\n        className\n      )}\n      target={target}\n      rel={rel}\n      onClick={handleClick}\n    >\n      {children}\n    </a>\n  );\n}",
+      "contentHash": "a6215e3a924df74e82390268653a589cf0b4faf81aaad911c7467fd1621be5ce",
+      "notes": [],
+      "importedAt": "2026-10-16T11:29:15.413Z",
+      "updatedAt": "2026-10-16T11:29:15.413Z"
+    },
+    {
+      "id": "my-cv--button",
+      "name": "Button",
+      "description": "",
+      "category": "actions",
+      "tags": [],
+      "props": [
+        {
+          "name": "asChild",
+          "tsType": "boolean",
+          "required": false,
+          "type": "boolean",
+          "defaultValue": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "tsType": "unknown",
+          "required": false
+        },
+        {
+          "name": "variant",
+          "type": "string",
+          "tsType": "unknown",
+          "required": false
+        },
+        {
+          "name": "size",
+          "type": "string",
+          "tsType": "unknown",
+          "required": false
+        }
+      ],
+      "propsExtends": [
+        "React.ComponentProps<\"button\">",
+        "VariantProps<typeof buttonVariants>"
+      ],
+      "dependencies": [
+        "@radix-ui/react-slot",
+        "class-variance-authority"
+      ],
+      "localImports": [
+        "../../lib/utils"
+      ],
+      "source": {
+        "project": "my-cv",
+        "repo": "https://gitlab.com/public-work4/my-cv",
+        "path": "app/components/shadcn/button.tsx",
+        "commit": "c706fb8a83da84d7e1d8f895db7343d4b3801b33",
+        "exportKind": "named"
+      },
+      "code": "import * as React from \"react\"\nimport { Slot } from \"@radix-ui/react-slot\"\nimport { cva, type VariantProps } from \"class-variance-authority\"\n\nimport { cn } from \"../../lib/utils\"\n\nconst buttonVariants = cva(\n  \"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive\",\n  {\n    variants: {\n      variant: {\n        default: \"bg-primary text-primary-foreground hover:bg-primary/90\",\n        destructive:\n          \"bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60\",\n        outline:\n          \"border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50\",\n        secondary:\n          \"bg-secondary text-secondary-foreground hover:bg-secondary/80\",\n        ghost:\n          \"hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50\",\n        link: \"text-primary underline-offset-4 hover:underline\",\n      },\n      size: {\n        default: \"h-9 px-4 py-2 has-[>svg]:px-3\",\n        sm: \"h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5\",\n        lg: \"h-10 rounded-md px-6 has-[>svg]:px-4\",\n        icon: \"size-9\",\n      },\n    },\n    defaultVariants: {\n      variant: \"default\",\n      size: \"default\",\n    },\n  }\n)\n\nfunction Button({\n  className,\n  variant,\n  size,\n  asChild = false,\n  ...props\n}: React.ComponentProps<\"button\"> &\n  VariantProps<typeof buttonVariants> & {\n    asChild?: boolean\n  }) {\n  const Comp = asChild ? Slot : \"button\"\n\n  return (\n    <Comp\n      data-slot=\"button\"\n      className={cn(buttonVariants({ variant, size, className }))}\n      {...props}\n    />\n  )\n}\n\nexport { Button, buttonVariants }\n",
+      "contentHash": "d8712a1b38c4eb19fda7891feccecf6355ed6abdf4bf51c2f0425aa22a9a73a4",
+      "notes": [],
+      "importedAt": "2026-10-16T11:29:15.413Z",
+      "updatedAt": "2026-10-16T11:29:15.413Z"
+    },
+    {
+      "id": "my-cv--card",
+      "name": "Card",
+      "description": "",
+      "category": "layout",
+      "tags": [],
+      "props": [
+        {
+          "name": "className",
+          "tsType": "string",
+          "required": false,
+          "type": "string"
+        },
+        {
+          "name": "children",
+          "tsType": "React.ReactNode",
+          "required": true,
+          "type": "component"
+        }
+      ],
+      "propsExtends": [],
+      "dependencies": [
+        "motion"
+      ],
+      "localImports": [
+        "../../lib/utils"
+      ],
+      "source": {
+        "project": "my-cv",
+        "repo": "https://gitlab.com/public-work4/my-cv",
+        "path": "app/components/shadcn/card-hover-effect.tsx",
+        "commit": "c706fb8a83da84d7e1d8f895db7343d4b3801b33",
+        "exportKind": "named"
+      },
+      "code": "import { cn } from \"../../lib/utils\";\nimport { AnimatePresence, motion } from \"motion/react\";\n\nimport { useState } from \"react\";\n\nexport const HoverEffect = ({\n  items,\n  className,\n}: {\n  items: {\n    title: string;\n    description: string;\n    link: string;\n  }[];\n  className?: string;\n}) => {\n  let [hoveredIndex, setHoveredIndex] = useState<number | null>(null);\n\n  return (\n    <div\n      className={cn(\n        \"grid grid-cols-1 md:grid-cols-2  lg:grid-cols-3  py-10\",\n        className\n      )}\n    >\n      {items.map((item, idx) => (\n        <a\n          href={item?.link}\n          key={item?.link}\n          className=\"relative group  block p-2 h-full w-full\"\n          onMouseEnter={() => setHoveredIndex(idx)}\n          onMouseLeave={() => setHoveredIndex(null)}\n        >\n          <AnimatePresence>\n            {hoveredIndex === idx && (\n              <motion.span\n                className=\"absolute inset-0 h-full w-full bg-neutral-200 dark:bg-slate-800/[0.8] block  rounded-3xl\"\n                layoutId=\"hoverBackground\"\n                initial={{ opacity: 0 }}\n                animate={{\n                  opacity: 1,\n                  transition: { duration: 0.15 },\n                }}\n                exit={{\n                  opacity: 0,\n                  transition: { duration: 0.15, delay: 0.2 },\n                }}\n              />\n            )}\n          </AnimatePresence>\n          <Card>\n            <CardTitle>{item.title}</CardTitle>\n            <CardDescription>{item.description}</CardDescription>\n          </Card>\n        </a>\n      ))}\n    </div>\n  );\n};\n\nexport const Card = ({\n  className,\n  children,\n}: {\n  className?: string;\n  children: React.ReactNode;\n}) => {\n  return (\n    <div\n      className={cn(\n        \"rounded-2xl h-full w-full p-4 overflow-hidden bg-black border border-transparent dark:border-white/[0.2] group-hover:border-slate-700 relative z-20\",\n        className\n      )}\n    >\n      <div className=\"relative z-50\">\n        <div className=\"p-4\">{children}</div>\n      </div>\n    </div>\n  );\n};\nexport const CardTitle = ({\n  className,\n  children,\n}: {\n  className?: string;\n  children: React.ReactNode;\n}) => {\n  return (\n    <h4 className={cn(\"text-zinc-100 font-bold tracking-wide mt-4\", className)}>\n      {children}\n    </h4>\n  );\n};\nexport const CardDescription = ({\n  className,\n  children,\n}: {\n  className?: string;\n  children: React.ReactNode;\n}) => {\n  return (\n    <p\n      className={cn(\n        \"mt-8 text-zinc-400 tracking-wide leading-relaxed text-sm\",\n        className\n      )}\n    >\n      {children}\n    </p>\n  );\n};\n",
+      "contentHash": "25ce9d24b201c2c8cf157f232a2fe6c4e4eb678c8b921075a2b58abfa0aeea64",
+      "notes": [],
+      "importedAt": "2026-10-16T11:29:17.525Z",
+      "updatedAt": "2026-10-16T11:29:17.525Z"
+    },
+    {
+      "id": "my-cv--carddescription",
+      "name": "CardDescription",
+      "description": "",
+      "category": "layout",
+      "tags": [],
+      "props": [
+        {
+          "name": "className",
+          "tsType": "string",
+          "required": false,
+          "type": "string"
+        },
+        {
+          "name": "children",
+          "tsType": "React.ReactNode",
+          "required": true,
+          "type": "component"
+        }
+      ],
+      "propsExtends": [],
+      "dependencies": [
+        "motion"
+      ],
+      "localImports": [
+        "../../lib/utils"
+      ],
+      "source": {
+        "project": "my-cv",
+        "repo": "https://gitlab.com/public-work4/my-cv",
+        "path": "app/components/shadcn/card-hover-effect.tsx",
+        "commit": "c706fb8a83da84d7e1d8f895db7343d4b3801b33",
+        "exportKind": "named"
+      },
+      "code": "import { cn } from \"../../lib/utils\";\nimport { AnimatePresence, motion } from \"motion/react\";\n\nimport { useState } from \"react\";\n\nexport const HoverEffect = ({\n  items,\n  className,\n}: {\n  items: {\n    title: string;\n    description: string;\n    link: string;\n  }[];\n  className?: string;\n}) => {\n  let [hoveredIndex, setHoveredIndex] = useState<number | null>(null);\n\n  return (\n    <div\n      className={cn(\n        \"grid grid-cols-1 md:grid-cols-2  lg:grid-cols-3  py-10\",\n        className\n      )}\n    >\n      {items.map((item, idx) => (\n        <a\n          href={item?.link}\n          key={item?.link}\n          className=\"relative group  block p-2 h-full w-full\"\n          onMouseEnter={() => setHoveredIndex(idx)}\n          onMouseLeave={() => setHoveredIndex(null)}\n        >\n          <AnimatePresence>\n            {hoveredIndex === idx && (\n              <motion.span\n                className=\"absolute inset-0 h-full w-full bg-neutral-200 dark:bg-slate-800/[0.8] block  rounded-3xl\"\n                layoutId=\"hoverBackground\"\n                initial={{ opacity: 0 }}\n                animate={{\n                  opacity: 1,\n                  transition: { duration: 0.15 },\n                }}\n                exit={{\n                  opacity: 0,\n                  transition: { duration: 0.15, delay: 0.2 },\n                }}\n              />\n            )}\n          </AnimatePresence>\n          <Card>\n            <CardTitle>{item.title}</CardTitle>\n            <CardDescription>{item.description}</CardDescription>\n          </Card>\n        </a>\n      ))}\n    </div>\n  );\n};\n\nexport const Card = ({\n  className,\n  children,\n}: {\n  className?: string;\n  children: React.ReactNode;\n}) => {\n  return (\n    <div\n      className={cn(\n        \"rounded-2xl h-full w-full p-4 overflow-hidden bg-black border border-transparent dark:border-white/[0.2] group-hover:border-slate-700 relative z-20\",\n        className\n      )}\n    >\n      <div className=\"relative z-50\">\n        <div className=\"p-4\">{children}</div>\n      </div>\n    </div>\n  );\n};\nexport const CardTitle = ({\n  className,\n  children,\n}: {\n  className?: string;\n  children: React.ReactNode;\n}) => {\n  return (\n    <h4 className={cn(\"text-zinc-100 font-bold tracking-wide mt-4\", className)}>\n      {children}\n    </h4>\n  );\n};\nexport const CardDescription = ({\n  className,\n  children,\n}: {\n  className?: string;\n  children: React.ReactNode;\n}) => {\n  return (\n    <p\n      className={cn(\n        \"mt-8 text-zinc-400 tracking-wide leading-relaxed text-sm\",\n        className\n      )}\n    >\n      {children}\n    </p>\n  );\n};\n",
+      "contentHash": "25ce9d24b201c2c8cf157f232a2fe6c4e4eb678c8b921075a2b58abfa0aeea64",
+      "notes": [],
+      "importedAt": "2026-10-16T11:29:17.525Z",
+      "updatedAt": "2026-10-16T11:29:17.525Z"
+    },
+    {
+      "id": "my-cv--cardtitle",
+      "name": "CardTitle",
+      "description": "",
+      "category": "layout",
+      "tags": [],
+      "props": [
+        {
+          "name": "className",
+          "tsType": "string",
+          "required": false,
+          "type": "string"
+        },
+        {
+          "name": "children",
+          "tsType": "React.ReactNode",
+          "required": true,
+          "type": "component"
+        }
+      ],
+      "propsExtends": [],
+      "dependencies": [
+        "motion"
+      ],
+      "localImports": [
+        "../../lib/utils"
+      ],
+      "source": {
+        "project": "my-cv",
+        "repo": "https://gitlab.com/public-work4/my-cv",
+        "path": "app/components/shadcn/card-hover-effect.tsx",
+        "commit": "c706fb8a83da84d7e1d8f895db7343d4b3801b33",
+        "exportKind": "named"
+      },
+      "code": "import { cn } from \"../../lib/utils\";\nimport { AnimatePresence, motion } from \"motion/react\";\n\nimport { useState } from \"react\";\n\nexport const HoverEffect = ({\n  items,\n  className,\n}: {\n  items: {\n    title: string;\n    description: string;\n    link: string;\n  }[];\n  className?: string;\n}) => {\n  let [hoveredIndex, setHoveredIndex] = useState<number | null>(null);\n\n  return (\n    <div\n      className={cn(\n        \"grid grid-cols-1 md:grid-cols-2  lg:grid-cols-3  py-10\",\n        className\n      )}\n    >\n      {items.map((item, idx) => (\n        <a\n          href={item?.link}\n          key={item?.link}\n          className=\"relative group  block p-2 h-full w-full\"\n          onMouseEnter={() => setHoveredIndex(idx)}\n          onMouseLeave={() => setHoveredIndex(null)}\n        >\n          <AnimatePresence>\n            {hoveredIndex === idx && (\n              <motion.span\n                className=\"absolute inset-0 h-full w-full bg-neutral-200 dark:bg-slate-800/[0.8] block  rounded-3xl\"\n                layoutId=\"hoverBackground\"\n                initial={{ opacity: 0 }}\n                animate={{\n                  opacity: 1,\n                  transition: { duration: 0.15 },\n                }}\n                exit={{\n                  opacity: 0,\n                  transition: { duration: 0.15, delay: 0.2 },\n                }}\n              />\n            )}\n          </AnimatePresence>\n          <Card>\n            <CardTitle>{item.title}</CardTitle>\n            <CardDescription>{item.description}</CardDescription>\n          </Card>\n        </a>\n      ))}\n    </div>\n  );\n};\n\nexport const Card = ({\n  className,\n  children,\n}: {\n  className?: string;\n  children: React.ReactNode;\n}) => {\n  return (\n    <div\n      className={cn(\n        \"rounded-2xl h-full w-full p-4 overflow-hidden bg-black border border-transparent dark:border-white/[0.2] group-hover:border-slate-700 relative z-20\",\n        className\n      )}\n    >\n      <div className=\"relative z-50\">\n        <div className=\"p-4\">{children}</div>\n      </div>\n    </div>\n  );\n};\nexport const CardTitle = ({\n  className,\n  children,\n}: {\n  className?: string;\n  children: React.ReactNode;\n}) => {\n  return (\n    <h4 className={cn(\"text-zinc-100 font-bold tracking-wide mt-4\", className)}>\n      {children}\n    </h4>\n  );\n};\nexport const CardDescription = ({\n  className,\n  children,\n}: {\n  className?: string;\n  children: React.ReactNode;\n}) => {\n  return (\n    <p\n      className={cn(\n        \"mt-8 text-zinc-400 tracking-wide leading-relaxed text-sm\",\n        className\n      )}\n    >\n      {children}\n    </p>\n  );\n};\n",
+      "contentHash": "25ce9d24b201c2c8cf157f232a2fe6c4e4eb678c8b921075a2b58abfa0aeea64",
+      "notes": [],
+      "importedAt": "2026-10-16T11:29:17.525Z",
+      "updatedAt": "2026-10-16T11:29:17.525Z"
+    },
+    {
+      "id": "my-cv--collapsiblecard",
+      "name": "CollapsibleCard",
+      "description": "Collapsible card component that can be minimized/expanded.\nUsed for nested content sections within the expanded project card.",
+      "category": "layout",
+      "tags": [],
+      "props": [
+        {
+          "name": "title",
+          "tsType": "string",
+          "required": true,
+          "type": "string"
+        },
+        {
+          "name": "defaultOpen",
+          "tsType": "boolean",
+          "required": false,
+          "type": "boolean",
+          "defaultValue": true
+        },
+        {
+          "name": "scrollable",
+          "tsType": "boolean",
+          "required": false,
+          "type": "boolean",
+          "defaultValue": false
+        },
+        {
+          "name": "children",
+          "tsType": "React.ReactNode",
+          "required": true,
+          "type": "component"
+        },
+        {
+          "name": "className",
+          "tsType": "string",
+          "required": false,
+          "type": "string"
+        },
+        {
+          "name": "open",
+          "tsType": "boolean",
+          "required": false,
+          "type": "boolean"
+        },
+        {
+          "name": "onToggle",
+          "tsType": "(nextOpen: boolean) => void",
+          "required": false,
+          "type": "function",
+          "functionSignature": {
+            "params": "nextOpen: boolean",
+            "returnType": "void"
+          }
+        }
+      ],
+      "propsExtends": [],
+      "dependencies": [
+        "lucide-react",
+        "motion"
+      ],
+      "localImports": [
+        "@/app/lib/utils"
+      ],
+      "source": {
+        "project": "my-cv",
+        "repo": "https://gitlab.com/public-work4/my-cv",
+        "path": "app/components/projects/CollapsibleCard.tsx",
+        "commit": "c706fb8a83da84d7e1d8f895db7343d4b3801b33",
+        "exportKind": "named"
+      },
+      "code": "\"use client\";\n\nimport React, { useState } from \"react\";\nimport { motion, AnimatePresence } from \"motion/react\";\nimport { ChevronDown } from \"lucide-react\";\nimport { cn } from \"@/app/lib/utils\";\n\ninterface CollapsibleCardProps {\n  title: string;\n  defaultOpen?: boolean;\n  scrollable?: boolean;\n  children: React.ReactNode;\n  className?: string;\n  open?: boolean;\n  onToggle?: (nextOpen: boolean) => void;\n}\n\n/**\n * Collapsible card component that can be minimized/expanded.\n * Used for nested content sections within the expanded project card.\n */\nexport function CollapsibleCard({ \n  title,\n  defaultOpen = true,\n  scrollable = false,\n  children,\n  className,\n  open,\n  onToggle,\n}: CollapsibleCardProps) {\n  const [internalOpen, setInternalOpen] = useState(defaultOpen);\n  const isControlled = open !== undefined;\n  const isOpen = isControlled ? open : internalOpen;\n\n  const handleToggle = () => {\n    if (isControlled) {\n      onToggle?.(!isOpen);\n    } else {\n      setInternalOpen(!isOpen);\n    }\n  };\n\n  return (\n    <div\n      className={cn(\n        \"border border-neutral-200 dark:border-neutral-800 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 overflow-hidden flex flex-col\",\n        isOpen ? \"flex-1\" : \"\",\n        className\n      )}\n    >\n      <button\n        onClick={handleToggle}\n        className=\"w-full flex items-center justify-between p-4 hover:bg-neutral-100 dark:hover:bg-neutral-700/50 transition-colors shrink-0\"\n        aria-expanded={isOpen}\n      >\n        <h4 className=\"font-semibold text-neutral-800 dark:text-neutral-100 text-left\">\n          {title}\n        </h4>\n        <motion.div\n          animate={{ rotate: isOpen ? 180 : 0 }}\n          transition={{ duration: 0.2 }}\n        >\n          <ChevronDown className=\"size-5 text-neutral-600 dark:text-neutral-400 shrink-0\" />\n        </motion.div>\n      </button>\n      <AnimatePresence initial={false}>\n        {isOpen && (\n          <motion.div\n            initial={{ height: 0, opacity: 0 }}\n            animate={{ height: \"auto\", opacity: 1 }}\n            exit={{ height: 0, opacity: 0 }}\n            transition={{ duration: 0.2, ease: \"easeInOut\" }}\n            className={`overflow-hidden flex-1 ${scrollable ? 'flex flex-col' : ''}`}\n          >\n            <div className={`p-4 pt-0 ${scrollable ? 'max-h-[400px] overflow-y-auto' : ''}`}>\n              {children}\n            </div>\n          </motion.div>\n        )}\n      </AnimatePresence>\n    </div>\n  );\n}\n\n",
+      "contentHash": "438a0002ffec28e397ed2813889fa45467ce8ee8e27b56d524c0ebc4ca962b8e",
+      "notes": [],
+      "importedAt": "2026-10-16T11:29:17.525Z",
+      "updatedAt": "2026-10-16T11:29:17.525Z"
+    },
+    {
+      "id": "my-cv--contactbutton",
+      "name": "ContactButton",
+      "description": "",
+      "category": "actions",
+      "tags": [],
+      "props": [
+        {
+          "name": "kind",
+          "tsType": "ContactKind",
+          "required": true,
+          "type": "object"
+        },
+        {
+          "name": "href",
+          "tsType": "string",
+          "required": false,
+          "type": "string"
+        },
+        {
+          "name": "className",
+          "tsType": "string",
+          "required": false,
+          "type": "string"
+        },
+        {
+          "name": "children",
+          "tsType": "ReactNode",
+          "required": true,
+          "type": "component"
+        }
+      ],
+      "propsExtends": [],
+      "dependencies": [],
+      "localImports": [
+        "../lib/i18n",
+        "./Button"
+      ],
+      "source": {
+        "project": "my-cv",
+        "repo": "https://gitlab.com/public-work4/my-cv",
+        "path": "app/components/ContactButton.tsx",
+        "commit": "c706fb8a83da84d7e1d8f895db7343d4b3801b33",
+        "exportKind": "named"
+      },
+      "code": "\"use client\";\n\nimport type { ReactNode } from \"react\";\nimport BaseButton, { type ButtonTheme } from \"./Button\";\nimport { useI18n } from \"../lib/i18n\";\n\ntype ContactKind = \"email\" | \"linkedin\" | \"gitlab\";\n\nconst CONTACT_BUTTONS: Record<\n  ContactKind,\n  {\n    href: string;\n    theme: ButtonTheme;\n    ariaLabelKey: string;\n    target?: string;\n    rel?: string;\n  }\n> = {\n  email: {\n    href: \"mailto:migasoulou@gmail.com\",\n    theme: \"green\",\n    ariaLabelKey: \"emailAlt\",\n    target: \"_self\",\n    rel: \"\",\n  },\n  linkedin: {\n    href: \"https://www.linkedin.com/in/miguel-louren%C3%A7o-395335355/\",\n    theme: \"blue\",\n    ariaLabelKey: \"linkedinAlt\",\n  },\n  gitlab: {\n    href: \"https://gitlab.com/miguel-lourenco-main\",\n    theme: \"orange\",\n    ariaLabelKey: \"githubAlt\",\n  },\n};\n\nexport function ContactButton({\n  kind,\n  href,\n  className,\n  children,\n}: {\n  kind: ContactKind;\n  href?: string;\n  className?: string;\n  children: ReactNode;\n}) {\n  const { t } = useI18n();\n  const config = CONTACT_BUTTONS[kind];\n\n  return (\n    <BaseButton\n      href={href ?? config.href}\n      className={className}\n      theme={config.theme}\n      target={config.target}\n      rel={config.rel}\n      aria-label={String(t(\"navigation\")(config.ariaLabelKey))}\n      data-contact={kind}\n    >\n      {children}\n    </BaseButton>\n  );\n}\n",
+      "contentHash": "f831dac33c1ea1db628fd66b22418da246a36d422f33ba08b3d12e78eaccd833",
+      "notes": [],
+      "importedAt": "2026-10-16T11:29:15.413Z",
+      "updatedAt": "2026-10-16T11:29:15.413Z"
+    },
+    {
+      "id": "my-cv--hovereffect",
+      "name": "HoverEffect",
+      "description": "",
+      "category": "layout",
+      "tags": [],
+      "props": [
+        {
+          "name": "items",
+          "tsType": "{\n    title: string;\n    description: string;\n    link: string;\n  }[]",
+          "required": true,
+          "type": "array"
+        },
+        {
+          "name": "className",
+          "tsType": "string",
+          "required": false,
+          "type": "string"
+        }
+      ],
+      "propsExtends": [],
+      "dependencies": [
+        "motion"
+      ],
+      "localImports": [
+        "../../lib/utils"
+      ],
+      "source": {
+        "project": "my-cv",
+        "repo": "https://gitlab.com/public-work4/my-cv",
+        "path": "app/components/shadcn/card-hover-effect.tsx",
+        "commit": "c706fb8a83da84d7e1d8f895db7343d4b3801b33",
+        "exportKind": "named"
+      },
+      "code": "import { cn } from \"../../lib/utils\";\nimport { AnimatePresence, motion } from \"motion/react\";\n\nimport { useState } from \"react\";\n\nexport const HoverEffect = ({\n  items,\n  className,\n}: {\n  items: {\n    title: string;\n    description: string;\n    link: string;\n  }[];\n  className?: string;\n}) => {\n  let [hoveredIndex, setHoveredIndex] = useState<number | null>(null);\n\n  return (\n    <div\n      className={cn(\n        \"grid grid-cols-1 md:grid-cols-2  lg:grid-cols-3  py-10\",\n        className\n      )}\n    >\n      {items.map((item, idx) => (\n        <a\n          href={item?.link}\n          key={item?.link}\n          className=\"relative group  block p-2 h-full w-full\"\n          onMouseEnter={() => setHoveredIndex(idx)}\n          onMouseLeave={() => setHoveredIndex(null)}\n        >\n          <AnimatePresence>\n            {hoveredIndex === idx && (\n              <motion.span\n                className=\"absolute inset-0 h-full w-full bg-neutral-200 dark:bg-slate-800/[0.8] block  rounded-3xl\"\n                layoutId=\"hoverBackground\"\n                initial={{ opacity: 0 }}\n                animate={{\n                  opacity: 1,\n                  transition: { duration: 0.15 },\n                }}\n                exit={{\n                  opacity: 0,\n                  transition: { duration: 0.15, delay: 0.2 },\n                }}\n              />\n            )}\n          </AnimatePresence>\n          <Card>\n            <CardTitle>{item.title}</CardTitle>\n            <CardDescription>{item.description}</CardDescription>\n          </Card>\n        </a>\n      ))}\n    </div>\n  );\n};\n\nexport const Card = ({\n  className,\n  children,\n}: {\n  className?: string;\n  children: React.ReactNode;\n}) => {\n  return (\n    <div\n      className={cn(\n        \"rounded-2xl h-full w-full p-4 overflow-hidden bg-black border border-transparent dark:border-white/[0.2] group-hover:border-slate-700 relative z-20\",\n        className\n      )}\n    >\n      <div className=\"relative z-50\">\n        <div className=\"p-4\">{children}</div>\n      </div>\n    </div>\n  );\n};\nexport const CardTitle = ({\n  className,\n  children,\n}: {\n  className?: string;\n  children: React.ReactNode;\n}) => {\n  return (\n    <h4 className={cn(\"text-zinc-100 font-bold tracking-wide mt-4\", className)}>\n      {children}\n    </h4>\n  );\n};\nexport const CardDescription = ({\n  className,\n  children,\n}: {\n  className?: string;\n  children: React.ReactNode;\n}) => {\n  return (\n    <p\n      className={cn(\n        \"mt-8 text-zinc-400 tracking-wide leading-relaxed text-sm\",\n        className\n      )}\n    >\n      {children}\n    </p>\n  );\n};\n",
+      "contentHash": "25ce9d24b201c2c8cf157f232a2fe6c4e4eb678c8b921075a2b58abfa0aeea64",
+      "notes": [],
+      "importedAt": "2026-10-16T11:29:17.525Z",
+      "updatedAt": "2026-10-16T11:29:17.525Z"
+    },
+    {
+      "id": "my-cv--languageswitcher",
+      "name": "LanguageSwitcher",
+      "description": "",
+      "category": "navigation",
+      "tags": [],
+      "props": [],
+      "propsExtends": [],
+      "dependencies": [
+        "lucide-react",
+        "next"
+      ],
+      "localImports": [
+        "../i18n",
+        "../lib/hooks/use-outside-click",
+        "../lib/i18n"
+      ],
+      "source": {
+        "project": "my-cv",
+        "repo": "https://gitlab.com/public-work4/my-cv",
+        "path": "app/components/LanguageSwitcher.tsx",
+        "commit": "c706fb8a83da84d7e1d8f895db7343d4b3801b33",
+        "exportKind": "default"
+      },
+      "code": "\"use client\";\n\nimport { LOCALE_META } from '../i18n'\nimport { useRef, useState, useTransition } from 'react'\nimport { useI18n } from '../lib/i18n'\nimport { usePathname, useRouter } from 'next/navigation'\nimport { ChevronDownIcon, GlobeIcon } from 'lucide-react'\nimport { useOutsideClick } from '../lib/hooks/use-outside-click'\n\nexport default function LanguageSwitcher() {\n  const router = useRouter()\n  const pathname = usePathname()\n  const { locale, setLocale, t } = useI18n()\n  const [isPending, startTransition] = useTransition()\n  const [open, setOpen] = useState(false)\n  const menuRef = useRef<HTMLDivElement>(null)\n  useOutsideClick(menuRef, () => setOpen(false))\n\n  const onSelect = (next: string) => {\n    if (next === locale) return\n    setOpen(false)\n    setLocale(next)\n    const segments = pathname.split('/').filter(Boolean)\n    segments[0] = next\n    const target = '/' + segments.join('/') + (pathname.endsWith('/') ? '/' : '')\n    startTransition(() => {\n      router.replace(target)\n    })\n  }\n\n  const currentLocale = LOCALE_META.find(l => l.code === locale) || LOCALE_META[0]\n\n  return (\n    <div className=\"relative\" ref={menuRef}>\n      <button\n        className=\"inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-slate-300 dark:border-slate-600 text-sm font-semibold bg-slate-200 dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800\"\n        aria-label={t('navigation')('languageSwitcher')}\n        onClick={() => setOpen(v => !v)}\n        disabled={isPending}\n      >\n        <GlobeIcon className=\"h-4 w-4\" />\n        <span className=\"hidden sm:inline\">{currentLocale.label}</span>\n        <ChevronDownIcon className=\"h-4 w-4\" />\n      </button>\n      {open ? (\n        <div className=\"absolute right-0 mt-2 w-40 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-md z-50\">\n          <ul className=\"py-1\">\n            {LOCALE_META.map((l) => (\n              <li key={l.code}>\n                <button\n                  className={`w-full text-left px-3 py-1.5 text-sm hover:bg-slate-100 dark:hover:bg-slate-800 ${l.code === locale ? 'font-bold' : ''}`}\n                  onClick={() => onSelect(l.code)}\n                >\n                  {l.label} – {l.name}\n                </button>\n              </li>\n            ))}\n          </ul>\n        </div>\n      ) : null}\n    </div>\n  )\n}\n",
+      "contentHash": "4567792ebaf0b844809fc0d23984cd015cdacf224c92b7837ad8adcb2283c6d5",
+      "notes": [],
+      "importedAt": "2026-10-16T11:29:16.058Z",
+      "updatedAt": "2026-10-16T11:29:16.058Z"
+    },
+    {
+      "id": "my-cv--namebadge",
+      "name": "NameBadge",
+      "description": "Name badge component displaying the name \"Miguel Lourenço\" with gradient styling.\nSupports shared element transitions via Framer Motion layoutId.",
+      "category": "layout",
+      "tags": [],
+      "props": [
+        {
+          "name": "className",
+          "tsType": "string",
+          "required": false,
+          "type": "string",
+          "description": "Additional CSS classes"
+        },
+        {
+          "name": "as",
+          "tsType": "keyof JSX.IntrinsicElements",
+          "required": false,
+          "type": "object",
+          "description": "HTML element type to render (default: \"div\")",
+          "defaultValue": "div"
+        },
+        {
+          "name": "layoutId",
+          "tsType": "string",
+          "required": false,
+          "type": "string",
+          "description": "Layout ID for Framer Motion shared element transitions",
+          "defaultValue": "intro-name"
+        },
+        {
+          "name": "variant",
+          "tsType": "\"intro\" | \"hero\"",
+          "required": false,
+          "type": "enum",
+          "options": [
+            "intro",
+            "hero"
+          ],
+          "description": "Visual variant style",
+          "defaultValue": "hero"
+        },
+        {
+          "name": "greeting",
+          "tsType": "string",
+          "required": false,
+          "type": "string",
+          "description": "Optional greeting text to display before name"
+        }
+      ],
+      "propsExtends": [],
+      "dependencies": [
+        "motion"
+      ],
+      "localImports": [
+        "@/app/lib/utils"
+      ],
+      "source": {
+        "project": "my-cv",
+        "repo": "https://gitlab.com/public-work4/my-cv",
+        "path": "app/components/identity/NameBadge.tsx",
+        "commit": "c706fb8a83da84d7e1d8f895db7343d4b3801b33",
+        "exportKind": "default"
+      },
+      "code": "\"use client\";\n\nimport React from \"react\";\nimport { motion } from \"motion/react\";\nimport { cn } from \"@/app/lib/utils\";\n\n/**\n * Props for the NameBadge component.\n */\ntype NameBadgeProps = {\n  /** Additional CSS classes */\n  className?: string;\n  /** HTML element type to render (default: \"div\") */\n  as?: keyof JSX.IntrinsicElements;\n  /** Layout ID for Framer Motion shared element transitions */\n  layoutId?: string;\n  /** Visual variant style */\n  variant?: \"intro\" | \"hero\";\n  /** Optional greeting text to display before name */\n  greeting?: string;\n};\n\n/**\n * Name badge component displaying the name \"Miguel Lourenço\" with gradient styling.\n * Supports shared element transitions via Framer Motion layoutId.\n * \n * @param props - NameBadge component props\n * @param props.className - Additional CSS classes\n * @param props.as - HTML element type (default: \"div\")\n * @param props.layoutId - Layout ID for shared element transitions (default: \"intro-name\")\n * @param props.variant - Visual variant (default: \"hero\")\n * @param props.greeting - Optional greeting text\n * \n * @example\n * ```tsx\n * <NameBadge layoutId=\"intro-name\" greeting=\"Hello\" />\n * ```\n */\nexport default function NameBadge({\n  className,\n  as = \"div\",\n  layoutId = \"intro-name\",\n  variant = \"hero\",\n  greeting,\n}: NameBadgeProps) {\n  const Comp: any = (motion as any)[as] ?? motion.div;\n  const titleClasses =\n    variant === \"intro\"\n      ? \"text-4xl sm:text-6xl font-bold text-slate-900 dark:text-white\"\n      : \"text-4xl sm:text-6xl font-bold text-slate-900 dark:text-white\";\n\n  return (\n    <Comp layoutId={layoutId} className={cn(className, \"text-center\")}>\n      <h1 className={titleClasses}>\n        {greeting || ' '} {\"\"}\n        <span className=\"text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600\">\n          Miguel Lourenço\n        </span>\n      </h1>\n    </Comp>\n  );\n}\n\n\n",
+      "contentHash": "6e3637f5ab4221950442099cfb96bb9d0945eb0156aabfff3686866d18210a90",
+      "notes": [],
+      "importedAt": "2026-10-16T11:29:17.525Z",
+      "updatedAt": "2026-10-16T11:29:17.525Z"
+    },
+    {
+      "id": "my-cv--projectbrowsebar",
+      "name": "ProjectBrowseBar",
+      "description": "",
+      "category": "navigation",
+      "tags": [],
+      "props": [
+        {
+          "name": "projects",
+          "tsType": "Project[]",
+          "required": true,
+          "type": "array"
+        },
+        {
+          "name": "affiliation",
+          "tsType": "AffiliationFilterValue",
+          "required": true,
+          "type": "object"
+        },
+        {
+          "name": "onAffiliationChange",
+          "tsType": "(value: AffiliationFilterValue) => void",
+          "required": true,
+          "type": "function",
+          "functionSignature": {
+            "params": "value: AffiliationFilterValue",
+            "returnType": "void"
+          }
+        },
+        {
+          "name": "sortMode",
+          "tsType": "ProjectSortMode",
+          "required": true,
+          "type": "object"
+        },
+        {
+          "name": "onSortModeChange",
+          "tsType": "(mode: ProjectSortMode) => void",
+          "required": true,
+          "type": "function",
+          "functionSignature": {
+            "params": "mode: ProjectSortMode",
+            "returnType": "void"
+          }
+        }
+      ],
+      "propsExtends": [],
+      "dependencies": [
+        "lucide-react",
+        "next"
+      ],
+      "localImports": [
+        "../../lib/i18n",
+        "../../lib/utils",
+        "./project-browse"
+      ],
+      "source": {
+        "project": "my-cv",
+        "repo": "https://gitlab.com/public-work4/my-cv",
+        "path": "app/components/projects/ProjectBrowseBar.tsx",
+        "commit": "c706fb8a83da84d7e1d8f895db7343d4b3801b33",
+        "exportKind": "named"
+      },
+      "code": "\"use client\";\n\nimport Image from \"next/image\";\nimport React, { useMemo } from \"react\";\nimport {\n  ArrowDownWideNarrow,\n  ArrowUpNarrowWide,\n  LayoutGrid,\n  User,\n} from \"lucide-react\";\nimport { cn } from \"../../lib/utils\";\nimport { useI18n } from \"../../lib/i18n\";\nimport type { Project } from \"./projects.types\";\nimport {\n  AFFILIATION_ALL,\n  AFFILIATION_PERSONAL,\n  deriveCompanyFilterOptions,\n  type AffiliationFilterValue,\n  type ProjectSortMode,\n} from \"./project-browse\";\n\ntype ProjectBrowseBarProps = {\n  projects: Project[];\n  affiliation: AffiliationFilterValue;\n  onAffiliationChange: (value: AffiliationFilterValue) => void;\n  sortMode: ProjectSortMode;\n  onSortModeChange: (mode: ProjectSortMode) => void;\n};\n\nexport function ProjectBrowseBar({\n  projects,\n  affiliation,\n  onAffiliationChange,\n  sortMode,\n  onSortModeChange,\n}: ProjectBrowseBarProps) {\n  const { t } = useI18n();\n  const tp = t(\"projects\");\n  const companyOptions = useMemo(() => deriveCompanyFilterOptions(projects), [projects]);\n\n  return (\n    <div className=\"mt-4 flex w-full max-w-2xl flex-col items-center gap-4\">\n      <div\n        role=\"group\"\n        aria-label={tp(\"filters.sortGroupLabel\")}\n        className=\"flex flex-wrap items-center justify-center gap-4\"\n      >\n        <IconToggle\n          pressed={sortMode === \"recent\"}\n          onClick={() => onSortModeChange(\"recent\")}\n          label={tp(\"filters.sortRecent\")}\n        >\n          <ArrowDownWideNarrow className=\"size-5 shrink-0\" aria-hidden />\n        </IconToggle>\n        <IconToggle\n          pressed={sortMode === \"start_asc\"}\n          onClick={() => onSortModeChange(\"start_asc\")}\n          label={tp(\"filters.sortOldest\")}\n        >\n          <ArrowUpNarrowWide className=\"size-5 shrink-0\" aria-hidden />\n        </IconToggle>\n      </div>\n\n      <div\n        role=\"group\"\n        aria-label={tp(\"filters.groupLabel\")}\n        className=\"flex flex-wrap items-center justify-center gap-4\"\n      >\n        <IconToggle\n          pressed={affiliation === AFFILIATION_ALL}\n          onClick={() => onAffiliationChange(AFFILIATION_ALL)}\n          label={tp(\"filters.all\")}\n        >\n          <LayoutGrid className=\"size-5 shrink-0\" aria-hidden />\n        </IconToggle>\n        <IconToggle\n          pressed={affiliation === AFFILIATION_PERSONAL}\n          onClick={() => onAffiliationChange(AFFILIATION_PERSONAL)}\n          label={tp(\"filters.personalChip\")}\n        >\n          <User className=\"size-5 shrink-0 opacity-90\" aria-hidden />\n        </IconToggle>\n        {companyOptions.map((opt) => (\n          <IconToggle\n            key={opt.id}\n            pressed={affiliation === opt.id}\n            onClick={() => onAffiliationChange(opt.id)}\n            label={tp(\"filters.companyChip\", { company: opt.name })}\n          >\n            <Image\n              src={opt.icon}\n              alt=\"\"\n              width={24}\n              height={24}\n              className=\"h-6 w-6 shrink-0 object-contain\"\n            />\n          </IconToggle>\n        ))}\n      </div>\n    </div>\n  );\n}\n\nfunction IconToggle({\n  pressed,\n  onClick,\n  label,\n  children,\n}: {\n  pressed: boolean;\n  onClick: () => void;\n  label: string;\n  children: React.ReactNode;\n}) {\n  return (\n    <button\n      type=\"button\"\n      aria-pressed={pressed}\n      aria-label={label}\n      title={label}\n      onClick={onClick}\n      className={cn(\n        \"inline-flex size-10 shrink-0 items-center justify-center rounded-md border transition-colors\",\n        pressed\n          ? \"border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900\"\n          : \"border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800\",\n      )}\n    >\n      {children}\n    </button>\n  );\n}\n",
+      "contentHash": "94f43eada68db51bbce31bc00ef9b18602f6316e9ee0e02cbdbb7ed1da161b8c",
+      "notes": [],
+      "importedAt": "2026-10-16T11:29:16.058Z",
+      "updatedAt": "2026-10-16T11:29:16.058Z"
+    },
+    {
+      "id": "my-cv--reveal",
+      "name": "Reveal",
+      "description": "Reveal component that animates content when it enters the viewport.\nSupports fade, slide, and zoom animation types with configurable direction and timing.\nUses Intersection Observer for efficient viewport detection.",
+      "category": "motion",
+      "tags": [],
+      "props": [
+        {
+          "name": "as",
+          "tsType": "keyof JSX.IntrinsicElements",
+          "required": false,
+          "type": "object",
+          "description": "HTML element type to render (default: \"div\")"
+        },
+        {
+          "name": "children",
+          "tsType": "React.ReactNode",
+          "required": true,
+          "type": "component",
+          "description": "Content to reveal"
+        },
+        {
+          "name": "delay",
+          "tsType": "number",
+          "required": false,
+          "type": "number",
+          "description": "Animation delay in seconds"
+        },
+        {
+          "name": "duration",
+          "tsType": "number",
+          "required": false,
+          "type": "number",
+          "description": "Animation duration in seconds"
+        },
+        {
+          "name": "className",
+          "tsType": "string",
+          "required": false,
+          "type": "string",
+          "description": "Additional CSS classes"
+        },
+        {
+          "name": "direction",
+          "tsType": "Direction",
+          "required": false,
+          "type": "object",
+          "description": "Direction for slide animations"
+        },
+        {
+          "name": "distance",
+          "tsType": "number",
+          "required": false,
+          "type": "number",
+          "description": "Distance in pixels for slide animations"
+        },
+        {
+          "name": "type",
+          "tsType": "\"fade\" | \"slide\" | \"zoom\"",
+          "required": false,
+          "type": "enum",
+          "options": [
+            "fade",
+            "slide",
+            "zoom"
+          ],
+          "description": "Animation type: fade, slide, or zoom"
+        },
+        {
+          "name": "once",
+          "tsType": "boolean",
+          "required": false,
+          "type": "boolean",
+          "description": "If true, animation only plays once when element enters viewport"
+        }
+      ],
+      "propsExtends": [
+        "any"
+      ],
+      "dependencies": [
+        "motion"
+      ],
+      "localImports": [
+        "../lib/hooks/use-in-view"
+      ],
+      "source": {
+        "project": "my-cv",
+        "repo": "https://gitlab.com/public-work4/my-cv",
+        "path": "app/components/Reveal.tsx",
+        "commit": "c706fb8a83da84d7e1d8f895db7343d4b3801b33",
+        "exportKind": "named"
+      },
+      "code": "\"use client\";\n\nimport React, { useMemo, useRef } from \"react\";\nimport { motion } from \"motion/react\";\nimport { useInView } from \"../lib/hooks/use-in-view\";\n\n/**\n * Animation direction for reveal effects.\n */\ntype Direction = \"up\" | \"down\" | \"left\" | \"right\" | \"none\";\n\n/**\n * Props for the Reveal component.\n */\ntype RevealProps = {\n  /** HTML element type to render (default: \"div\") */\n  as?: keyof JSX.IntrinsicElements;\n  /** Content to reveal */\n  children: React.ReactNode;\n  /** Animation delay in seconds */\n  delay?: number;\n  /** Animation duration in seconds */\n  duration?: number;\n  /** Additional CSS classes */\n  className?: string;\n  /** Direction for slide animations */\n  direction?: Direction;\n  /** Distance in pixels for slide animations */\n  distance?: number;\n  /** Animation type: fade, slide, or zoom */\n  type?: \"fade\" | \"slide\" | \"zoom\";\n  /** If true, animation only plays once when element enters viewport */\n  once?: boolean;\n};\n\n/**\n * Reveal component that animates content when it enters the viewport.\n * Supports fade, slide, and zoom animation types with configurable direction and timing.\n * Uses Intersection Observer for efficient viewport detection.\n * \n * @param props - Reveal component props\n * @returns Animated motion component\n * \n * @example\n * ```tsx\n * <Reveal type=\"slide\" direction=\"up\" delay={0.2}>\n *   <h1>Animated Title</h1>\n * </Reveal>\n * ```\n */\nexport function Reveal(props: RevealProps & any) {\n  const {\n    as = \"div\",\n    children,\n    delay = 0,\n    duration = 0.6,\n    className,\n    direction = \"up\",\n    distance = 24,\n    type = \"fade\",\n    once = true,\n    ...rest\n  } = props;\n  // Get the motion component for the specified element type\n  const Comp = useMemo(() => (((motion as any)[as] ?? motion.div) as any), [as]);\n  const ref = useRef<HTMLDivElement | null>(null);\n  // Detect when element enters viewport\n  const inView = useInView(ref, { threshold: 0.15, once });\n\n  // Calculate initial offset based on direction for slide animations\n  const offset = useMemo(() => {\n    switch (direction) {\n      case \"up\":\n        return { x: 0, y: distance };\n      case \"down\":\n        return { x: 0, y: -distance };\n      case \"left\":\n        return { x: distance, y: 0 };\n      case \"right\":\n        return { x: -distance, y: 0 };\n      default:\n        return { x: 0, y: 0 };\n    }\n  }, [direction, distance]);\n\n  // Determine initial animation state based on type\n  const initial = useMemo(() => {\n    if (type === \"fade\") return { opacity: 0 };\n    if (type === \"slide\") return { opacity: 0, ...offset };\n    if (type === \"zoom\") return { opacity: 0, scale: 0.95 };\n    return { opacity: 0 };\n  }, [type, offset]);\n\n  // Final animation state (fully visible and in position)\n  const animate = useMemo(() => ({ opacity: 1, x: 0, y: 0, scale: 1 }), []);\n\n  return (\n    <Comp\n      ref={ref as any}\n      initial={initial}\n      animate={inView ? animate : initial}\n      transition={{ delay, duration, ease: [0.22, 1, 0.36, 1] }}\n      className={className}\n      {...(rest as any)}\n    >\n      {children}\n    </Comp>\n  );\n}\n\n/**\n * Props for the RevealStagger component.\n */\ntype RevealStaggerProps = {\n  /** Children to animate with staggered timing */\n  children: React.ReactNode;\n  /** Base delay before first animation starts */\n  delay?: number;\n  /** Time interval between each child's animation */\n  interval?: number;\n  /** Direction for slide animations */\n  direction?: Direction;\n  /** Animation type: fade, slide, or zoom */\n  type?: \"fade\" | \"slide\" | \"zoom\";\n  /** Distance in pixels for slide animations */\n  distance?: number;\n  /** Additional CSS classes for the container */\n  className?: string;\n  /** Additional CSS classes for the reveal items */\n  revealClassName?: string;\n};\n\n/**\n * Reveal component that animates multiple children with staggered timing.\n * Each child receives an incremental delay based on the interval parameter.\n * Useful for creating cascading reveal effects.\n * \n * @param props - RevealStagger component props\n * @returns Container with individually animated children\n * \n * @example\n * ```tsx\n * <RevealStagger delay={0.1} interval={0.05} direction=\"up\">\n *   <div>First item</div>\n *   <div>Second item</div>\n *   <div>Third item</div>\n * </RevealStagger>\n * ```\n */\nexport function RevealStagger({\n  children,\n  delay = 0,\n  interval = 0.08,\n  direction = \"up\",\n  type = \"slide\",\n  distance = 20,\n  className,\n  revealClassName,\n}: RevealStaggerProps) {\n  const items = React.Children.toArray(children);\n  return (\n    <div className={className}>\n      {items.map((child, index) => (\n        <Reveal\n          key={index}\n          // Increment delay for each child to create stagger effect\n          delay={delay + index * interval}\n          direction={direction}\n          type={type}\n          distance={distance}\n          className={revealClassName}\n        >\n          {child}\n        </Reveal>\n      ))}\n    </div>\n  );\n}\n",
+      "contentHash": "0f7d0333fe66b3b036bd09dd99635992e7024e1bfcd9cc4ffe6be45a51a1b72c",
+      "notes": [],
+      "importedAt": "2026-10-16T11:29:16.842Z",
+      "updatedAt": "2026-10-16T11:29:16.842Z"
+    },
+    {
+      "id": "my-cv--revealstagger",
+      "name": "RevealStagger",
+      "description": "Reveal component that animates multiple children with staggered timing.\nEach child receives an incremental delay based on the interval parameter.\nUseful for creating cascading reveal effects.",
+      "category": "motion",
+      "tags": [],
+      "props": [
+        {
+          "name": "children",
+          "tsType": "React.ReactNode",
+          "required": true,
+          "type": "component",
+          "description": "Children to animate with staggered timing"
+        },
+        {
+          "name": "delay",
+          "tsType": "number",
+          "required": false,
+          "type": "number",
+          "description": "Base delay before first animation starts",
+          "defaultValue": 0
+        },
+        {
+          "name": "interval",
+          "tsType": "number",
+          "required": false,
+          "type": "number",
+          "description": "Time interval between each child's animation",
+          "defaultValue": 0.08
+        },
+        {
+          "name": "direction",
+          "tsType": "Direction",
+          "required": false,
+          "type": "object",
+          "description": "Direction for slide animations",
+          "defaultValue": "up"
+        },
+        {
+          "name": "type",
+          "tsType": "\"fade\" | \"slide\" | \"zoom\"",
+          "required": false,
+          "type": "enum",
+          "options": [
+            "fade",
+            "slide",
+            "zoom"
+          ],
+          "description": "Animation type: fade, slide, or zoom",
+          "defaultValue": "slide"
+        },
+        {
+          "name": "distance",
+          "tsType": "number",
+          "required": false,
+          "type": "number",
+          "description": "Distance in pixels for slide animations",
+          "defaultValue": 20
+        },
+        {
+          "name": "className",
+          "tsType": "string",
+          "required": false,
+          "type": "string",
+          "description": "Additional CSS classes for the container"
+        },
+        {
+          "name": "revealClassName",
+          "tsType": "string",
+          "required": false,
+          "type": "string",
+          "description": "Additional CSS classes for the reveal items"
+        }
+      ],
+      "propsExtends": [],
+      "dependencies": [
+        "motion"
+      ],
+      "localImports": [
+        "../lib/hooks/use-in-view"
+      ],
+      "source": {
+        "project": "my-cv",
+        "repo": "https://gitlab.com/public-work4/my-cv",
+        "path": "app/components/Reveal.tsx",
+        "commit": "c706fb8a83da84d7e1d8f895db7343d4b3801b33",
+        "exportKind": "named"
+      },
+      "code": "\"use client\";\n\nimport React, { useMemo, useRef } from \"react\";\nimport { motion } from \"motion/react\";\nimport { useInView } from \"../lib/hooks/use-in-view\";\n\n/**\n * Animation direction for reveal effects.\n */\ntype Direction = \"up\" | \"down\" | \"left\" | \"right\" | \"none\";\n\n/**\n * Props for the Reveal component.\n */\ntype RevealProps = {\n  /** HTML element type to render (default: \"div\") */\n  as?: keyof JSX.IntrinsicElements;\n  /** Content to reveal */\n  children: React.ReactNode;\n  /** Animation delay in seconds */\n  delay?: number;\n  /** Animation duration in seconds */\n  duration?: number;\n  /** Additional CSS classes */\n  className?: string;\n  /** Direction for slide animations */\n  direction?: Direction;\n  /** Distance in pixels for slide animations */\n  distance?: number;\n  /** Animation type: fade, slide, or zoom */\n  type?: \"fade\" | \"slide\" | \"zoom\";\n  /** If true, animation only plays once when element enters viewport */\n  once?: boolean;\n};\n\n/**\n * Reveal component that animates content when it enters the viewport.\n * Supports fade, slide, and zoom animation types with configurable direction and timing.\n * Uses Intersection Observer for efficient viewport detection.\n * \n * @param props - Reveal component props\n * @returns Animated motion component\n * \n * @example\n * ```tsx\n * <Reveal type=\"slide\" direction=\"up\" delay={0.2}>\n *   <h1>Animated Title</h1>\n * </Reveal>\n * ```\n */\nexport function Reveal(props: RevealProps & any) {\n  const {\n    as = \"div\",\n    children,\n    delay = 0,\n    duration = 0.6,\n    className,\n    direction = \"up\",\n    distance = 24,\n    type = \"fade\",\n    once = true,\n    ...rest\n  } = props;\n  // Get the motion component for the specified element type\n  const Comp = useMemo(() => (((motion as any)[as] ?? motion.div) as any), [as]);\n  const ref = useRef<HTMLDivElement | null>(null);\n  // Detect when element enters viewport\n  const inView = useInView(ref, { threshold: 0.15, once });\n\n  // Calculate initial offset based on direction for slide animations\n  const offset = useMemo(() => {\n    switch (direction) {\n      case \"up\":\n        return { x: 0, y: distance };\n      case \"down\":\n        return { x: 0, y: -distance };\n      case \"left\":\n        return { x: distance, y: 0 };\n      case \"right\":\n        return { x: -distance, y: 0 };\n      default:\n        return { x: 0, y: 0 };\n    }\n  }, [direction, distance]);\n\n  // Determine initial animation state based on type\n  const initial = useMemo(() => {\n    if (type === \"fade\") return { opacity: 0 };\n    if (type === \"slide\") return { opacity: 0, ...offset };\n    if (type === \"zoom\") return { opacity: 0, scale: 0.95 };\n    return { opacity: 0 };\n  }, [type, offset]);\n\n  // Final animation state (fully visible and in position)\n  const animate = useMemo(() => ({ opacity: 1, x: 0, y: 0, scale: 1 }), []);\n\n  return (\n    <Comp\n      ref={ref as any}\n      initial={initial}\n      animate={inView ? animate : initial}\n      transition={{ delay, duration, ease: [0.22, 1, 0.36, 1] }}\n      className={className}\n      {...(rest as any)}\n    >\n      {children}\n    </Comp>\n  );\n}\n\n/**\n * Props for the RevealStagger component.\n */\ntype RevealStaggerProps = {\n  /** Children to animate with staggered timing */\n  children: React.ReactNode;\n  /** Base delay before first animation starts */\n  delay?: number;\n  /** Time interval between each child's animation */\n  interval?: number;\n  /** Direction for slide animations */\n  direction?: Direction;\n  /** Animation type: fade, slide, or zoom */\n  type?: \"fade\" | \"slide\" | \"zoom\";\n  /** Distance in pixels for slide animations */\n  distance?: number;\n  /** Additional CSS classes for the container */\n  className?: string;\n  /** Additional CSS classes for the reveal items */\n  revealClassName?: string;\n};\n\n/**\n * Reveal component that animates multiple children with staggered timing.\n * Each child receives an incremental delay based on the interval parameter.\n * Useful for creating cascading reveal effects.\n * \n * @param props - RevealStagger component props\n * @returns Container with individually animated children\n * \n * @example\n * ```tsx\n * <RevealStagger delay={0.1} interval={0.05} direction=\"up\">\n *   <div>First item</div>\n *   <div>Second item</div>\n *   <div>Third item</div>\n * </RevealStagger>\n * ```\n */\nexport function RevealStagger({\n  children,\n  delay = 0,\n  interval = 0.08,\n  direction = \"up\",\n  type = \"slide\",\n  distance = 20,\n  className,\n  revealClassName,\n}: RevealStaggerProps) {\n  const items = React.Children.toArray(children);\n  return (\n    <div className={className}>\n      {items.map((child, index) => (\n        <Reveal\n          key={index}\n          // Increment delay for each child to create stagger effect\n          delay={delay + index * interval}\n          direction={direction}\n          type={type}\n          distance={distance}\n          className={revealClassName}\n        >\n          {child}\n        </Reveal>\n      ))}\n    </div>\n  );\n}\n",
+      "contentHash": "0f7d0333fe66b3b036bd09dd99635992e7024e1bfcd9cc4ffe6be45a51a1b72c",
+      "notes": [],
+      "importedAt": "2026-10-16T11:29:16.842Z",
+      "updatedAt": "2026-10-16T11:29:16.842Z"
+    },
+    {
+      "id": "my-cv--shootingstars",
+      "name": "ShootingStars",
+      "description": "",
+      "category": "backgrounds",
+      "tags": [],
+      "props": [
+        {
+          "name": "minSpeed",
+          "tsType": "number",
+          "required": false,
+          "type": "number",
+          "defaultValue": 500
+        },
+        {
+          "name": "maxSpeed",
+          "tsType": "number",
+          "required": false,
+          "type": "number",
+          "defaultValue": 900
+        },
+        {
+          "name": "minDelay",
+          "tsType": "number",
+          "required": false,
+          "type": "number",
+          "defaultValue": 2500
+        },
+        {
+          "name": "maxDelay",
+          "tsType": "number",
+          "required": false,
+          "type": "number",
+          "defaultValue": 5000
+        },
+        {
+          "name": "initialDelayMs",
+          "tsType": "number",
+          "required": false,
+          "type": "number",
+          "defaultValue": 0
+        },
+        {
+          "name": "starColor",
+          "tsType": "string",
+          "required": false,
+          "type": "string",
+          "defaultValue": "#9E00FF"
+        },
+        {
+          "name": "trailColor",
+          "tsType": "string",
+          "required": false,
+          "type": "string",
+          "defaultValue": "#FFFFFF"
+        },
+        {
+          "name": "starWidth",
+          "tsType": "number",
+          "required": false,
+          "type": "number",
+          "defaultValue": 140
+        },
+        {
+          "name": "starHeight",
+          "tsType": "number",
+          "required": false,
+          "type": "number",
+          "defaultValue": 2
+        },
+        {
+          "name": "minTravelPx",
+          "tsType": "number",
+          "required": false,
+          "type": "number",
+          "defaultValue": 700
+        },
+        {
+          "name": "className",
+          "tsType": "string",
+          "required": false,
+          "type": "string"
+        }
+      ],
+      "propsExtends": [],
+      "dependencies": [],
+      "localImports": [
+        "./stars-background",
+        "@/app/lib/utils"
+      ],
+      "source": {
+        "project": "my-cv",
+        "repo": "https://gitlab.com/public-work4/my-cv",
+        "path": "app/components/shadcn/shooting-stars.tsx",
+        "commit": "c706fb8a83da84d7e1d8f895db7343d4b3801b33",
+        "exportKind": "default"
+      },
+      "code": "\"use client\";\n\nimport React, { useCallback, useEffect, useRef, useState } from \"react\";\nimport { cn } from \"@/app/lib/utils\";\nimport StarsBackground from \"./stars-background\";\n\nexport type ShootingStarsProps = {\n  minSpeed?: number; // px per second for cruise phase\n  maxSpeed?: number; // px per second for cruise phase\n  minDelay?: number; // ms between spawns\n  maxDelay?: number; // ms between spawns\n  initialDelayMs?: number; // ms before the first star spawns\n  starColor?: string;\n  trailColor?: string;\n  starWidth?: number; // px trail length\n  starHeight?: number; // px thickness\n  minTravelPx?: number; // px minimal travel distance\n  className?: string;\n};\n\ntype ShootingInstance = {\n  id: number;\n  startLeftPx: number;\n  startTopPx: number;\n  endLeftPx: number;\n  endTopPx: number;\n  angleRad: number;\n  windupDistancePx: number;\n  accDistancePx: number;\n  windupDurationMs: number;\n  accDurationMs: number;\n  explosiveDurationMs: number;\n  fadeDurationMs: number;\n  phase: \"spawning\" | \"windup\" | \"accelerating\" | \"explosive\" | \"fading\";\n};\n\nfunction randomBetween(min: number, max: number) {\n  return Math.random() * (max - min) + min;\n}\n\nfunction pickOffscreenPoint(width: number, height: number, margin: number) {\n  const side = Math.floor(Math.random() * 4); // 0 top, 1 right, 2 bottom, 3 left\n  switch (side) {\n    case 0:\n      return { x: randomBetween(-margin, width + margin), y: -margin };\n    case 1:\n      return { x: width + margin, y: randomBetween(-margin, height + margin) };\n    case 2:\n      return { x: randomBetween(-margin, width + margin), y: height + margin };\n    default:\n      return { x: -margin, y: randomBetween(-margin, height + margin) };\n  }\n}\n\nexport default function ShootingStars({\n  minSpeed = 500,\n  maxSpeed = 900,\n  minDelay = 2500,\n  maxDelay = 5000,\n  initialDelayMs = 0,\n  starColor = \"#9E00FF\",\n  trailColor = \"#FFFFFF\",\n  starWidth = 140,\n  starHeight = 2,\n  minTravelPx = 700,\n  className,\n}: ShootingStarsProps) {\n  const wrapperRef = useRef<HTMLDivElement | null>(null);\n  const [containerSize, setContainerSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });\n  const [shooting, setShooting] = useState<ShootingInstance | null>(null);\n\n  useEffect(() => {\n    const element = wrapperRef.current;\n    if (!element) return;\n    const resizeObserver = new ResizeObserver((entries) => {\n      for (const entry of entries) {\n        const box = entry.contentRect;\n        setContainerSize({ width: Math.max(0, Math.floor(box.width)), height: Math.max(0, Math.floor(box.height)) });\n      }\n    });\n    resizeObserver.observe(element);\n    const box = element.getBoundingClientRect();\n    setContainerSize({ width: Math.max(0, Math.floor(box.width)), height: Math.max(0, Math.floor(box.height)) });\n    return () => resizeObserver.disconnect();\n  }, []);\n\n  useEffect(() => {\n    let cancelled = false;\n    let timeoutId: number | undefined;\n\n    const scheduleNext = () => {\n      const delay = Math.max(0, Math.floor(randomBetween(minDelay, maxDelay)));\n      timeoutId = window.setTimeout(() => {\n        if (cancelled) return;\n        triggerShootingStar();\n        scheduleNext();\n      }, delay);\n    };\n\n    const triggerShootingStar = () => {\n      const { width, height } = containerSize;\n      if (!width || !height) return;\n      const margin = 120;\n      const diagonal = Math.hypot(width, height);\n      const desiredTotalDistance = Math.max(minTravelPx, diagonal + margin * 2);\n\n      // Compute viewport rect relative to container\n      const el = wrapperRef.current;\n      const rect = el ? el.getBoundingClientRect() : { top: 0, height } as DOMRect;\n      const viewportTopInContainer = -rect.top;\n      const viewportBottomInContainer = viewportTopInContainer + window.innerHeight;\n\n      // Choose start outside viewport but within the page (container)\n      let startX = randomBetween(0, width);\n      let startY = 0;\n      const topRangeMax = Math.max(0, viewportTopInContainer - margin);\n      const bottomRangeMin = Math.min(height, viewportBottomInContainer + margin);\n      const topRangeAvailable = topRangeMax > 0;\n      const bottomRangeAvailable = bottomRangeMin < height;\n      if (topRangeAvailable && bottomRangeAvailable) {\n        if (Math.random() < 0.5) {\n          startY = randomBetween(0, topRangeMax);\n        } else {\n          startY = randomBetween(bottomRangeMin, height);\n        }\n      } else if (topRangeAvailable) {\n        startY = randomBetween(0, topRangeMax);\n      } else if (bottomRangeAvailable) {\n        startY = randomBetween(bottomRangeMin, height);\n      } else {\n        // Fallback: start horizontally outside viewport\n        startX = Math.random() < 0.5 ? -margin : width + margin;\n        startY = randomBetween(0, height);\n      }\n\n      // Bias direction roughly towards viewport center to increase visibility\n      const viewportCenterX = width / 2;\n      const viewportCenterY = viewportTopInContainer + Math.min(window.innerHeight, height) / 2;\n      const baseAngle = Math.atan2(viewportCenterY - startY, viewportCenterX - startX);\n      const theta = baseAngle + randomBetween(-0.5, 0.5);\n      const ux = Math.cos(theta);\n      const uy = Math.sin(theta);\n\n      const endX = startX + ux * desiredTotalDistance;\n      const endY = startY + uy * desiredTotalDistance;\n\n      const deltaX = endX - startX;\n      const deltaY = endY - startY;\n      const distance = Math.hypot(deltaX, deltaY);\n      const angleRad = Math.atan2(deltaY, deltaX);\n\n      // Phase distances\n      const windupDistancePx = Math.min(120, Math.max(60, distance * 0.06));\n      const accDistancePx = Math.min(260, Math.max(distance * 0.18, minTravelPx * 0.18));\n\n      // Phase durations\n      const windupDurationMs = Math.floor(randomBetween(800, 1100));\n      const accDurationMs = Math.floor(randomBetween(600, 900));\n      const explosiveDurationMs = Math.floor(randomBetween(1500, 2500));\n\n      const instance: ShootingInstance = {\n        id: Date.now(),\n        startLeftPx: startX,\n        startTopPx: startY,\n        endLeftPx: endX,\n        endTopPx: endY,\n        angleRad,\n        windupDistancePx,\n        accDistancePx,\n        windupDurationMs,\n        accDurationMs,\n        explosiveDurationMs,\n        fadeDurationMs: 500,\n        phase: \"spawning\",\n      };\n      setShooting(instance);\n      requestAnimationFrame(() => {\n        setShooting((prev) => (prev && prev.id === instance.id ? { ...prev, phase: \"windup\" } : prev));\n      });\n    };\n\n    const initialDelay = Math.max(0, Math.floor(initialDelayMs));\n    timeoutId = window.setTimeout(() => {\n      if (cancelled) return;\n      triggerShootingStar();\n      scheduleNext();\n    }, initialDelay);\n    return () => {\n      cancelled = true;\n      if (timeoutId) window.clearTimeout(timeoutId);\n    };\n  }, [containerSize.width, containerSize.height, minDelay, maxDelay, minSpeed, maxSpeed, minTravelPx, initialDelayMs]);\n\n  const handleTransitionEnd = useCallback(() => {\n    setShooting((prev) => {\n      if (!prev) return prev;\n      if (prev.phase === \"windup\") {\n        return { ...prev, phase: \"accelerating\" };\n      }\n      if (prev.phase === \"accelerating\") {\n        return { ...prev, phase: \"explosive\" };\n      }\n      if (prev.phase === \"explosive\") {\n        return { ...prev, phase: \"fading\" };\n      }\n      return null;\n    });\n  }, []);\n\n  // Compute transforms based on phase\n  const getTransformForPhase = (s: ShootingInstance) => {\n    const { startLeftPx, startTopPx, endLeftPx, endTopPx, windupDistancePx, accDistancePx } = s;\n    const dx = endLeftPx - startLeftPx;\n    const dy = endTopPx - startTopPx;\n    const distance = Math.hypot(dx, dy);\n    if (distance === 0) return `translate(${startLeftPx}px, ${startTopPx}px)`;\n    const ux = dx / distance;\n    const uy = dy / distance;\n    if (s.phase === \"spawning\") {\n      return `translate(${startLeftPx}px, ${startTopPx}px)`;\n    }\n    if (s.phase === \"windup\") {\n      const wx = startLeftPx + ux * windupDistancePx;\n      const wy = startTopPx + uy * windupDistancePx;\n      return `translate(${wx}px, ${wy}px)`;\n    }\n    if (s.phase === \"accelerating\") {\n      const ax = startLeftPx + ux * (windupDistancePx + accDistancePx);\n      const ay = startTopPx + uy * (windupDistancePx + accDistancePx);\n      return `translate(${ax}px, ${ay}px)`;\n    }\n    // explosive and fading both at end position\n    return `translate(${endLeftPx}px, ${endTopPx}px)`;\n  };\n\n  const getTransitionForPhase = (s: ShootingInstance) => {\n    if (s.phase === \"spawning\") return \"none\";\n    if (s.phase === \"windup\") {\n      return `transform ${s.windupDurationMs}ms cubic-bezier(0.2, 0.0, 0.0, 1)`; // very slow start\n    }\n    if (s.phase === \"accelerating\") {\n      return `transform ${s.accDurationMs}ms cubic-bezier(0.8, 0.0, 1, 1)`; // fast acceleration\n    }\n    if (s.phase === \"explosive\") {\n      return `transform ${s.explosiveDurationMs}ms linear`;\n    }\n    return \"none\";\n  };\n\n  const getOpacityForPhase = (s: ShootingInstance) => {\n    if (s.phase === \"spawning\") return 0.0; // start invisible\n    if (s.phase === \"windup\") return 0.6; // fade in during windup\n    if (s.phase === \"fading\") return 0.0;\n    return 0.6; // accelerating and explosive\n  };\n\n  const getOpacityTransitionForPhase = (s: ShootingInstance) => {\n    if (s.phase === \"windup\") {\n      return `opacity ${s.windupDurationMs}ms ease-in`;\n    }\n    if (s.phase === \"fading\") {\n      return `opacity ${s.fadeDurationMs}ms ease-out`;\n    }\n    return \"none\";\n  };\n\n  const isTrailPhase = (s: ShootingInstance) => s.phase === \"accelerating\" || s.phase === \"explosive\";\n  const getWidthForPhase = (s: ShootingInstance) => (isTrailPhase(s) ? starWidth : Math.max(starHeight * 2, 6));\n  \n  const getBackgroundForPhase = (s: ShootingInstance) => {\n    return isTrailPhase(s)\n      ? `linear-gradient(90deg, transparent 0%, ${trailColor} 60%, ${starColor} 100%)`\n      : starColor;\n  };\n\n  return (\n    <div\n      ref={wrapperRef}\n      className={cn(\n        \"pointer-events-none relative size-full overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800\",\n        className\n      )}\n    >\n      <StarsBackground className=\"absolute inset-0 z-0\" />\n      {shooting && (\n        <div\n          key={shooting.id}\n          className=\"absolute\"\n          onTransitionEnd={handleTransitionEnd}\n          style={{\n            left: 0,\n            top: 0,\n            transform: getTransformForPhase(shooting),\n            transition: getTransitionForPhase(shooting),\n          }}\n        >\n          <div\n            style={{\n              width: `${getWidthForPhase(shooting)}px`,\n              height: `${starHeight}px`,\n              background: getBackgroundForPhase(shooting),\n              filter: \"drop-shadow(0 0 6px rgba(255,255,255,0.9))\",\n              borderRadius: `${starHeight}px`,\n              transform: `rotate(${shooting.angleRad}rad)`,\n              opacity: getOpacityForPhase(shooting),\n              transition: getOpacityTransitionForPhase(shooting),\n            }}\n          />\n        </div>\n      )}\n    </div>\n  );\n}",
+      "contentHash": "2fb63df404585358b0ec8c7c740dc6483e443b5530eb7a77ecbde23e722d825c",
+      "notes": [],
+      "importedAt": "2026-10-16T11:29:18.171Z",
+      "updatedAt": "2026-10-16T11:29:18.171Z"
+    },
+    {
+      "id": "my-cv--starsbackground",
+      "name": "StarsBackground",
+      "description": "",
+      "category": "backgrounds",
+      "tags": [],
+      "props": [
+        {
+          "name": "starDensity",
+          "tsType": "number",
+          "required": false,
+          "type": "number",
+          "defaultValue": 0.00015
+        },
+        {
+          "name": "allStarsTwinkle",
+          "tsType": "boolean",
+          "required": false,
+          "type": "boolean",
+          "defaultValue": false
+        },
+        {
+          "name": "twinkleProbability",
+          "tsType": "number",
+          "required": false,
+          "type": "number",
+          "defaultValue": 0.7
+        },
+        {
+          "name": "minTwinkleSpeed",
+          "tsType": "number",
+          "required": false,
+          "type": "number",
+          "defaultValue": 0.5
+        },
+        {
+          "name": "maxTwinkleSpeed",
+          "tsType": "number",
+          "required": false,
+          "type": "number",
+          "defaultValue": 1
+        },
+        {
+          "name": "className",
+          "tsType": "string",
+          "required": false,
+          "type": "string"
+        }
+      ],
+      "propsExtends": [],
+      "dependencies": [],
+      "localImports": [
+        "@/app/lib/utils"
+      ],
+      "source": {
+        "project": "my-cv",
+        "repo": "https://gitlab.com/public-work4/my-cv",
+        "path": "app/components/shadcn/stars-background.tsx",
+        "commit": "c706fb8a83da84d7e1d8f895db7343d4b3801b33",
+        "exportKind": "default"
+      },
+      "code": "\"use client\";\n\nimport React, { useEffect, useRef, useState } from \"react\";\nimport { cn } from \"@/app/lib/utils\";\n\nexport type StarsBackgroundProps = {\n  starDensity?: number; // stars per pixel area\n  allStarsTwinkle?: boolean; // if false, stars are static\n  twinkleProbability?: number; // when allStarsTwinkle is false\n  minTwinkleSpeed?: number; // seconds\n  maxTwinkleSpeed?: number; // seconds\n  className?: string;\n};\n\ntype StarDefinition = {\n  id: number;\n  xPercent: number; // 0..100\n  yPercent: number; // 0..100\n  sizePx: number;\n  willTwinkle: boolean;\n  twinkleDurationSec: number;\n  twinkleDelaySec: number;\n  glowDurationSec: number;\n  glowDelaySec: number;\n  brightness: number; // 0..1 for static brightness\n};\n\nfunction randomBetween(min: number, max: number) {\n  return Math.random() * (max - min) + min;\n}\n\nexport default function StarsBackground({\n  starDensity = 0.00015,\n  allStarsTwinkle = false,\n  twinkleProbability = 0.7,\n  minTwinkleSpeed = 0.5,\n  maxTwinkleSpeed = 1,\n  className,\n}: StarsBackgroundProps) {\n  const wrapperRef = useRef<HTMLDivElement | null>(null);\n  const [containerSize, setContainerSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });\n  const [stars, setStars] = useState<StarDefinition[]>([]);\n\n  useEffect(() => {\n    const element = wrapperRef.current;\n    if (!element) return;\n\n    const resizeObserver = new ResizeObserver((entries) => {\n      for (const entry of entries) {\n        const box = entry.contentRect;\n        setContainerSize({ width: Math.max(0, Math.floor(box.width)), height: Math.max(0, Math.floor(box.height)) });\n      }\n    });\n    resizeObserver.observe(element);\n    const box = element.getBoundingClientRect();\n    setContainerSize({ width: Math.max(0, Math.floor(box.width)), height: Math.max(0, Math.floor(box.height)) });\n    return () => resizeObserver.disconnect();\n  }, []);\n\n  useEffect(() => {\n    if (containerSize.width === 0 || containerSize.height === 0) return;\n    const area = containerSize.width * containerSize.height;\n    const targetCount = Math.max(8, Math.floor(area * starDensity));\n    const created: StarDefinition[] = [];\n    for (let i = 0; i < targetCount; i++) {\n      const willTwinkle = allStarsTwinkle || Math.random() < twinkleProbability;\n      const twinkleDurationSec = willTwinkle ? randomBetween(minTwinkleSpeed, maxTwinkleSpeed) : 0;\n      const twinkleDelaySec = willTwinkle ? Math.random() * 2 : 0;\n      const glowDurationSec = willTwinkle ? randomBetween(0.6, 1.2) : 0;\n      const glowDelaySec = willTwinkle ? Math.random() * 1.5 : 0;\n      const brightness = Math.random() * 0.6 + 0.35; // 0.35..0.95\n      created.push({\n        id: i,\n        xPercent: Math.random() * 100,\n        yPercent: Math.random() * 100,\n        sizePx: Math.random() < 0.85 ? 1 : 2,\n        willTwinkle,\n        twinkleDurationSec,\n        twinkleDelaySec,\n        glowDurationSec,\n        glowDelaySec,\n        brightness,\n      });\n    }\n    setStars(created);\n  }, [containerSize.width, containerSize.height, starDensity, allStarsTwinkle, twinkleProbability, minTwinkleSpeed, maxTwinkleSpeed]);\n\n  return (\n    <div ref={wrapperRef} className={cn(\"pointer-events-none relative h-full w-full overflow-hidden\", className)}>\n      <div className=\"absolute inset-0\">\n        {stars.map((star) => {\n          const left = `${star.xPercent}%`;\n          const top = `${star.yPercent}%`;\n          const size = `${star.sizePx}px`;\n          const twinkleAnimation = star.willTwinkle\n            ? `${star.twinkleDurationSec}s twinkle ease-in-out ${star.twinkleDelaySec}s infinite alternate`\n            : \"none\";\n          const glowAnimation = star.willTwinkle ? `${star.glowDurationSec}s glowPulse ease-in-out ${star.glowDelaySec}s infinite alternate` : \"none\";\n\n          // App is dark-only: always render light stars on dark background.\n          const backgroundGradient =\n            \"radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.35) 40%, rgba(255,255,255,0.0) 70%)\";\n          const boxShadow = \"0 0 4px rgba(255,255,255,0.6), 0 0 8px rgba(255,255,255,0.35)\";\n\n          return (\n            <span\n              key={star.id}\n              className=\"absolute rounded-full\"\n              style={{\n                left,\n                top,\n                width: size,\n                height: size,\n                background: backgroundGradient,\n                boxShadow: boxShadow,\n                animation: `${glowAnimation}${twinkleAnimation === \"none\" ? \"\" : \", \" + twinkleAnimation}`,\n                opacity: star.brightness,\n              }}\n            />\n          );\n        })}\n      </div>\n      {/* No global animations when stars are static; twinkle/glow keyframes are omitted to reduce work */}\n    </div>\n  );\n}\n\n\n",
+      "contentHash": "2406b2ac4b6e35742be495422e731ea3aed191125aa6aafadad764b4c37c2194",
+      "notes": [],
+      "importedAt": "2026-10-16T11:29:18.171Z",
+      "updatedAt": "2026-10-16T11:29:18.171Z"
+    },
+    {
+      "id": "my-cv--themetoggle",
+      "name": "ThemeToggle",
+      "description": "Theme toggle button component that cycles through light, dark, and system themes.\nPrevents hydration mismatch by only rendering after mount.\nDisplays appropriate icon based on current theme state.",
+      "category": "navigation",
+      "tags": [],
+      "props": [],
+      "propsExtends": [],
+      "dependencies": [],
+      "localImports": [
+        "../lib/theme-provider"
+      ],
+      "source": {
+        "project": "my-cv",
+        "repo": "https://gitlab.com/public-work4/my-cv",
+        "path": "app/components/ThemeToggle.tsx",
+        "commit": "c706fb8a83da84d7e1d8f895db7343d4b3801b33",
+        "exportKind": "default"
+      },
+      "code": "'use client'\n\nimport { useTheme } from '../lib/theme-provider'\nimport { useEffect, useState } from 'react'\n\n/**\n * Theme toggle button component that cycles through light, dark, and system themes.\n * Prevents hydration mismatch by only rendering after mount.\n * Displays appropriate icon based on current theme state.\n * \n * @example\n * ```tsx\n * <ThemeToggle />\n * ```\n */\nexport default function ThemeToggle() {\n  const { theme, setTheme } = useTheme()\n  // Track mount state to prevent hydration mismatch\n  const [mounted, setMounted] = useState(false)\n\n  useEffect(() => {\n    setMounted(true)\n  }, [])\n\n  // Render placeholder until mounted to avoid hydration issues\n  if (!mounted) {\n    return (\n      <div className=\"w-9 h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800\"></div>\n    )\n  }\n\n  // Cycle through themes: light -> dark -> system -> light\n  const toggleTheme = () => {\n    console.log('toggleTheme', theme)\n    if (theme === 'light') {\n      setTheme('dark')\n    } else if (theme === 'dark') {\n      setTheme('system')\n    } else {\n      setTheme('light')\n    }\n  }\n\n  const getIcon = () => {\n    switch (theme) {\n      case 'light':\n        return (\n          <svg className=\"w-5 h-5\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">\n            <path strokeLinecap=\"round\" strokeLinejoin=\"round\" strokeWidth=\"2\" d=\"M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z\" />\n          </svg>\n        )\n      case 'dark':\n        return (\n          <svg className=\"w-5 h-5\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">\n            <path strokeLinecap=\"round\" strokeLinejoin=\"round\" strokeWidth=\"2\" d=\"M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z\" />\n          </svg>\n        )\n      case 'system':\n        return (\n          <svg className=\"w-5 h-5\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">\n            <path strokeLinecap=\"round\" strokeLinejoin=\"round\" strokeWidth=\"2\" d=\"M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z\" />\n          </svg>\n        )\n      default:\n        return null\n    }\n  }\n\n  const getTitle = () => {\n    switch (theme) {\n      case 'light':\n        return 'Switch to dark mode'\n      case 'dark':\n        return 'Switch to system mode'\n      case 'system':\n        return 'Switch to light mode'\n      default:\n        return 'Toggle theme'\n    }\n  }\n\n  return (\n    <button\n      onClick={toggleTheme}\n      className=\"inline-flex items-center justify-center w-9 h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800\"\n      title={getTitle()}\n      aria-label={getTitle()}\n    >\n      {getIcon()}\n    </button>\n  )\n} ",
+      "contentHash": "3e99f830a4da9fa6ea5fec6c5a988c889012800875d04f4c06bcedffbdcf6a36",
+      "notes": [],
+      "importedAt": "2026-10-16T11:29:16.058Z",
+      "updatedAt": "2026-10-16T11:29:16.058Z"
+    }
+  ]
+}

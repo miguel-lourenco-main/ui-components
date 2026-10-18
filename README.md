@@ -53,6 +53,28 @@ The application features an **interactive playground** where users can experimen
 
 ---
 
+## 📚 Component Library (ingested from your projects)
+
+The `/library` route lists components imported from the source code of other projects. Nothing in it is hand-registered; the import script extracts it:
+
+```bash
+# Scan files or directories (.tsx/.jsx; tests, stories and node_modules are skipped)
+pnpm library:import ../my-cv/app/components --category actions
+
+# Options
+#   --project <name>    defaults to the source git repo's directory name
+#   --category <name>   category for entries no vault note categorises
+#   --tag <tag>         extra tag (repeatable)
+#   --vault <dir>       link Obsidian notes whose frontmatter names the component
+#   --dry-run           print what would change, write nothing
+```
+
+- For each exported React component it records: name, JSDoc description, props (resolved from the file's own interfaces/type aliases, with defaults from destructuring), package and local imports, the full file source, and provenance (repo, path, commit).
+- Entries are written to `data/library/entries/<project>--<name>.json`, and `data/library/index.json` is regenerated from them. Running the import again on the same sources updates entries in place. Unchanged entries keep their timestamps.
+- **Vault notes:** a note is linked when its frontmatter has `component: Name` (or `components: [A, B]`). Optional `project:` restricts the match to one project, `category:` sets the entry's category, and `tags:` are merged in. Only the note's title, tags and first paragraph are copied. Those excerpts end up in this repository and on the public site.
+
+---
+
 ## 🎨 Component Categories
 
 ### **Form Components**

@@ -1,0 +1,70 @@
+{
+  "id": "my-cv--namebadge",
+  "name": "NameBadge",
+  "description": "Name badge component displaying the name \"Miguel Lourenço\" with gradient styling.\nSupports shared element transitions via Framer Motion layoutId.",
+  "category": "layout",
+  "tags": [],
+  "props": [
+    {
+      "name": "className",
+      "tsType": "string",
+      "required": false,
+      "type": "string",
+      "description": "Additional CSS classes"
+    },
+    {
+      "name": "as",
+      "tsType": "keyof JSX.IntrinsicElements",
+      "required": false,
+      "type": "object",
+      "description": "HTML element type to render (default: \"div\")",
+      "defaultValue": "div"
+    },
+    {
+      "name": "layoutId",
+      "tsType": "string",
+      "required": false,
+      "type": "string",
+      "description": "Layout ID for Framer Motion shared element transitions",
+      "defaultValue": "intro-name"
+    },
+    {
+      "name": "variant",
+      "tsType": "\"intro\" | \"hero\"",
+      "required": false,
+      "type": "enum",
+      "options": [
+        "intro",
+        "hero"
+      ],
+      "description": "Visual variant style",
+      "defaultValue": "hero"
+    },
+    {
+      "name": "greeting",
+      "tsType": "string",
+      "required": false,
+      "type": "string",
+      "description": "Optional greeting text to display before name"
+    }
+  ],
+  "propsExtends": [],
+  "dependencies": [
+    "motion"
+  ],
+  "localImports": [
+    "@/app/lib/utils"
+  ],
+  "source": {
+    "project": "my-cv",
+    "repo": "https://gitlab.com/public-work4/my-cv",
+    "path": "app/components/identity/NameBadge.tsx",
+    "commit": "c706fb8a83da84d7e1d8f895db7343d4b3801b33",
+    "exportKind": "default"
+  },
+  "code": "\"use client\";\n\nimport React from \"react\";\nimport { motion } from \"motion/react\";\nimport { cn } from \"@/app/lib/utils\";\n\n/**\n * Props for the NameBadge component.\n */\ntype NameBadgeProps = {\n  /** Additional CSS classes */\n  className?: string;\n  /** HTML element type to render (default: \"div\") */\n  as?: keyof JSX.IntrinsicElements;\n  /** Layout ID for Framer Motion shared element transitions */\n  layoutId?: string;\n  /** Visual variant style */\n  variant?: \"intro\" | \"hero\";\n  /** Optional greeting text to display before name */\n  greeting?: string;\n};\n\n/**\n * Name badge component displaying the name \"Miguel Lourenço\" with gradient styling.\n * Supports shared element transitions via Framer Motion layoutId.\n * \n * @param props - NameBadge component props\n * @param props.className - Additional CSS classes\n * @param props.as - HTML element type (default: \"div\")\n * @param props.layoutId - Layout ID for shared element transitions (default: \"intro-name\")\n * @param props.variant - Visual variant (default: \"hero\")\n * @param props.greeting - Optional greeting text\n * \n * @example\n * ```tsx\n * <NameBadge layoutId=\"intro-name\" greeting=\"Hello\" />\n * ```\n */\nexport default function NameBadge({\n  className,\n  as = \"div\",\n  layoutId = \"intro-name\",\n  variant = \"hero\",\n  greeting,\n}: NameBadgeProps) {\n  const Comp: any = (motion as any)[as] ?? motion.div;\n  const titleClasses =\n    variant === \"intro\"\n      ? \"text-4xl sm:text-6xl font-bold text-slate-900 dark:text-white\"\n      : \"text-4xl sm:text-6xl font-bold text-slate-900 dark:text-white\";\n\n  return (\n    <Comp layoutId={layoutId} className={cn(className, \"text-center\")}>\n      <h1 className={titleClasses}>\n        {greeting || ' '} {\"\"}\n        <span className=\"text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600\">\n          Miguel Lourenço\n        </span>\n      </h1>\n    </Comp>\n  );\n}\n\n\n",
+  "contentHash": "6e3637f5ab4221950442099cfb96bb9d0945eb0156aabfff3686866d18210a90",
+  "notes": [],
+  "importedAt": "2026-10-16T11:29:17.525Z",
+  "updatedAt": "2026-10-16T11:29:17.525Z"
+}
