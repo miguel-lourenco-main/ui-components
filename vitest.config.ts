@@ -12,6 +12,8 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": root,
+      // Tests never see the private vault overlay (see next.config.js).
+      "@library-local-overlay": path.join(root, "lib/library/empty-overlay.json"),
     },
   },
   test: {

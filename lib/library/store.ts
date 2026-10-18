@@ -6,18 +6,29 @@
  * is derived from project + component name, so re-importing a file updates the
  * existing entry, and an entry whose content did not change keeps its
  * timestamps (the manifest does not churn).
+ *
+ * Vault enrichment never goes into the committed entries: it is written to the
+ * gitignored `data/library/local/overlay.json` instead (see `./overlay.ts`).
  */
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import type { LibraryComponent, LibraryManifest } from "@/lib/contracts";
+import type {
+  LibraryComponent,
+  LibraryLocalEnrichment,
+  LibraryLocalOverlay,
+  LibraryManifest,
+} from "@/lib/contracts";
 import { REPO_ROOT } from "@/lib/registry/paths";
 import { slugify } from "@/lib/requests/ids";
 import { extractComponents } from "./extract";
+import { EMPTY_OVERLAY, stripVaultFields } from "./overlay";
 import { notesForComponent, type VaultNote } from "./vault";
 
 export const LIBRARY_DIR = path.join(REPO_ROOT, "data", "library");
+/** Subdirectory of the library dir that holds local-only (gitignored) data. */
+export const LOCAL_SUBDIR = "local";
 const MANIFEST_VERSION = 1;
 const SOURCE_EXTENSIONS = new Set([".tsx", ".jsx"]);
 const SKIP_DIRS = new Set(["node_modules", ".next", ".git", "dist", "build", "out", "coverage", ".turbo"]);
@@ -46,6 +57,8 @@ export interface ImportResult {
   unchanged: LibraryComponent[];
   /** Files that were scanned but contained no exported components. */
   skippedFiles: string[];
+  /** Linked-note count per entry id, when a vault was given (written to the local overlay only). */
+  localNotes: Record<string, number>;
 }
 
 export interface SourceFile {
@@ -140,7 +153,25 @@ export function readLibrary(dir = LIBRARY_DIR): LibraryComponent[] {
   return fs
     .readdirSync(entriesDir)
     .filter((f) => f.endsWith(".json"))
-    .map((f) => JSON.parse(fs.readFileSync(path.join(entriesDir, f), "utf8")) as LibraryComponent);
+    .map((f) => stripVaultFields(JSON.parse(fs.readFileSync(path.join(entriesDir, f), "utf8")) as LibraryComponent));
+}
+
+function overlayPath(dir: string): string {
+  return path.join(dir, LOCAL_SUBDIR, "overlay.json");
+}
+
+/** Read the local vault overlay; empty when it does not exist. */
+export function readLocalOverlay(dir = LIBRARY_DIR): LibraryLocalOverlay {
+  const file = overlayPath(dir);
+  if (!fs.existsSync(file)) return { ...EMPTY_OVERLAY, entries: {} };
+  return JSON.parse(fs.readFileSync(file, "utf8")) as LibraryLocalOverlay;
+}
+
+function writeLocalOverlay(dir: string, overlay: LibraryLocalOverlay): void {
+  const file = overlayPath(dir);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  const entries = Object.fromEntries(Object.entries(overlay.entries).sort(([a], [b]) => a.localeCompare(b)));
+  fs.writeFileSync(file, `${JSON.stringify({ ...overlay, entries }, null, 2)}\n`);
 }
 
 /** Rebuild `index.json` from the stored entries. Deterministic for unchanged entries. */
@@ -170,7 +201,8 @@ export function importComponents(options: ImportOptions): ImportResult {
   const dir = options.dir ?? LIBRARY_DIR;
   const now = (options.now ?? (() => new Date()))().toISOString();
   const existing = new Map(readLibrary(dir).map((e) => [e.id, e]));
-  const result: ImportResult = { created: [], updated: [], unchanged: [], skippedFiles: [] };
+  const result: ImportResult = { created: [], updated: [], unchanged: [], skippedFiles: [], localNotes: {} };
+  const overlay = options.vaultNotes ? readLocalOverlay(dir) : undefined;
 
   for (const { file, base } of collectSourceFiles(options.paths)) {
     const code = fs.readFileSync(file, "utf8");
@@ -193,19 +225,29 @@ export function importComponents(options: ImportOptions): ImportResult {
       }
       const previous = existing.get(id);
 
-      const notes = options.vaultNotes
-        ? notesForComponent(options.vaultNotes, { name: component.name, id, project })
-        : [];
-      const noteCategory = notes.find((n) => n.category)?.category;
-      const tags = Array.from(
-        new Set([...(options.tags ?? []), ...notes.flatMap((n) => n.tags)].map((t) => t.toLowerCase()))
-      ).sort();
+      if (overlay && options.vaultNotes) {
+        // Vault data goes to the local overlay only, never into the committed entry.
+        const notes = notesForComponent(options.vaultNotes, { name: component.name, id, project });
+        result.localNotes[id] = notes.length;
+        if (notes.length > 0) {
+          const category = notes.find((n) => n.category)?.category;
+          const enrichment: LibraryLocalEnrichment = {
+            notes: notes.map(({ path: p, title, tags: noteTags, excerpt }) => ({ path: p, title, tags: noteTags, excerpt })),
+            ...(category ? { category } : {}),
+            tags: Array.from(new Set(notes.flatMap((n) => n.tags).map((t) => t.toLowerCase()))).sort(),
+          };
+          overlay.entries[id] = enrichment;
+        } else {
+          delete overlay.entries[id];
+        }
+      }
+      const tags = Array.from(new Set((options.tags ?? []).map((t) => t.toLowerCase()))).sort();
 
       const entry: LibraryComponent = {
         id,
         name: component.name,
-        description: component.description || notes[0]?.excerpt || "",
-        category: noteCategory ?? options.category ?? previous?.category ?? "uncategorized",
+        description: component.description,
+        category: options.category ?? previous?.category ?? "uncategorized",
         tags,
         props: component.props,
         propsExtends: component.propsExtends,
@@ -220,7 +262,6 @@ export function importComponents(options: ImportOptions): ImportResult {
         },
         code,
         contentHash: sha256(code),
-        notes: notes.map(({ path: p, title, tags: noteTags, excerpt }) => ({ path: p, title, tags: noteTags, excerpt })),
         importedAt: previous?.importedAt ?? now,
         updatedAt: now,
       };
@@ -237,5 +278,6 @@ export function importComponents(options: ImportOptions): ImportResult {
   }
 
   writeManifest(dir);
+  if (overlay) writeLocalOverlay(dir, overlay);
   return result;
 }

@@ -71,7 +71,7 @@ pnpm library:import ../my-cv/app/components --category actions
 
 - For each exported React component it records: name, JSDoc description, props (resolved from the file's own interfaces/type aliases, with defaults from destructuring), package and local imports, the full file source, and provenance (repo, path, commit).
 - Entries are written to `data/library/entries/<project>--<name>.json`, and `data/library/index.json` is regenerated from them. Running the import again on the same sources updates entries in place. Unchanged entries keep their timestamps.
-- **Vault notes:** a note is linked when its frontmatter has `component: Name` (or `components: [A, B]`). Optional `project:` restricts the match to one project, `category:` sets the entry's category, and `tags:` are merged in. Only the note's title, tags and first paragraph are copied. Those excerpts end up in this repository and on the public site.
+- **Vault notes (local only):** a note is linked when its frontmatter has `component: Name` (or `components: [A, B]`). Optional `project:` restricts the match to one project, `category:` sets the entry's category, and `tags:` are merged in. Only the note's title, tags and first paragraph are read, and they go to `data/library/local/overlay.json`, which is gitignored. `pnpm dev` merges that overlay into `/library` when it exists (restart dev after creating it). `pnpm build` and the public site never include it, so committed entries and the Pages site hold code-derived data only.
 
 ---
 

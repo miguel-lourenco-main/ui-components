@@ -23,7 +23,7 @@ import { ProposalComponentPreview } from "@/components/proposal-component-previe
 import { LibraryBrowser } from "@/components/library-browser"
 import { RelativeTime } from "@/components/relative-time"
 import { LIBRARY, getLibraryComponent, sourceUrl, toPreviewMeta } from "@/lib/library/manifest-data"
-import type { LibraryComponent, LibraryProp } from "@/lib/contracts"
+import type { LibraryEntryView, LibraryProp } from "@/lib/contracts"
 
 function formatDefault(prop: LibraryProp): string {
   if (prop.defaultExpression) return prop.defaultExpression
@@ -31,7 +31,7 @@ function formatDefault(prop: LibraryProp): string {
   return JSON.stringify(prop.defaultValue)
 }
 
-function PropsTable({ entry }: { entry: LibraryComponent }) {
+function PropsTable({ entry }: { entry: LibraryEntryView }) {
   if (entry.props.length === 0) {
     return <p className="text-sm text-muted-foreground">No props found in the source.</p>
   }
@@ -66,7 +66,7 @@ function PropsTable({ entry }: { entry: LibraryComponent }) {
   )
 }
 
-function LibraryDetail({ entry }: { entry: LibraryComponent }) {
+function LibraryDetail({ entry }: { entry: LibraryEntryView }) {
   const meta = useMemo(() => toPreviewMeta(entry), [entry])
   // The preview compiles source in the browser; render it only after mount so
   // server and client markup agree.
@@ -207,9 +207,15 @@ function LibraryDetail({ entry }: { entry: LibraryComponent }) {
               <TabsContent value="notes" className="mt-4 space-y-3">
                 {entry.notes.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
-                    No vault notes link this component. Add{" "}
-                    <code className="font-mono">component: {entry.name}</code> to a note&apos;s
-                    frontmatter and re-import with <code className="font-mono">--vault</code>.
+                    {process.env.NODE_ENV === "development" ? (
+                      <>
+                        No vault notes link this component. Add{" "}
+                        <code className="font-mono">component: {entry.name}</code> to a note&apos;s
+                        frontmatter and re-import with <code className="font-mono">--vault</code>.
+                      </>
+                    ) : (
+                      <>Vault notes are private: they are only shown when the library runs locally.</>
+                    )}
                   </p>
                 ) : (
                   entry.notes.map((note) => (
@@ -268,10 +274,12 @@ function LibraryPageInner() {
   }
 
   const projectCount = new Set(LIBRARY.map((c) => c.source.project)).size
+  const withNotes = LIBRARY.filter((c) => c.notes.length > 0).length
   const stats = [
     { value: LIBRARY.length, label: "Components" },
     { value: projectCount, label: projectCount === 1 ? "Project" : "Projects" },
-    { value: LIBRARY.filter((c) => c.notes.length > 0).length, label: "With notes" },
+    // Notes only exist locally (private vault overlay), so the stat is hidden on the public site.
+    ...(withNotes > 0 ? [{ value: withNotes, label: "With notes" }] : []),
   ]
 
   return (
@@ -288,8 +296,7 @@ function LibraryPageInner() {
             <div>
               <h1 className="text-display text-4xl font-bold md:text-5xl">Component Library</h1>
               <p className="mt-3 max-w-xl text-lg text-muted-foreground">
-                Every component you have built, imported from the projects it lives in and
-                linked to your notes.
+                Every component you have built, imported from the projects it lives in.
               </p>
             </div>
             {LIBRARY.length > 0 && (

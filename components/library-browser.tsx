@@ -16,7 +16,7 @@ import {
 import { EmptyState } from "@/components/empty-state";
 import { GlowCard, cardLinkClassName } from "@/components/glow-card";
 import { StaggerGroup, StaggerItem } from "@/components/motion/stagger";
-import type { LibraryComponent } from "@/lib/contracts";
+import type { LibraryEntryView } from "@/lib/contracts";
 
 const ALL = "__all__";
 
@@ -24,7 +24,7 @@ function uniqueSorted(values: string[]): string[] {
   return Array.from(new Set(values)).sort((a, b) => a.localeCompare(b));
 }
 
-function matches(entry: LibraryComponent, q: string): boolean {
+function matches(entry: LibraryEntryView, q: string): boolean {
   if (!q) return true;
   return [
     entry.name,
@@ -37,7 +37,7 @@ function matches(entry: LibraryComponent, q: string): boolean {
   ].some((value) => value.toLowerCase().includes(q));
 }
 
-function LibraryCard({ entry }: { entry: LibraryComponent }) {
+function LibraryCard({ entry }: { entry: LibraryEntryView }) {
   return (
     <Link href={`/library?id=${entry.id}`} className={`${cardLinkClassName} h-full`} data-testid="library-card">
       <GlowCard className="group h-full cursor-pointer">
@@ -55,7 +55,7 @@ function LibraryCard({ entry }: { entry: LibraryComponent }) {
             {entry.source.path}
           </div>
           <CardDescription className="line-clamp-2 min-h-[2.5rem]">
-            {entry.description || "No description in source or notes yet."}
+            {entry.description || "No description in source yet."}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap items-center gap-1.5 pt-0 text-xs">
@@ -85,7 +85,7 @@ function LibraryCard({ entry }: { entry: LibraryComponent }) {
  * the ingested components. Pure derivation from the static manifest, so it is
  * safe to prerender.
  */
-export function LibraryBrowser({ components }: { components: LibraryComponent[] }) {
+export function LibraryBrowser({ components }: { components: LibraryEntryView[] }) {
   const [query, setQuery] = useState("");
   const [project, setProject] = useState(ALL);
   const [category, setCategory] = useState(ALL);

@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { LibraryManifest } from "@/lib/contracts";
-import { importComponents, libraryId, sanitizeRemote } from "./store";
+import { LOCAL_SUBDIR, importComponents, libraryId, readLibrary, readLocalOverlay, sanitizeRemote, writeManifest } from "./store";
 import { parseFrontmatter, parseVaultNote, readVaultNotes } from "./vault";
 
 let tmp: string;
@@ -80,7 +80,7 @@ describe("importComponents", () => {
     });
   });
 
-  it("enriches entries from matching vault notes", () => {
+  it("writes vault enrichment to the local overlay only, never to committed entries", () => {
     const vault = path.join(tmp, "vault");
     fs.mkdirSync(path.join(vault, "UI"), { recursive: true });
     fs.mkdirSync(path.join(vault, ".obsidian"), { recursive: true });
@@ -95,13 +95,47 @@ describe("importComponents", () => {
     const notes = readVaultNotes(vault);
     expect(notes.map((n) => n.path)).toEqual(["UI/Badge.md", "UI/Other.md"]);
 
-    importComponents({ paths: [srcDir], project: "demo", dir: libDir, vaultNotes: notes });
+    const result = importComponents({ paths: [srcDir], project: "demo", category: "display", dir: libDir, vaultNotes: notes });
+    expect(result.localNotes).toEqual({ "demo--badge": 1 });
+
+    // Committed files: code-derived only.
+    const committed = [
+      fs.readFileSync(path.join(libDir, "index.json"), "utf8"),
+      fs.readFileSync(path.join(libDir, "entries", "demo--badge.json"), "utf8"),
+    ].join("\n");
+    for (const vaultText of ["Badge notes", "Used on the dashboard", "UI/Badge.md", "feedback", "alerts", '"notes"']) {
+      expect(committed).not.toContain(vaultText);
+    }
     const [entry] = manifest().components;
-    expect(entry.category).toBe("feedback");
-    expect(entry.tags).toEqual(["alerts", "status"]);
-    expect(entry.notes).toEqual([
-      { path: "UI/Badge.md", title: "Badge notes", tags: ["status", "alerts"], excerpt: "Used on the dashboard for #alerts." },
-    ]);
+    expect(entry).toMatchObject({ category: "display", tags: [], description: "Status pill." });
+
+    // Local overlay: the vault data, keyed by entry id.
+    expect(readLocalOverlay(libDir).entries).toEqual({
+      "demo--badge": {
+        notes: [
+          { path: "UI/Badge.md", title: "Badge notes", tags: ["status", "alerts"], excerpt: "Used on the dashboard for #alerts." },
+        ],
+        category: "feedback",
+        tags: ["alerts", "status"],
+      },
+    });
+    expect(fs.existsSync(path.join(libDir, LOCAL_SUBDIR, "overlay.json"))).toBe(true);
+
+    // A vault change does not churn the committed entry, and a removed note clears the overlay.
+    fs.rmSync(path.join(vault, "UI", "Badge.md"));
+    const again = importComponents({ paths: [srcDir], project: "demo", category: "display", dir: libDir, vaultNotes: readVaultNotes(vault) });
+    expect(again.unchanged.map((c) => c.id)).toEqual(["demo--badge"]);
+    expect(readLocalOverlay(libDir).entries).toEqual({});
+  });
+
+  it("strips vault fields left in entries by an older importer", () => {
+    importComponents({ paths: [srcDir], project: "demo", dir: libDir });
+    const file = path.join(libDir, "entries", "demo--badge.json");
+    const legacy = { ...JSON.parse(fs.readFileSync(file, "utf8")), notes: [{ path: "x.md", title: "Secret", tags: [], excerpt: "private" }] };
+    fs.writeFileSync(file, JSON.stringify(legacy));
+    expect(readLibrary(libDir)[0]).not.toHaveProperty("notes");
+    writeManifest(libDir);
+    expect(fs.readFileSync(path.join(libDir, "index.json"), "utf8")).not.toContain("private");
   });
 });
 

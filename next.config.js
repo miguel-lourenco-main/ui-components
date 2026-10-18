@@ -1,3 +1,18 @@
+const fs = require('fs')
+const path = require('path')
+
+/**
+ * The library's Obsidian overlay (`data/library/local/overlay.json`) is private
+ * and gitignored. Only `next dev` resolves `@library-local-overlay` to it, and
+ * only when the file exists. Every production build gets the committed empty
+ * overlay, so vault text can never reach the static export.
+ */
+const LOCAL_OVERLAY = path.join(__dirname, 'data', 'library', 'local', 'overlay.json')
+const EMPTY_OVERLAY = path.join(__dirname, 'lib', 'library', 'empty-overlay.json')
+function libraryOverlayPath(dev) {
+  return dev && fs.existsSync(LOCAL_OVERLAY) ? LOCAL_OVERLAY : EMPTY_OVERLAY
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   trailingSlash: true,
@@ -171,6 +186,7 @@ const nextConfig = {
     // Optimize for better tree shaking
     config.resolve.alias = {
       ...config.resolve.alias,
+      '@library-local-overlay$': libraryOverlayPath(dev),
       // Ensure better tree shaking for React
       'react/jsx-runtime.js': 'react/jsx-runtime',
       'react/jsx-dev-runtime.js': 'react/jsx-dev-runtime',

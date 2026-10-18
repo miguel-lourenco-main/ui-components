@@ -2,17 +2,29 @@
  * Browser-safe accessors for the generated library manifest
  * (`data/library/index.json`, written by `pnpm library:import`). No
  * filesystem access, so it is safe for client components and the static export.
+ *
+ * In `next dev`, entries are merged with the private vault overlay when one
+ * exists; production builds resolve the overlay to an empty one.
  */
 import manifest from "@/data/library/index.json";
-import type { ComponentMetaContract, LibraryComponent, LibraryManifest } from "@/lib/contracts";
+import localOverlay from "@library-local-overlay";
+import type {
+  ComponentMetaContract,
+  LibraryComponent,
+  LibraryEntryView,
+  LibraryLocalOverlay,
+  LibraryManifest,
+} from "@/lib/contracts";
+import { applyLocalOverlay } from "./overlay";
 
 const data = manifest as unknown as LibraryManifest;
+const overlay: LibraryLocalOverlay = localOverlay;
 
 /** All library entries, sorted by project then name (as generated). */
-export const LIBRARY: LibraryComponent[] = data.components ?? [];
+export const LIBRARY: LibraryEntryView[] = (data.components ?? []).map((c) => applyLocalOverlay(c, overlay));
 
 /** Look up one entry by id. */
-export function getLibraryComponent(id: string): LibraryComponent | undefined {
+export function getLibraryComponent(id: string): LibraryEntryView | undefined {
   return LIBRARY.find((c) => c.id === id);
 }
 

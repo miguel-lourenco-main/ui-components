@@ -9,6 +9,8 @@
  * extracts exported React components and their props, optionally links
  * Obsidian notes whose frontmatter names the component, and upserts entries
  * into data/library/. Re-running on the same sources updates entries in place.
+ * Vault data is private: it goes to the gitignored data/library/local/overlay.json,
+ * which only `next dev` reads. Committed entries hold code-derived data only.
  * With --dry-run, prints what would be imported and writes nothing.
  */
 import fs from "node:fs";
@@ -66,9 +68,10 @@ function main(): void {
       vaultNotes,
       dir: dryDir,
     });
-    const line = (label: string, items: { id: string; source: { path: string }; notes: unknown[] }[]) => {
+    const line = (label: string, items: { id: string; source: { path: string } }[]) => {
       for (const item of items) {
-        const notes = item.notes.length ? ` (+${item.notes.length} note${item.notes.length > 1 ? "s" : ""})` : "";
+        const count = result.localNotes[item.id] ?? 0;
+        const notes = count ? ` (+${count} local note${count > 1 ? "s" : ""})` : "";
         console.log(`  ${label} ${item.id}  ${item.source.path}${notes}`);
       }
     };
@@ -79,6 +82,9 @@ function main(): void {
       `\n${values["dry-run"] ? "[dry run] " : ""}${result.created.length} created, ${result.updated.length} updated, ` +
         `${result.unchanged.length} unchanged, ${result.skippedFiles.length} file(s) without components`
     );
+    if (vaultNotes && !values["dry-run"]) {
+      console.log("Vault enrichment written to data/library/local/overlay.json (gitignored, dev only).");
+    }
   } finally {
     if (dryDir) fs.rmSync(dryDir, { recursive: true, force: true });
   }

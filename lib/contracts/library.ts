@@ -8,6 +8,11 @@
  * and aggregated into a generated `data/library/index.json` manifest that the
  * static `/library` route imports. Re-importing the same file updates the
  * entry in place (same id), so the library stays in sync with its sources.
+ *
+ * Committed entries hold only code-derived data. Anything read from the
+ * Obsidian vault (note titles, excerpts, note tags and categories) is private
+ * and lives in a gitignored local overlay (`data/library/local/overlay.json`)
+ * that `next dev` merges in when it exists. The public build never sees it.
  */
 import type { ComponentPropContract } from "./components";
 
@@ -37,7 +42,7 @@ export interface LibraryProp extends ComponentPropContract {
   defaultExpression?: string;
 }
 
-/** An Obsidian note linked to a library entry. */
+/** An Obsidian note linked to a library entry. Local-only: never committed. */
 export interface LibraryNote {
   /** Path relative to the vault root. */
   path: string;
@@ -53,8 +58,9 @@ export interface LibraryComponent {
   id: string;
   name: string;
   description: string;
-  /** Free-form category; from the vault note or the import flag, else "uncategorized". */
+  /** Free-form category from the import flag, else "uncategorized". A local vault note may override it. */
   category: string;
+  /** Tags from the import flags. Local vault notes may add more. */
   tags: string[];
   props: LibraryProp[];
   /** Names of interfaces/types the props type extends (e.g. `React.ButtonHTMLAttributes<...>`). */
@@ -68,10 +74,31 @@ export interface LibraryComponent {
   code: string;
   /** sha256 of `code`, used to detect changes on re-import. */
   contentHash: string;
-  notes: LibraryNote[];
   /** ISO-8601: first import, and last time the content changed. */
   importedAt: string;
   updatedAt: string;
+}
+
+/** Vault-derived enrichment for one entry, kept in the local overlay. */
+export interface LibraryLocalEnrichment {
+  notes: LibraryNote[];
+  /** Category declared by a linked note; overrides the committed one locally. */
+  category?: string;
+  /** Tags from linked notes, merged into the entry's own tags locally. */
+  tags: string[];
+}
+
+/** The gitignored overlay written by `pnpm library:import --vault`. */
+export interface LibraryLocalOverlay {
+  version: number;
+  /** Enrichment keyed by library entry id. */
+  entries: Record<string, LibraryLocalEnrichment>;
+}
+
+/** A library entry as the UI sees it: committed data plus any local notes. */
+export interface LibraryEntryView extends LibraryComponent {
+  /** Linked vault notes; always empty outside local dev. */
+  notes: LibraryNote[];
 }
 
 /** Generated manifest consumed by the `/library` route. */
