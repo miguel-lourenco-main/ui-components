@@ -14,6 +14,7 @@
     "test:unit:watch": "vitest",
     "validate:registry": "tsx scripts/validate-registry.ts",
     "library:import": "tsx scripts/import-components.ts",
+    "library:promote": "tsx scripts/promote-library-entry.ts",
     "seed:requests": "tsx scripts/seed-requests.ts",
     "publish:request": "tsx scripts/publish-request.ts",
     "mcp": "tsx mcp/server.ts",

@@ -23,6 +23,7 @@
     "updatedAt": { "type": "string", "format": "date-time" },
     "reviewDecision": { "$ref": "#/$defs/reviewDecision" },
     "baseline": { "$ref": "#/$defs/baseline" },
+    "origin": { "$ref": "#/$defs/origin" },
     "versions": {
       "type": "array",
       "minItems": 1,
@@ -30,6 +31,20 @@
     }
   },
   "$defs": {
+    "origin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "libraryId", "project", "path", "contentHash"],
+      "properties": {
+        "kind": { "const": "library" },
+        "libraryId": { "type": "string", "minLength": 1 },
+        "project": { "type": "string", "minLength": 1 },
+        "repo": { "type": "string" },
+        "path": { "type": "string", "minLength": 1 },
+        "commit": { "type": "string" },
+        "contentHash": { "type": "string", "minLength": 1 }
+      }
+    },
     "version": {
       "type": "object",
       "additionalProperties": false,

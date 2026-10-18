@@ -1,5 +1,6 @@
 const fs = require('fs')
 const path = require('path')
+const { PHASE_DEVELOPMENT_SERVER } = require('next/constants')
 
 /**
  * The library's Obsidian overlay (`data/library/local/overlay.json`) is private
@@ -205,4 +206,15 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig 
+/**
+ * `next dev` also picks up `*.dev.ts` route files: local-only endpoints that
+ * write to the repo (the library's "Promote to playground" action). They are
+ * invisible to `next build`, so the static export has no API surface. Dev
+ * drops `output: 'export'` because export mode forces route handlers static
+ * (no request headers or body); `next build` still exports and still enforces
+ * the static-export rules.
+ */
+module.exports = (phase) =>
+  phase === PHASE_DEVELOPMENT_SERVER
+    ? { ...nextConfig, output: undefined, pageExtensions: ['tsx', 'ts', 'jsx', 'js', 'dev.ts'] }
+    : nextConfig

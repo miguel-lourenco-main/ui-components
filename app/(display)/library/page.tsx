@@ -21,6 +21,7 @@ import { FadeIn } from "@/components/motion/fade-in"
 import { PageTransition } from "@/components/page-transition"
 import { ProposalComponentPreview } from "@/components/proposal-component-preview"
 import { LibraryBrowser } from "@/components/library-browser"
+import { LibraryPromote } from "@/components/library-promote"
 import { RelativeTime } from "@/components/relative-time"
 import { LIBRARY, loadLibraryEntry, sourceUrl, toPreviewMeta } from "@/lib/library/manifest-data"
 import type { LibraryEntryView, LibraryProp } from "@/lib/contracts"
@@ -170,6 +171,8 @@ function LibraryDetail({ entry }: { entry: LibraryEntryView }) {
                 )}
               </CardContent>
             </Card>
+
+            <LibraryPromote entry={entry} />
 
             <Card>
               <CardHeader className="pb-3">

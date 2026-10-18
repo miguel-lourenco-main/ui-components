@@ -63,15 +63,28 @@ pnpm library:import ../my-cv/app/components --category actions
 
 # Options
 #   --project <name>    defaults to the source git repo's directory name
-#   --category <name>   category for entries no vault note categorises
+#   --category <name>   category for the imported entries (a local vault note may override it)
 #   --tag <tag>         extra tag (repeatable)
-#   --vault <dir>       link Obsidian notes whose frontmatter names the component
+#   --vault <dir>       link Obsidian notes whose frontmatter names the component (local only)
 #   --dry-run           print what would change, write nothing
 ```
 
 - For each exported React component it records: name, JSDoc description, props (resolved from the file's own interfaces/type aliases, with defaults from destructuring), package and local imports, the full file source, and provenance (repo, path, commit).
 - Entries are written to `data/library/entries/<project>--<name>.json`, and `data/library/index.json` is regenerated from them. Running the import again on the same sources updates entries in place. Unchanged entries keep their timestamps.
 - **Vault notes (local only):** a note is linked when its frontmatter has `component: Name` (or `components: [A, B]`). Optional `project:` restricts the match to one project, `category:` sets the entry's category, and `tags:` are merged in. Only the note's title, tags and first paragraph are read, and they go to `data/library/local/overlay.json`, which is gitignored. `pnpm dev` merges that overlay into `/library` when it exists (restart dev after creating it). `pnpm build` and the public site never include it, so committed entries and the Pages site hold code-derived data only.
+- **Lazy detail data:** `data/library/index.json` holds light rows (no source, no prop contracts). The detail view loads `data/library/entries/<id>.json` on demand, one chunk per entry.
+
+### Promoting a library entry into the playground
+
+A library entry becomes a playground component through the existing request flow: promotion creates a `new_component` request pre-filled from the entry (source, props contract, provenance), which is validated, reviewed on `/requests`, and published with `pnpm publish:request <id> --apply`.
+
+```bash
+pnpm library:promote my-cv--basebutton   # CLI
+# MCP tool: promote_library_entry { id }
+# pnpm dev: "Promote to playground" on /library?id=<id>
+```
+
+Promoted components land in `components/display-components/library/<project>/<Name>/` with the library id as registry id. An entry cannot be promoted twice: not while a request for it is open, not once it is published, and not again for a source whose request was rejected (change the source and re-import first). The button only writes in `pnpm dev`, through a dev-only route (`app/api/library/promote/route.dev.ts`) that the static build does not include; the public site shows the CLI command instead.
 
 ---
 

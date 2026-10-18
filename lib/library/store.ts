@@ -158,6 +158,14 @@ export function readLibrary(dir = LIBRARY_DIR): LibraryComponent[] {
     .map((f) => stripVaultFields(JSON.parse(fs.readFileSync(path.join(entriesDir, f), "utf8")) as LibraryComponent));
 }
 
+/** Read one stored entry by id; undefined when the id is unknown or malformed. */
+export function readLibraryEntry(id: string, dir = LIBRARY_DIR): LibraryComponent | undefined {
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(id)) return undefined;
+  const file = entryPath(dir, id);
+  if (!fs.existsSync(file)) return undefined;
+  return stripVaultFields(JSON.parse(fs.readFileSync(file, "utf8")) as LibraryComponent);
+}
+
 function overlayPath(dir: string): string {
   return path.join(dir, LOCAL_SUBDIR, "overlay.json");
 }
