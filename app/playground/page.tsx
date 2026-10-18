@@ -87,6 +87,44 @@ function PanelToggleButton({
   );
 }
 
+interface LockedPanelHintProps {
+  panels: Array<{ id: string; label: string; icon: React.ReactNode }>;
+  /** Whether the panel toolbar is currently rendered (it needs a selected component). */
+  toolbarVisible: boolean;
+}
+
+/**
+ * Tooltip body for a resize handle whose panel is closed. Closed panels have a
+ * max size of 0, so the handle cannot be dragged until the panel is opened from
+ * the toolbar; the hint shows that toolbar button's icon so it is easy to find.
+ * Adjacent closed panels collapse onto the same edge, so one hint can name several.
+ */
+function LockedPanelHint({ panels, toolbarVisible }: LockedPanelHintProps) {
+  const names = panels.map((p) => p.label).join(' and ');
+  const plural = panels.length > 1;
+  return (
+    <div className="flex flex-col gap-1.5 py-0.5" data-testid="locked-panel-hint">
+      <p className="font-medium text-foreground">
+        {names} {plural ? 'panels are' : 'panel is'} locked
+      </p>
+      <p className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
+        {toolbarVisible ? 'Unlock with the' : 'Pick a component, then use the'}
+        {panels.map((panel) => (
+          <span
+            key={panel.id}
+            className="inline-flex items-center gap-1 rounded-md border border-border bg-muted px-1.5 py-0.5 text-foreground"
+            aria-label={`${panel.label} button`}
+          >
+            {panel.icon}
+            <span className="font-medium">{panel.label}</span>
+          </span>
+        ))}
+        {plural ? 'buttons' : 'button'} in the toolbar above to resize.
+      </p>
+    </div>
+  );
+}
+
 /**
  * Custom effect that opens/closes a side panel while resizing the center panel
  * so that the total width always roughly sums to 100%.
@@ -442,6 +480,23 @@ export default function PlaygroundPage() {
     },
   ] as const;
 
+  type PanelId = (typeof panelConfigs)[number]['id'];
+
+  /**
+   * Tooltip for a resize handle, listing whichever of `panelIds` are closed.
+   * Returns undefined (no tooltip) when none are, so open panels resize as usual.
+   */
+  const lockedHint = (...panelIds: PanelId[]): React.ReactNode => {
+    const closed = panelConfigs.filter((p) => panelIds.includes(p.id) && !p.desktopActive);
+    if (closed.length === 0) return undefined;
+    return (
+      <LockedPanelHint
+        panels={closed.map(({ id, label, Icon }) => ({ id, label, icon: <Icon className="size-3.5" /> }))}
+        toolbarVisible={Boolean(playgroundState.selectedComponent)}
+      />
+    );
+  };
+
   const rendererButtons = (): React.ReactNode => {
     return playgroundState.selectedComponent ? (
       <div className="flex w-fit items-center justify-start">
@@ -651,7 +706,7 @@ export default function PlaygroundPage() {
                   />
                 </div>
               </ResizablePanel>
-              <ResizableHandle withHandle />
+              <ResizableHandle withHandle tooltip={lockedHint('search')} tooltipSide="right" />
 
               <ResizablePanel id="center"
                 ref={centerPanelRef}
@@ -675,7 +730,7 @@ export default function PlaygroundPage() {
                     />
                   </ResizablePanel>
 
-                  <ResizableHandle withHandle />
+                  <ResizableHandle withHandle tooltip={lockedHint('code')} tooltipSide="top" />
 
                   <ResizablePanel id="code-desktop" collapsible collapsedSize={0} ref={codePanelRef} defaultSize={playgroundState.showCode ? 40 : 0} minSize={0} maxSize={playgroundState.showCode ? 40 : 0} className="bg-card border-t border-border">
                     <div className="h-full flex flex-col">
@@ -693,7 +748,7 @@ export default function PlaygroundPage() {
                 </ResizablePanelGroup>
               </ResizablePanel>
 
-              <ResizableHandle withHandle />
+              <ResizableHandle withHandle tooltip={playgroundState.showProps ? undefined : lockedHint('props', 'examples')} tooltipSide="left" />
               <ResizablePanel id="props-desktop"
                 ref={propsPanelRef}
                 collapsedSize={0}
@@ -719,7 +774,7 @@ export default function PlaygroundPage() {
                 </div>
               </ResizablePanel>
 
-              <ResizableHandle withHandle />
+              <ResizableHandle withHandle tooltip={lockedHint('props', 'examples')} tooltipSide="left" />
               <ResizablePanel id="examples-desktop"
                 ref={examplesPanelRef}
                 collapsible
