@@ -30,3 +30,42 @@ unit_test:
     - ci_banner "🧪 Unit Tests" "pnpm run test:unit (vitest)"
     - pnpm run test:unit
     - ci_ok "Unit tests passed"
+
+# Playwright e2e + visual snapshots. Main pipeline only (not MR pipelines).
+# The image tag must equal the locked @playwright/test version (pnpm-lock.yaml):
+# the committed *-chromium-linux.png snapshots are rendered by that browser build.
+# Bump both together. CI=true makes playwright.config.ts serve the static export in out/.
+e2e_test:
+  stage: test
+  extends: .node22_pnpm
+  image: mcr.microsoft.com/playwright:v1.54.2-jammy
+  needs:
+    - job: build_job
+      artifacts: true
+  variables:
+    CI: "true"
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - !reference [.ci_log_load, script]
+    - ci_banner "🎭 E2E Tests" "pnpm test:e2e (Playwright, serves out/)"
+    - pnpm test:e2e
+    - ci_ok "E2E tests passed"
+  artifacts:
+    when: always
+    paths:
+      - playwright-report/
+      - test-results/
+    expire_in: 1 week
+
+# Keep GitLab Pages independent of e2e: the `test` stage now contains e2e_test, and a
+# stage-ordered job would wait for it. Explicit needs lists everything pages gated on
+# before (lint, typecheck, build, registry, unit) except e2e_test.
+pages:
+  needs:
+    - lint_job
+    - typecheck_job
+    - job: build_job
+      artifacts: true
+    - validate_registry
+    - unit_test
