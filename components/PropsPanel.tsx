@@ -8,6 +8,7 @@ import TooltipComponent from '@/components/ui/tooltip-component';
 import CodePropEditor from './prop-editors/CodePropEditor';
 import { LinkPreview } from './link-preview';
 import { cn } from '@/lib/utils';
+import { formatNumberInput, formatTextInput, parseNumberInput } from '@/lib/utils/propInputValues';
 
 interface PropsPanelProps {
   component: Component | FullComponentInfo;
@@ -322,8 +323,8 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
             type="number"
             id={`prop-${prop.name}`}
             name={`prop-${prop.name}`}
-            value={value || ''}
-            onChange={(e) => onChange(e.target.value ? Number(e.target.value) : undefined)}
+            value={formatNumberInput(value)}
+            onChange={(e) => onChange(parseNumberInput(e.target.value))}
             className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background border-input text-foreground"
           />
         );
@@ -362,8 +363,8 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
               id={`prop-${prop.name}-text`}
               name={`prop-${prop.name}-text`}
               data-testid={`prop-control-${prop.name}-text`}
-              value={value || ''}
-              onChange={(e) => onChange(e.target.value || undefined)}
+              value={formatTextInput(value)}
+              onChange={(e) => onChange(e.target.value)}
               placeholder="#000000"
               className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background border-input text-foreground"
             />
@@ -440,8 +441,11 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
             type="text"
             id={`prop-${prop.name}`}
             name={`prop-${prop.name}`}
-            value={value || ''}
-            onChange={(e) => onChange(e.target.value || undefined)}
+            value={formatTextInput(value)}
+            // An emptied field is "", not undefined: undefined would flip a
+            // controlled prop (e.g. Input `value`) to uncontrolled and the
+            // preview would keep the old text.
+            onChange={(e) => onChange(e.target.value)}
             className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background border-input text-foreground"
             placeholder={prop.name === 'className' ? 'e.g. bg-blue-500 text-white p-4' : 'Enter value'}
           />
