@@ -1,7 +1,7 @@
 import { 
   doesComponentRender, 
   setupComponentTestConsts, 
-  testDefaultValueProp, 
+  testNonVisualProp, 
   testDisabledProp, 
   testOnChangeProp, 
   testPlaceholderProp, 
@@ -70,10 +70,10 @@ test.describe('Component: Input', () => {
       await testValueProp(componentName, componentPreview, page);
     });
 
-    test('is defaultValue prop working', async ({ page }) => {
-      const { componentPreview } = await setupInputTestConsts(page);
-      
-      await testDefaultValueProp(componentName, componentPreview, page);
+    test('lists defaultValue as having no visual effect', async ({ page }) => {
+      await setupInputTestConsts(page);
+
+      await testNonVisualProp(page, 'defaultValue');
     });
 
     test('is onChange prop working', async ({ page }) => {

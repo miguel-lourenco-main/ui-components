@@ -150,7 +150,7 @@ export const inputExamples: ComponentExample[] = [
       placeholder: "Username",
       label: "Username",
       variant: "success",
-      defaultValue: "john_doe"
+      value: "john_doe"
     }
   },
   {
@@ -181,7 +181,7 @@ export const inputExamples: ComponentExample[] = [
       placeholder: "Cannot edit",
       label: "Disabled Field",
       disabled: true,
-      defaultValue: "Read only value"
+      value: "Read only value"
     }
   },
   {

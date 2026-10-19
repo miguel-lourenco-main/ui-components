@@ -22,7 +22,7 @@ export default function Card({
   variant = 'default',
   size = 'md',
   className = '',
-  padding = 'md',
+  padding,
   shadow = 'md',
   border = true,
   rounded = 'md',
@@ -68,8 +68,8 @@ export default function Card({
   const borderStyles = border ? 'border border-border' : '';
   const variantBorderStyles = variant === 'outlined' ? 'border-2' : '';
   
-  // Use padding prop if provided, otherwise fall back to size
-  const paddingClass = paddingStyles[padding] || sizeStyles[size];
+  // An explicit padding wins; otherwise size sets the padding.
+  const paddingClass = padding ? paddingStyles[padding] : sizeStyles[size];
   
   // Apply shadow class based on shadow prop
   const shadowClass = shadowStyles[shadow];

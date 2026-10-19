@@ -9,7 +9,8 @@
       "type": "number[]",
       "required": false,
       "defaultValue": [50],
-      "description": "The default value(s) for the slider"
+      "description": "The default value(s) for the slider",
+      "preview": { "visual": false, "reason": "Read once when the slider mounts, so editing it does not change the preview. Use value instead." }
     },
     {
       "name": "value",

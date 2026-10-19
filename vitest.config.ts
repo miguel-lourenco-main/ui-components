@@ -9,6 +9,8 @@ const root = path.dirname(fileURLToPath(import.meta.url));
  * request store, validation). Browser/e2e tests remain in Playwright (`e2e/`).
  */
 export default defineConfig({
+  // tsconfig keeps JSX as-is for Next; tests that render display components need it compiled.
+  oxc: { jsx: { runtime: "automatic" } },
   resolve: {
     alias: {
       "@": root,

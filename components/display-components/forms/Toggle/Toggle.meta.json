@@ -61,7 +61,8 @@
       "name": "aria-label",
       "type": "string",
       "required": false,
-      "description": "Accessible label for the toggle"
+      "description": "Accessible label for the toggle",
+      "preview": { "visual": false, "reason": "Read by screen readers only; nothing visible changes." }
     },
     {
       "name": "className",

@@ -3,6 +3,7 @@
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import type { ComponentPropContract } from "@/lib/contracts";
+import { hasVisualEffect } from "@/lib/utils/propPreview";
 
 interface RequestPropsPanelProps {
   props: ComponentPropContract[];
@@ -15,6 +16,8 @@ function propTypeLabel(prop: ComponentPropContract): string {
 }
 
 function isEditableProp(prop: ComponentPropContract): boolean {
+  // Props the contract marks as non-visual cannot change the preview.
+  if (!hasVisualEffect(prop)) return false;
   const t = prop.type;
   if (typeof t === "string") {
     return ["boolean", "string", "number", "enum", "select"].includes(t);
