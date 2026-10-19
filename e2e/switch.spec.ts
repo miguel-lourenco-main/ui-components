@@ -5,7 +5,7 @@ import {
   testLabelProp, 
   testCheckedProp, 
   testDisabledProp, 
-  testIdProp,
+  testNonVisualProp,
   testClassNameProp,
   testOnCheckedChangeProp
 } from '@/lib/test-utils';
@@ -66,15 +66,15 @@ test.describe('Component: Switch', () => {
       await testDisabledProp(componentName, componentPreview, page);
     });
 
-    test('is id prop working', async ({ page }) => {
-      const { componentPreview } = await setupSwitchTestConsts(page);
-      
+    test('lists id as having no visual effect', async ({ page }) => {
+      await setupSwitchTestConsts(page);
+
       // Open the props panel
       const propsButton = page.getByTitle('Show Properties');
       await expect(propsButton).toBeVisible();
       await propsButton.click();
-      
-      await testIdProp(componentName, componentPreview, page);
+
+      await testNonVisualProp(page, 'id');
     });
 
     test('is className prop working', async ({ page }) => {

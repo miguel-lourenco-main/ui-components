@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { setupComponentTestConsts, doesComponentRender, typeInNumberInput, testClassNameProp, testDisabledProp, testValueProp, testDefaultValueProp } from '@/lib/test-utils';
+import { setupComponentTestConsts, doesComponentRender, typeInNumberInput, testClassNameProp, testDisabledProp, testValueProp, testNonVisualProp } from '@/lib/test-utils';
 
 const componentName = 'slider';
 
@@ -48,15 +48,15 @@ test.describe('Component: Slider', () => {
       await expect(componentPreview).toHaveScreenshot(`${componentName}-max-200.png`);
     });
 
-    test('is defaultValue prop working', async ({ page }) => {
-      const { componentPreview } = await setupSliderTestConsts(page);
-      
+    test('lists defaultValue as having no visual effect', async ({ page }) => {
+      await setupSliderTestConsts(page);
+
       // Open the props panel
       const propsButton = page.getByTitle('Show Properties');
       await expect(propsButton).toBeVisible();
       await propsButton.click();
-      
-      await testDefaultValueProp(componentName, componentPreview, page);
+
+      await testNonVisualProp(page, 'defaultValue');
     });
 
     test('is value prop working', async ({ page }) => {

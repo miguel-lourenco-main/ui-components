@@ -512,25 +512,18 @@ export async function testValueProp(componentName: string, componentPreview: any
   await expect(componentPreview).toHaveScreenshot(`${componentName}-value.png`);
 }
 
-export async function testDefaultValueProp(componentName: string, componentPreview: any, page: any) {
-  // Slider uses an array-based defaultValue prop (number[]), which is edited via the JSON textarea.
-  // Other components like Input still use a simple string input.
-  if (componentName === 'slider') {
-    const control = getPropControl(page, 'defaultValue');
-    const textarea = control.locator('textarea');
-
-    if (await textarea.count()) {
-      await expect(textarea).toBeEnabled();
-      await textarea.scrollIntoViewIfNeeded();
-      await textarea.fill('[18]');
-    } else {
-      await typeInInput(page, 'defaultValue', '18');
-    }
-  } else {
-    await typeInInput(page, 'defaultValue', '18');
-  }
-
-  await expect(componentPreview).toHaveScreenshot(`${componentName}-default-value.png`);
+/**
+ * Props whose contract marks them as non-visual (`"preview": { "visual": false }`)
+ * sit in the collapsed "No visual effect" group with a disabled editor and a reason.
+ */
+export async function testNonVisualProp(page: any, propName: string) {
+  const group = page.getByTestId('non-visual-props');
+  await expect(group).toBeVisible();
+  await group.getByRole('button', { name: /No visual effect/i }).click();
+  const control = getPropControl(page, propName);
+  await control.scrollIntoViewIfNeeded();
+  await expect(control.locator('input, textarea, select').first()).toBeDisabled();
+  await expect(page.getByTestId(`prop-control-${propName}-non-visual`)).not.toBeEmpty();
 }
 
 export async function testOnChangeProp(componentName: string, renderedComponent: any, page: any) {
@@ -745,11 +738,6 @@ export async function testRowsProp(componentName: string, componentPreview: any,
 export async function testCheckedProp(componentName: string, componentPreview: any, page: any) {
   await toggleCheckbox(page, 'checked');
   await expect(componentPreview).toHaveScreenshot(`${componentName}-checked.png`);
-}
-
-export async function testIdProp(componentName: string, componentPreview: any, page: any) {
-  await typeInInput(page, 'id', 'test-component');
-  await expect(componentPreview).toHaveScreenshot(`${componentName}-with-id.png`);
 }
 
 export async function testOnCheckedChangeProp(componentName: string, renderedComponent: any, page: any) {
