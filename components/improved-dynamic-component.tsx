@@ -297,11 +297,15 @@ export default function ImprovedDynamicComponent({ componentId, navRef }: Improv
           )}
         </div>
       </div>
-      {/* Sticky sidebar that shows after carousel disappears */}
+      {/* Sticky sidebar that shows after carousel disappears. While hidden it
+          is inert, so its links are out of the tab order and the a11y tree;
+          it stays mounted so the fade/slide transition still plays. */}
       <div
         className={`fixed left-4 top-24 z-30 hidden lg:block transform transition-all duration-300 ${
           showStickySidebar ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2 pointer-events-none"
         }`}
+        data-testid="sticky-component-sidebar"
+        {...(showStickySidebar ? {} : ({ inert: "" } as Record<string, string>))}
       >
         <ComponentSidebar currentComponent={componentId} />
       </div>
