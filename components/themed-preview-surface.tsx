@@ -7,6 +7,7 @@ import { ThemedComponentPreview } from "@/components/themed-component-preview"
 import { getTheme } from "@/lib/themes"
 import { ComponentType } from "@/lib/componentTypes"
 import { computeThemeCssVars } from "@/lib/theme-css-vars"
+import { StaticPreview } from "@/components/static-preview"
 
 interface ThemedPreviewSurfaceProps {
   themeId: string
@@ -72,11 +73,9 @@ function ThemedPreviewSurface({
         </div>
       )}
 
-      <div
-        className={`${computedHeight} border rounded-md flex items-center justify-center mb-1 ${surfaceClassName || ""} pointer-events-none select-none`}
-        aria-disabled={true}
-        aria-hidden={true}
-        tabIndex={-1}
+      <StaticPreview
+        className={`${computedHeight} border rounded-md flex items-center justify-center mb-1 ${surfaceClassName || ""}`}
+        data-testid="theme-preview-surface"
         style={{
           ...cssVars,
           backgroundColor: colors.background,
@@ -85,7 +84,7 @@ function ThemedPreviewSurface({
         }}
       >
         <ThemedComponentPreview themeId={theme.id} component={component} size={size} mode={effectiveMode} seamless={true} />
-      </div>
+      </StaticPreview>
     </div>
   )
 }

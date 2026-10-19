@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ComponentType } from "@/lib/componentTypes"
 import ComponentPreview from "@/components/component-preview"
 import { PlaygroundLink } from "@/components/playground-link"
+import { StaticPreview } from "@/components/static-preview"
 
 interface ImprovedDynamicComponentProps {
   componentId: string
@@ -254,11 +255,11 @@ export default function ImprovedDynamicComponent({ componentId, navRef }: Improv
                         <TabsTrigger value="code">Code</TabsTrigger>
                       </TabsList>
                       <TabsContent value="preview" className="mt-4 min-w-0">
-                        <div className="p-4 border rounded-lg bg-background">
+                        <StaticPreview className="p-4 border rounded-lg bg-background" data-testid="variant-preview">
                           {variant.preview || (
                             <div className="text-muted-foreground text-center py-8">Preview component loading...</div>
                           )}
-                        </div>
+                        </StaticPreview>
                       </TabsContent>
                       <TabsContent value="code" className="mt-4 w-full min-w-0 overflow-hidden">
                         <CodeBlock code={variant.code} language="tsx" reveal={false} className={`max-h-[220px] max-w-full relative overflow-auto rounded-md border transition-all duration-300 ${

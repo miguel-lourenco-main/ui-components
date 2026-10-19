@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react"
 import indexJson from '@/components/display-components/index.json'
 import { ThemedComponentPreview } from '@/components/themed-component-preview'
+import { StaticPreview } from '@/components/static-preview'
 
 type PreviewContext = 'carousel' | 'themes' | 'componentPage'
 type PreviewSize = 'small' | 'medium' | 'large'
@@ -126,7 +127,7 @@ function ComponentPreview({ componentId, context, themeId, overrideSize }: Compo
     if (!themeId) return null
     // The ThemedComponentPreview handles its own sizing containerization
     return (
-      <div className="pointer-events-none">
+      <StaticPreview>
         <ThemedComponentPreview
           themeId={themeId}
           component={componentId as any}
@@ -134,7 +135,7 @@ function ComponentPreview({ componentId, context, themeId, overrideSize }: Compo
           mode="light"
           seamless={true}
         />
-      </div>
+      </StaticPreview>
     )
   }
 
@@ -159,9 +160,9 @@ function ComponentPreview({ componentId, context, themeId, overrideSize }: Compo
   // Carousel or other constrained contexts: apply container + scale
   return (
     <div className={`flex items-center justify-center ${getContainerClass(desiredSize)} p-1 overflow-hidden`}> 
-      <div className={`flex items-center justify-center size-full  ${getScaleClass(desiredSize)} origin-center pointer-events-none`}>
+      <StaticPreview className={`flex items-center justify-center size-full ${getScaleClass(desiredSize)} origin-center`}>
         <PreviewComponent />
-      </div>
+      </StaticPreview>
     </div>
   )
 }
