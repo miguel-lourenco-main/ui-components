@@ -28,7 +28,8 @@
       "name": "defaultValue",
       "type": "string",
       "required": false,
-      "description": "Default uncontrolled value"
+      "description": "Default uncontrolled value",
+      "preview": { "visual": false, "reason": "Read once when the input mounts, so editing it does not change the preview. Use value instead." }
     },
     {
       "name": "onChange",

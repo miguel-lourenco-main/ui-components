@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Component, FullComponentInfo, PropDefinition } from '@/lib/interfaces';
-import { RefreshCwIcon, InfoIcon, EyeIcon, AlertTriangle, Settings, X, ChevronDown } from 'lucide-react';
+import { RefreshCwIcon, InfoIcon, EyeIcon, EyeOff, AlertTriangle, Settings, X, ChevronDown } from 'lucide-react';
 import { debugLog } from '@/lib/constants';
 import TooltipComponent from '@/components/ui/tooltip-component';
 import CodePropEditor from './prop-editors/CodePropEditor';
 import { LinkPreview } from './link-preview';
 import { cn } from '@/lib/utils';
 import { formatNumberInput, formatTextInput, parseNumberInput } from '@/lib/utils/propInputValues';
+import { nonVisualReason, partitionByVisualEffect } from '@/lib/utils/propPreview';
 
 interface PropsPanelProps {
   component: Component | FullComponentInfo;
@@ -29,6 +30,7 @@ interface PropsPanelProps {
 export default function PropsPanel({ component, values, onChange, onSelectExample, selectedExampleIndex = -1, triggerPropsButton, codeModeActive = false, onExitCodeMode }: PropsPanelProps) {
   const [expandedProps, setExpandedProps] = useState<Set<string>>(new Set());
   const [showOptionalProps, setShowOptionalProps] = useState<boolean>(true);
+  const [showNonVisualProps, setShowNonVisualProps] = useState<boolean>(false);
 
   debugLog('props', `PropsPanel receiving props for ${component.name}`, { values });
 
@@ -81,8 +83,14 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
     return false;
   }, [component.name]);
 
-  const requiredProps = useMemo(() => component.props.filter(prop => prop.required && !shouldHideProp(prop)), [component.props]);
-  const optionalProps = useMemo(() => component.props.filter(prop => !prop.required && !shouldHideProp(prop)), [component.props]);
+  // Props whose contract says they cannot change the preview get their own,
+  // collapsed group with disabled editors (see PropPreviewContract).
+  const { visual: visualProps, nonVisual: nonVisualProps } = useMemo(
+    () => partitionByVisualEffect(component.props.filter(prop => !shouldHideProp(prop))),
+    [component.props, shouldHideProp]
+  );
+  const requiredProps = useMemo(() => visualProps.filter(prop => prop.required), [visualProps]);
+  const optionalProps = useMemo(() => visualProps.filter(prop => !prop.required), [visualProps]);
 
   return (
     <div className="h-full flex flex-col">
@@ -136,6 +144,9 @@ export default function PropsPanel({ component, values, onChange, onSelectExampl
             componentId={component.id}
             requiredProps={requiredProps}
             optionalProps={optionalProps}
+            nonVisualProps={nonVisualProps}
+            showNonVisualProps={showNonVisualProps}
+            onToggleNonVisualProps={() => setShowNonVisualProps(!showNonVisualProps)}
             values={values}
             expandedProps={expandedProps}
             showOptionalProps={showOptionalProps}
@@ -154,6 +165,9 @@ interface PropsListProps {
   componentId: string;
   requiredProps: PropDefinition[];
   optionalProps: PropDefinition[];
+  nonVisualProps: PropDefinition[];
+  showNonVisualProps: boolean;
+  onToggleNonVisualProps: () => void;
   values: Record<string, any>;
   expandedProps: Set<string>;
   showOptionalProps: boolean;
@@ -169,6 +183,9 @@ function PropsList({
   componentId,
   requiredProps,
   optionalProps, 
+  nonVisualProps,
+  showNonVisualProps,
+  onToggleNonVisualProps,
   values, 
   expandedProps, 
   showOptionalProps, 
@@ -271,6 +288,47 @@ function PropsList({
           )}
         </div>
       )}
+
+      {/* Props that cannot change the preview: listed for completeness, not editable */}
+      {nonVisualProps.length > 0 && (
+        <div data-testid="non-visual-props">
+          <button
+            onClick={onToggleNonVisualProps}
+            aria-expanded={showNonVisualProps}
+            className="group flex w-full cursor-pointer items-center gap-2 mb-3"
+          >
+            <EyeOff className="size-3.5 text-muted-foreground" />
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors duration-200 group-hover:text-foreground">
+              No visual effect
+            </h4>
+            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground tabular-nums">
+              {nonVisualProps.length}
+            </span>
+            <div className="h-px flex-1 bg-border" />
+            <ChevronDown
+              className={cn(
+                'size-4 text-muted-foreground transition-transform duration-200 motion-reduce:transition-none',
+                !showNonVisualProps && '-rotate-90'
+              )}
+            />
+          </button>
+          {showNonVisualProps && (
+            <div className="space-y-4 ml-2">
+              {nonVisualProps.map(prop => (
+                <PropControl
+                  key={prop.name}
+                  prop={prop}
+                  value={values[prop.name]}
+                  onChange={(value) => onPropChange(prop.name, value)}
+                  isExpanded={expandedProps.has(prop.name)}
+                  onToggleExpansion={() => onToggleExpansion(prop.name)}
+                  disabledReason={nonVisualReason(prop)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -281,12 +339,14 @@ interface PropControlProps {
   onChange: (value: any) => void;
   isExpanded: boolean;
   onToggleExpansion: () => void;
+  /** When set, the editor is disabled and this explains why. */
+  disabledReason?: string;
 }
 
 /**
  * Generic editor used for primitive/JSON props when a specialized editor is not required.
  */
-function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: PropControlProps) {
+function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion, disabledReason }: PropControlProps) {
   const [jsonValidationError, setJsonValidationError] = useState<string | null>(null);
   const [jsonTextValue, setJsonTextValue] = useState<string>('');
 
@@ -521,7 +581,19 @@ function PropControl({ prop, value, onChange, isExpanded, onToggleExpansion }: P
         </div>
       </div>
       
-      {renderControl()}
+      {disabledReason !== undefined ? (
+        <>
+          {/* A disabled fieldset disables every native control inside it. */}
+          <fieldset disabled className="opacity-60">
+            {prop.type === 'function' || prop.type === 'component' ? null : renderControl()}
+          </fieldset>
+          <p className="text-xs text-muted-foreground" data-testid={`prop-control-${prop.name}-non-visual`}>
+            {disabledReason}
+          </p>
+        </>
+      ) : (
+        renderControl()
+      )}
       
       {prop.defaultValue !== undefined && (
         <div className="text-xs text-muted-foreground">

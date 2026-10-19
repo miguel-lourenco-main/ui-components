@@ -31,7 +31,8 @@
       "name": "id",
       "type": "string",
       "required": false,
-      "description": "The id attribute for the switch element"
+      "description": "The id attribute for the switch element",
+      "preview": { "visual": false, "reason": "Only links the label to the switch; nothing visible changes." }
     },
     {
       "name": "label",

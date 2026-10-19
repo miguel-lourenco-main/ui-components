@@ -28,6 +28,20 @@ export interface ComponentPropContract {
     params: string;
     returnType: string;
   };
+  /** How the prop behaves in a live preview. Omitted means it has a visual effect. */
+  preview?: PropPreviewContract;
+}
+
+/**
+ * Marks a prop whose value cannot change what an already-mounted preview
+ * renders: initial-only values (`defaultValue`), DOM ids, and attributes read
+ * only by assistive technology (`aria-label`). The playground disables its
+ * editor and shows `reason` instead.
+ */
+export interface PropPreviewContract {
+  visual: false;
+  /** One line shown next to the disabled editor. */
+  reason: string;
 }
 
 /**

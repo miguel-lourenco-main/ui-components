@@ -14,6 +14,7 @@ import {
 } from "@/lib/registry/components";
 import { validateAgainstSchema } from "./schema";
 import { validateModuleSyntax } from "./code";
+import { hasVisualEffect, looksInitialOnly } from "@/lib/utils/propPreview";
 
 /** Validate a single component meta object (schema + embedded code syntax). */
 export function validateComponentMeta(
@@ -70,6 +71,19 @@ export function validateRegistry(): ValidationIssue[] {
     }
 
     issues.push(...prefixIssues(validateComponentMeta(meta), files.meta));
+
+    // Initial-only props (React's `default*` convention) cannot change a
+    // mounted preview; they should say so, so the playground disables them.
+    for (const prop of meta.props ?? []) {
+      if (looksInitialOnly(prop.name) && hasVisualEffect(prop)) {
+        issues.push({
+          code: "registry.initial_only_prop_unmarked",
+          severity: "warning",
+          message: `${label} prop "${prop.name}" looks initial-only; add "preview": { "visual": false, "reason": "..." } to its meta.`,
+          path: files.meta,
+        });
+      }
+    }
 
     if (meta.id?.toLowerCase() !== entry.id.toLowerCase()) {
       issues.push({

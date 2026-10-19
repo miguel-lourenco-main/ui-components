@@ -53,6 +53,15 @@
             "params": { "type": "string" },
             "returnType": { "type": "string", "minLength": 1 }
           }
+        },
+        "preview": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["visual", "reason"],
+          "properties": {
+            "visual": { "const": false },
+            "reason": { "type": "string", "minLength": 1 }
+          }
         }
       }
     }

@@ -1,4 +1,5 @@
 import { LucideIcon } from "lucide-react";
+import type { PropPreviewContract } from "@/lib/contracts/components";
 
 export interface TrackableFile {
     /** Original File object */
@@ -65,6 +66,8 @@ export interface PropDefinition {
     params: string;
     returnType: string;
   };
+  /** Present when the prop cannot change a mounted preview (see PropPreviewContract). */
+  preview?: PropPreviewContract;
 }
 
 // New interface for function prop storage
