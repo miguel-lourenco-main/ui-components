@@ -1,3 +1,19 @@
+const fs = require('fs')
+const path = require('path')
+const { PHASE_DEVELOPMENT_SERVER } = require('next/constants')
+
+/**
+ * The library's Obsidian overlay (`data/library/local/overlay.json`) is private
+ * and gitignored. Only `next dev` resolves `@library-local-overlay` to it, and
+ * only when the file exists. Every production build gets the committed empty
+ * overlay, so vault text can never reach the static export.
+ */
+const LOCAL_OVERLAY = path.join(__dirname, 'data', 'library', 'local', 'overlay.json')
+const EMPTY_OVERLAY = path.join(__dirname, 'lib', 'library', 'empty-overlay.json')
+function libraryOverlayPath(dev) {
+  return dev && fs.existsSync(LOCAL_OVERLAY) ? LOCAL_OVERLAY : EMPTY_OVERLAY
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   trailingSlash: true,
@@ -171,6 +187,7 @@ const nextConfig = {
     // Optimize for better tree shaking
     config.resolve.alias = {
       ...config.resolve.alias,
+      '@library-local-overlay$': libraryOverlayPath(dev),
       // Ensure better tree shaking for React
       'react/jsx-runtime.js': 'react/jsx-runtime',
       'react/jsx-dev-runtime.js': 'react/jsx-dev-runtime',
@@ -189,4 +206,15 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig 
+/**
+ * `next dev` also picks up `*.dev.ts` route files: local-only endpoints that
+ * write to the repo (the library's "Promote to playground" action). They are
+ * invisible to `next build`, so the static export has no API surface. Dev
+ * drops `output: 'export'` because export mode forces route handlers static
+ * (no request headers or body); `next build` still exports and still enforces
+ * the static-export rules.
+ */
+module.exports = (phase) =>
+  phase === PHASE_DEVELOPMENT_SERVER
+    ? { ...nextConfig, output: undefined, pageExtensions: ['tsx', 'ts', 'jsx', 'js', 'dev.ts'] }
+    : nextConfig

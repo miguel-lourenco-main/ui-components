@@ -9,6 +9,7 @@
 import type {
   ComponentRequest,
   RequestBaseline,
+  RequestOrigin,
   RequestPayload,
   RequestStatus,
   RequestType,
@@ -27,6 +28,8 @@ export interface CreateRequestInput {
   idempotencyKey?: string;
   /** Snapshot of the target component for `component_update` requests. */
   baseline?: RequestBaseline;
+  /** Provenance, e.g. the library entry a `new_component` was promoted from. */
+  origin?: RequestOrigin;
 }
 
 /** Input for appending a new version to an existing request. */

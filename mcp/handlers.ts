@@ -14,11 +14,19 @@ import {
 import { getTheme, listThemeSummaries, listThemes } from "@/lib/registry/themes";
 import { validatePayload } from "@/lib/validation";
 import { captureComponentBaseline } from "@/lib/requests/baseline";
+import { readLibraryEntry } from "@/lib/library/store";
+import {
+  buildPromotionRequest,
+  promotionBlocker,
+  promotionState,
+  type PromotionState,
+} from "@/lib/library/promotion";
 import { buildValidationResult } from "@/lib/contracts";
 import type {
   ComponentMetaContract,
   ComponentRequest,
   ProposedFile,
+  RequestOrigin,
   RequestValidationResult,
   ThemeContract,
 } from "@/lib/contracts";
@@ -128,6 +136,80 @@ function summarizeApiCompatibility(validation: RequestValidationResult) {
   };
 }
 
+interface ComponentRequestArgs {
+  title: string;
+  rationale: string;
+  meta: ComponentMetaContract;
+  files: ProposedFile[];
+  targetId?: string;
+  type?: string;
+  authorAgent?: string;
+  idempotencyKey?: string;
+  origin?: RequestOrigin;
+}
+
+/**
+ * Create (or idempotently update) a component request and validate it. Shared
+ * by `create_component_request` and library promotion, so both go through the
+ * same store, validation and review path.
+ */
+async function createComponentRequest(store: RequestStore, input: ComponentRequestArgs) {
+  const type =
+    input.type === "component_update" || (!input.type && input.targetId)
+      ? "component_update"
+      : "new_component";
+
+  const baseline =
+    type === "component_update" && input.targetId
+      ? captureComponentBaseline(input.targetId)
+      : undefined;
+
+  const request = await store.createRequest({
+    type,
+    title: input.title,
+    targetId: input.targetId,
+    rationale: input.rationale,
+    payload: { kind: "component", meta: input.meta, files: input.files },
+    authorAgent: input.authorAgent,
+    idempotencyKey: input.idempotencyKey,
+    baseline,
+    origin: input.origin,
+  });
+  const result = await validateAndAttach(store, request);
+  return {
+    ...result,
+    baseline: result.request.baseline,
+    apiCompatibility: summarizeApiCompatibility(result.validation),
+  };
+}
+
+export type PromoteResult =
+  | { ok: true; request: ComponentRequest; validation: RequestValidationResult }
+  | { ok: false; code: "not_found" | "blocked"; message: string; state?: PromotionState };
+
+/**
+ * Promote a library entry into the playground: create a `new_component`
+ * request pre-filled from the entry (source, props contract, provenance).
+ * Refuses when the entry is unknown, already promoted, or already requested.
+ */
+export async function promoteLibraryEntry(
+  store: RequestStore,
+  id: string,
+  options: { libraryDir?: string; registryIds?: string[] } = {}
+): Promise<PromoteResult> {
+  const entry = readLibraryEntry(id, options.libraryDir);
+  if (!entry) return { ok: false, code: "not_found", message: `Library entry "${id}" not found.` };
+  const registryIds = options.registryIds ?? listComponents().map((c) => c.id);
+  const state = promotionState(entry, await store.listRequests(), registryIds);
+  const blocker = promotionBlocker(state);
+  if (blocker) return { ok: false, code: "blocked", message: blocker, state };
+  const { request, validation } = await createComponentRequest(store, {
+    ...buildPromotionRequest(entry),
+    type: "new_component",
+  });
+  return { ok: true, request, validation };
+}
+
 export interface McpHandlers {
   [tool: string]: (args: Args) => Promise<unknown>;
 }
@@ -189,39 +271,22 @@ export function createHandlers(store: RequestStore): McpHandlers {
       };
     },
 
-    create_component_request: async (args) => {
-      const title = requireString(args, "title");
-      const rationale = requireString(args, "rationale");
-      const meta = requireObject<ComponentMetaContract>(args, "meta");
-      const files = requireFiles(args);
-      const targetId = optionalString(args, "targetId");
-      const explicitType = optionalString(args, "type");
-      const type =
-        explicitType === "component_update" || (!explicitType && targetId)
-          ? "component_update"
-          : "new_component";
-
-      const baseline =
-        type === "component_update" && targetId
-          ? captureComponentBaseline(targetId)
-          : undefined;
-
-      const request = await store.createRequest({
-        type,
-        title,
-        targetId,
-        rationale,
-        payload: { kind: "component", meta, files },
+    create_component_request: async (args) =>
+      createComponentRequest(store, {
+        title: requireString(args, "title"),
+        rationale: requireString(args, "rationale"),
+        meta: requireObject<ComponentMetaContract>(args, "meta"),
+        files: requireFiles(args),
+        targetId: optionalString(args, "targetId"),
+        type: optionalString(args, "type"),
         authorAgent: optionalString(args, "authorAgent"),
         idempotencyKey: optionalString(args, "idempotencyKey"),
-        baseline,
-      });
-      const result = await validateAndAttach(store, request);
-      return {
-        ...result,
-        baseline: result.request.baseline,
-        apiCompatibility: summarizeApiCompatibility(result.validation),
-      };
+      }),
+
+    promote_library_entry: async (args) => {
+      const result = await promoteLibraryEntry(store, requireString(args, "id"));
+      if (!result.ok) throw new ToolInputError(result.message);
+      return { request: result.request, validation: result.validation };
     },
 
     update_component_request: async (args) => {

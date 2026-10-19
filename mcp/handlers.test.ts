@@ -3,7 +3,8 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { FileRequestStore } from "@/lib/requests";
-import { createHandlers, ToolInputError, type McpHandlers } from "./handlers";
+import { createHandlers, promoteLibraryEntry, ToolInputError, type McpHandlers } from "./handlers";
+import { publishRequest } from "@/lib/publish";
 import type {
   ComponentRequest,
   RequestValidationResult,
@@ -154,5 +155,73 @@ describe("MCP handlers", () => {
     })) as CreateResult;
     expect(res.validation.valid).toBe(true);
     expect(res.request.type).toBe("new_theme");
+  });
+});
+
+describe("library promotion", () => {
+  let dir: string;
+  let store: FileRequestStore;
+  let out: string;
+
+  beforeEach(() => {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), "mcp-promote-"));
+    out = fs.mkdtempSync(path.join(os.tmpdir(), "mcp-publish-"));
+    store = new FileRequestStore({ dir });
+  });
+
+  afterEach(() => {
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(out, { recursive: true, force: true });
+  });
+
+  it("creates a validated new_component request from a library entry, then refuses duplicates", async () => {
+    const handlers = createHandlers(store);
+    const { request, validation } = (await handlers.promote_library_entry({ id: "my-cv--basebutton" })) as CreateResult;
+
+    expect(request.type).toBe("new_component");
+    expect(request.status).toBe("pending_review");
+    expect(validation.valid).toBe(true);
+    expect(request.origin).toMatchObject({ kind: "library", libraryId: "my-cv--basebutton", project: "my-cv" });
+    expect(request.idempotencyKey).toMatch(/^library:my-cv--basebutton@/);
+    const payload = request.versions[0].payload;
+    expect(payload.kind === "component" && payload.meta).toMatchObject({ id: "my-cv--basebutton", name: "BaseButton" });
+    expect(payload.kind === "component" && payload.files.map((f) => f.path)).toEqual([
+      "components/display-components/library/my-cv/BaseButton/BaseButton.tsx",
+      "components/display-components/library/my-cv/BaseButton/BaseButton.meta.json",
+    ]);
+
+    await expect(handlers.promote_library_entry({ id: "my-cv--basebutton" })).rejects.toThrow(/Already requested/);
+    expect(await store.listRequests()).toHaveLength(1);
+  });
+
+  it("goes through the existing review and publish path, after which the entry counts as promoted", async () => {
+    const created = await promoteLibraryEntry(store, "my-cv--basebutton");
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    await store.setReviewDecision(created.request.id, {
+      decision: "approved",
+      reviewer: "me",
+      decidedAt: new Date().toISOString(),
+    });
+    const indexPath = path.join(out, "components", "display-components", "index.json");
+    fs.mkdirSync(path.dirname(indexPath), { recursive: true });
+    fs.writeFileSync(indexPath, JSON.stringify({ blacklist: [], components: [] }));
+    const published = await publishRequest(store, created.request.id, {
+      repoRoot: out,
+      componentsDir: path.join(out, "components", "display-components"),
+      indexPath,
+    });
+    expect(published.ok).toBe(true);
+    expect(JSON.parse(fs.readFileSync(indexPath, "utf8")).components).toEqual([
+      { id: "my-cv--basebutton", name: "BaseButton", path: "./library/my-cv/BaseButton/" },
+    ]);
+
+    const again = await promoteLibraryEntry(store, "my-cv--basebutton");
+    expect(again).toMatchObject({ ok: false, code: "blocked", state: { state: "promoted" } });
+  });
+
+  it("reports an unknown or malformed entry id", async () => {
+    expect(await promoteLibraryEntry(store, "nope--missing")).toMatchObject({ ok: false, code: "not_found" });
+    expect(await promoteLibraryEntry(store, "../../etc/passwd")).toMatchObject({ ok: false, code: "not_found" });
   });
 });

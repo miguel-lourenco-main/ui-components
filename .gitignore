@@ -74,3 +74,5 @@ playwright-report/
 playwright/.cache/
 
 public/generated-registry.json
+# Local-only library data (Obsidian vault enrichment). Never commit or publish.
+data/library/local/

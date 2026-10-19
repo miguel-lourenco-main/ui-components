@@ -91,6 +91,23 @@ export interface RequestBaseline {
 }
 
 /**
+ * Where a request's content came from, when it was not written by an agent
+ * from scratch. Today: a component library entry promoted to the playground.
+ */
+export interface RequestOrigin {
+  kind: "library";
+  /** Library entry id (`<project>--<name>`). */
+  libraryId: string;
+  project: string;
+  repo?: string;
+  /** File path in the source repository. */
+  path: string;
+  commit?: string;
+  /** sha256 of the entry's source at promotion time. */
+  contentHash: string;
+}
+
+/**
  * The top-level request record. `currentVersionId` always points at the latest
  * entry in `versions`. `targetId` references the published component/theme id
  * for update requests.
@@ -110,6 +127,8 @@ export interface ComponentRequest {
    * request was opened, used for the existing-vs-proposed diff.
    */
   baseline?: RequestBaseline;
+  /** Provenance for requests created from another source (e.g. a library entry). */
+  origin?: RequestOrigin;
   /** ISO-8601 timestamps. */
   createdAt: string;
   updatedAt: string;

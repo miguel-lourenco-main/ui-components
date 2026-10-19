@@ -139,6 +139,17 @@ export const TOOL_DEFS: ToolDef[] = [
     },
   },
   {
+    name: "promote_library_entry",
+    description:
+      "Promote a component library entry (see /library; ids look like <project>--<name>) into the playground. Creates a new_component request pre-filled from the entry's source, props contract and provenance, which then goes through the normal validation, review and publish flow. Refuses when the entry is already in the registry, already has an open or published request, or the same source was rejected.",
+    inputSchema: {
+      type: "object",
+      required: ["id"],
+      additionalProperties: false,
+      properties: { id: { type: "string", description: "Library entry id." } },
+    },
+  },
+  {
     name: "update_component_request",
     description:
       "Append a new version to an existing component request (only when draft/validation_failed/needs_changes). For updates to a published component, keep the change additive — preserve the existing props from get_component(targetId); removing a required prop fails validation. Returns the request, its validation result, a baseline snapshot, and an apiCompatibility summary of any dropped props.",
